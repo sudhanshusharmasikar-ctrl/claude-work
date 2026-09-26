@@ -1,0 +1,11 @@
+# build outputs and downloaded fonts
+notes.html
+raw.pdf
+overlay.pdf
+headings.json
+pages.json
+*.pdf
+fonts/static/
+fonts/static.css
+__pycache__/
+sheets/

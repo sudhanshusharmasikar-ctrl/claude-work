@@ -1,4 +1,66 @@
-# JavaScript — Explained Simply
+# Study notes — Explained Simply
+
+Two PDF study guides for a student who already knows C++:
+
+| PDF | What it covers | Pages |
+|---|---|---|
+| **[GenAI-RAG-Agents-Explained-Simply.pdf](GenAI-RAG-Agents-Explained-Simply.pdf)** | Generative AI, agents, RAG, vector databases, vectorless RAG, Graph RAG and LangGraph (STRIKE GenAI Lectures 1–30), interview prep for the PaperRAG, SchemaMind and StanceScope projects, and a 45-day plan | 218 |
+| **[JavaScript-Explained-Simply.pdf](JavaScript-Explained-Simply.pdf)** | JavaScript Lectures 12 and 17–22 of the MERN course, plus the Day 17–22 code | 166 |
+
+## GenAI, RAG & Agents — Explained Simply
+
+Placement preparation for AI roles, planned as 45 days of about 3 hours a day. It explains the course code from
+[Rohitnegi9/STRIKEGenAI](https://github.com/Rohitnegi9/STRIKEGenAI) (Lectures 1–30, JavaScript) line by line, then
+walks through three resume projects and the interview questions they invite: *why*, *how*, *what if*, *why not* and
+*what next*.
+
+| Ch | Topic | Source |
+|---|---|---|
+| — | How to use the notes, the 45-day plan, a Day-1 survival kit (three 30-second pitches) | — |
+| 1 | How LLMs work: tokens, prediction, memory, cost | Lectures 1–3 + code |
+| 2 | Neural networks from C++, transformers in brief | Lectures 27–30 + C++ code |
+| 3 | Tools and function calling: the first agent | Lectures 4–5 + code |
+| 4 | Agents that touch your computer: website builder and code reviewer | Lectures 6–7 + code |
+| 5 | Agent design: patterns, memory, MCP, OWASP LLM Top 10 | extra reading |
+| 6 | Embeddings; cosine vs Euclidean | Lectures 8–9 |
+| 7 | Vector databases: brute force, IVF, KD-tree, HNSW, PQ | Lectures 9–11 |
+| 8 | RAG from zero | Lectures 12–13 + code |
+| 9 | Making RAG good: query rewriting, hybrid search, reranking, chunking, evaluation | Lecture 14 + extra |
+| 10 | Vectorless RAG (PageIndex) | extra reading |
+| 11 | Graph databases and Cypher | Lectures 15–16 |
+| 12 | Graph RAG: the movie project | Lectures 17–19 + code |
+| 13 | Microsoft GraphRAG and choosing the right retrieval | extra reading |
+| 14 | LangGraph: workflows as state machines | Lectures 20–21 + code |
+| 15 | Pause, resume and human-in-the-loop | Lectures 22–26 + docs |
+| 16 | The multi-agent AI dev team | Lectures 22–26 + code |
+| 17 | **PaperRAG**: pitches, code walkthrough, design decisions, a tested two-column bug and its fix, 31 questions | your repo |
+| 18 | **SchemaMind**: text-to-SQL, both safety layers attacked and tested, silent wrong answers, 38 questions | your repo |
+| 19 | **StanceScope**: LangGraph interrupt, bugs found by running it, BERT + ViT in one page, 18 questions | your repo |
+| 20 | Interview bank (71 rapid-fire questions) and three system designs | all |
+| 21 | Seven one-page revision sheets, code to write from memory, resources, last-week checklist | all |
+
+**What was checked.** The outputs printed in the notes come from running the code:
+- the course's JavaScript, with model calls mocked where they needed an API key;
+- the C++ programs;
+- LangGraph JS 1.4.18 and LangGraph Python 1.2.12;
+- the scripts in [`genai-notes-source/verify/`](genai-notes-source/verify/), run against the three project repos (the SchemaMind validator was tested on sqlglot 26, 28, 29 and 30.19).
+
+The project chapters describe the code as it is today, including what is still a placeholder or not yet measured. Every API key that appeared in the course material is replaced by a `process.env` name.
+
+### Rebuilding the GenAI PDF
+
+Requirements: Python 3 with `markdown pygments pypdf reportlab pikepdf` (plus `pymupdf pillow` for the tools in
+`tools/`), and Node.js with `playwright` and Chromium.
+
+```bash
+cd genai-notes-source
+./fonts/get_fonts.sh     # downloads Inter + JetBrains Mono (OFL) from Google Fonts
+./make.sh ../GenAI-RAG-Agents-Explained-Simply.pdf
+python3 tools/layout_check.py ../GenAI-RAG-Agents-Explained-Simply.pdf   # overlaps / margins
+python3 tools/svg_bounds.py                                              # diagram clipping
+```
+
+## JavaScript — Explained Simply
 
 **[JavaScript-Explained-Simply.pdf](JavaScript-Explained-Simply.pdf)** is a 166-page set of study notes for a student who
 already knows C++ and is learning JavaScript. It covers Lectures 12 and 17–22 of the MERN course, plus the course code
@@ -24,7 +86,7 @@ Each chapter has step-by-step explanations, C++ comparisons, diagrams, the real 
 "Things to Remember" boxes and a quiz with answers. I ran the examples in Node.js and headless Chromium to get
 the outputs shown in the notes.
 
-## Rebuilding the PDF
+### Rebuilding the JavaScript PDF
 
 The PDF is generated from the Markdown chapters in `notes-source/content/`.
 

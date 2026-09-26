@@ -1,0 +1,47 @@
+<div class="cover">
+  <div class="cv-shape cv-circle"></div>
+  <div class="cv-shape cv-ring"></div>
+  <div class="cv-shape cv-dots"></div>
+
+  <div class="cv-top">
+    <div class="cv-badge">AI</div>
+    <div class="cv-series"><b>COMPLETE STUDY NOTES</b><br>STRIKE GenAI Lectures 1–30 &nbsp;·&nbsp; your 3 projects &nbsp;·&nbsp; 45-day plan</div>
+  </div>
+
+  <div class="cv-main">
+    <div class="cv-title">GenAI, RAG &amp; Agents</div>
+    <div class="cv-title2">Explained Simply</div>
+    <div class="cv-sub">
+      How LLMs work, function calling, AI agents, embeddings, vector databases, RAG, vectorless RAG,
+      Graph RAG and LangGraph — taught step by step with diagrams, the course code explained
+      line by line, comparisons to the C++ you already know, and interview answers for
+      <b>PaperRAG</b>, <b>SchemaMind</b> and <b>StanceScope</b>.
+    </div>
+
+    <div class="cv-card">
+      <div class="cv-card-bar"><span></span><span></span><span></span><em>agent.js</em></div>
+<pre><span class="k">while</span> (<span class="k">true</span>) {
+  <span class="k">const</span> result = <span class="k">await</span> ai.models.<span class="f">generateContent</span>({
+    contents: History, config: { tools } });
+  <span class="k">if</span> (!result.functionCalls?.length) <span class="k">break</span>;  <span class="c">// final answer</span>
+  <span class="k">const</span> { name, args } = result.functionCalls[<span class="n">0</span>];
+  <span class="k">const</span> output = <span class="k">await</span> toolFunctions[name](args);
+  History.<span class="f">push</span>(<span class="c">/* functionCall + functionResponse */</span>);
+}</pre>
+    </div>
+  </div>
+
+  <div class="cv-topics">
+    <span>Tokens &amp; Context</span><span>Function Calling</span><span>AI Agents</span><span>MCP</span>
+    <span>Embeddings</span><span>Cosine Similarity</span><span>HNSW · IVF · PQ</span><span>Vector DBs</span>
+    <span>RAG</span><span>Hybrid Search &amp; Rerank</span><span>Vectorless RAG</span><span>Graph RAG</span>
+    <span>Neo4j &amp; Cypher</span><span>LangGraph</span><span>Human-in-the-loop</span><span>Multi-Agent</span>
+    <span>Text-to-SQL</span><span>RAG Evaluation</span><span>LLM Security</span><span>Interview Q&amp;A</span>
+  </div>
+
+  <div class="cv-foot">
+    <div>Built from Rohit Negi's STRIKE GenAI lecture notes and whiteboards, the course code at
+      <b>github.com/Rohitnegi9/STRIKEGenAI</b> (Lecture01 – Lecture30), and your repositories
+      <b>paperrag</b>, <b>schemamind</b> and <b>stancescope</b> (github.com/sudhanshusharmasikar-ctrl).</div>
+  </div>
+</div>
