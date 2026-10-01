@@ -1,0 +1,10 @@
+{
+  "title": "Lecture Q&A — Interview Practice",
+  "learn_title": "In this part",
+  "front_label": "How to Use This Q&A",
+  "header": "Lecture Q&A — Interview Practice",
+  "foot_left": "STRIKE GenAI · Lectures 8–16 and 20–21",
+  "foot_right": "Say each answer out loud in under 45 seconds",
+  "pdf_title": "Lecture Q&A — Interview Practice (STRIKE GenAI Lectures 8–16 and 20–21)",
+  "pdf_subject": "Interview questions and answers: embeddings, vector search (IVF, KD-tree, HNSW, PQ), RAG, advanced RAG, graph databases, LangGraph"
+}

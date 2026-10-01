@@ -25,6 +25,8 @@ import diagrams
 
 ROOT = pathlib.Path(__file__).resolve().parent
 CONTENT = ROOT / "content"
+# Optional per-book settings (qa-booklet/book.json); the main notes use the defaults.
+BOOK = json.loads((ROOT / "book.json").read_text()) if (ROOT / "book.json").exists() else {}
 
 LANG = {  # fence language -> (pygments lexer, label, css class)
     "js": ("javascript", "JavaScript", "js"),
@@ -177,13 +179,14 @@ def chapter_block(m):
     num, title, kicker = [s.strip() for s in m.group(1).split("|")]
     state["chapter"], state["fig"], state["q"] = num, 0, 0
     learn = md(m.group(2))
+    learn_title = html.escape(BOOK.get("learn_title", "In this chapter you will learn"))
     label = f"Chapter {num}" if num.isdigit() else num
     return "\n\n" + put(
         f'<section class="opener">'
         f'<div class="kicker"><span class="num">{html.escape(label)}</span>'
         f'<span class="src">{html.escape(kicker)}</span></div>'
         f'<h1 class="chapter" data-label="{html.escape(label)}">{html.escape(title)}</h1>'
-        f'<div class="learn"><div class="learn-title">In this chapter you will learn</div>{learn}</div>'
+        f'<div class="learn"><div class="learn-title">{learn_title}</div>{learn}</div>'
         f"</section>"
     ) + "\n\n"
 
@@ -198,9 +201,15 @@ def qa_block(title, body):
         q, a = parts[i].strip(), parts[i + 1].strip()
         state["q"] += 1
         long = len(a) > 1100 or "XSTASHX" in a
+        # "Q: question {{p:77}}" -> a page tag pointing into the main notes PDF
+        pref = ""
+        m = re.search(r"\s*\{\{p:([^}]*)\}\}\s*$", q)
+        if m:
+            q = q[:m.start()]
+            pref = f'<span class="pref">Notes p.&nbsp;{html.escape(m.group(1))}</span>'
         items.append(
             f'<div class="qa{" long" if long else ""}"><div class="q"><span class="qn">Q{state["q"]}</span>'
-            f'<span>{md(q)[3:-4]}</span></div><div class="a">{md(a)}</div></div>')
+            f'<span class="qt">{md(q)[3:-4]}</span>{pref}</div><div class="a">{md(a)}</div></div>')
     head = f'<div class="qa-head">{md(title)[3:-4]}</div>' if title else ""
     return "\n\n" + put(f'<div class="qa-set">{head}{"".join(items)}</div>') + "\n\n"
 
@@ -208,7 +217,8 @@ def qa_block(title, body):
 def box_block(m):
     kind, title, body = m.group(1), (m.group(2) or "").strip(), m.group(3)
     if kind == "qa":
-        return qa_block(title or "Interview Questions", body)
+        # ":::qa -" = no header line of its own (a section heading already names the block)
+        return qa_block("" if title == "-" else (title or "Interview Questions"), body)
     if kind == "cols":
         cols = re.split(r"^\|\|\|[ \t]*$", body, flags=re.M)
         inner = "".join(f'<div class="col">{md(c)}</div>' for c in cols)
@@ -310,6 +320,8 @@ def main():
     cover = (ROOT / "cover.html").read_text()
     tpl = (ROOT / "template.html").read_text()
     out = tpl.replace("{{COVER}}", cover).replace("{{BODY}}", doc)
+    if "title" in BOOK:
+        out = re.sub(r"<title>.*?</title>", lambda m: f"<title>{html.escape(BOOK['title'])}</title>", out, count=1)
     (ROOT / "notes.html").write_text(out)
     (ROOT / "headings.json").write_text(json.dumps(heads, indent=1, ensure_ascii=False))
     print(f"built notes.html: {len(heads)} headings, {len(stash)} blocks")

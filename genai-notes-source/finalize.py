@@ -15,6 +15,17 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
 ROOT = pathlib.Path(__file__).resolve().parent
+BOOK = {
+    "front_label": "Before You Start",
+    "header": "GenAI, RAG & Agents — Explained Simply",
+    "foot_left": "STRIKE GenAI · Lectures 1–30",
+    "foot_right": "PaperRAG · SchemaMind · StanceScope · 45-day edition",
+    "pdf_title": "GenAI, RAG & Agents — Explained Simply (STRIKE GenAI Lectures 1–30 + project interview prep)",
+    "pdf_subject": "LLM basics, function calling, AI agents, embeddings, vector databases, RAG, vectorless RAG, "
+                   "Graph RAG, LangGraph, multi-agent systems, PaperRAG, SchemaMind, StanceScope, interview Q&A",
+}
+if (ROOT / "book.json").exists():  # optional per-book settings (qa-booklet/book.json)
+    BOOK.update(json.loads((ROOT / "book.json").read_text()))
 
 
 def norm(s):
@@ -74,7 +85,7 @@ def cmd_stamp(pdf, out):
     chapters.sort()
 
     def chapter_for(pg):
-        cur = ("", "Before You Start")
+        cur = ("", BOOK["front_label"])
         for start, label, text in chapters:
             if start <= pg:
                 cur = (label, text)
@@ -107,7 +118,7 @@ def cmd_stamp(pdf, out):
             c.drawString(x, y, t)
             c.setFont("Inter-SemiBold", 7.6)
             c.setFillColor(muted)
-            c.drawRightString(right, y, "GenAI, RAG & Agents — Explained Simply")
+            c.drawRightString(right, y, BOOK["header"])
             c.setStrokeColor(line)
             c.setLineWidth(0.6)
             c.line(left, H - 15.5 * mm, right, H - 15.5 * mm)
@@ -122,8 +133,8 @@ def cmd_stamp(pdf, out):
             c.drawCentredString(W / 2, fy, s)
             c.setFillColor(muted)
             c.setFont("Inter", 7)
-            foot_l = "STRIKE GenAI · Lectures 1–30"
-            foot_r = "PaperRAG · SchemaMind · StanceScope · 45-day edition"
+            foot_l = BOOK["foot_left"]
+            foot_r = BOOK["foot_right"]
             gap = 4 * mm   # keep both footer texts clear of the page-number pill
             assert left + pdfmetrics.stringWidth(foot_l, "Inter", 7) < W / 2 - w / 2 - gap
             assert right - pdfmetrics.stringWidth(foot_r, "Inter", 7) > W / 2 + w / 2 + gap
@@ -139,10 +150,10 @@ def cmd_stamp(pdf, out):
                 continue
             page.add_overlay(ov.pages[i])
         with doc.open_metadata() as meta:
-            meta["dc:title"] = "GenAI, RAG & Agents — Explained Simply (STRIKE GenAI Lectures 1–30 + project interview prep)"
-            meta["dc:description"] = "LLM basics, function calling, AI agents, embeddings, vector databases, RAG, vectorless RAG, Graph RAG, LangGraph, multi-agent systems, PaperRAG, SchemaMind, StanceScope, interview Q&A"
-        doc.docinfo["/Title"] = "GenAI, RAG & Agents — Explained Simply (STRIKE GenAI Lectures 1–30 + project interview prep)"
-        doc.docinfo["/Subject"] = "LLM basics, function calling, AI agents, embeddings, vector databases, RAG, vectorless RAG, Graph RAG, LangGraph, multi-agent systems, PaperRAG, SchemaMind, StanceScope, interview Q&A"
+            meta["dc:title"] = BOOK["pdf_title"]
+            meta["dc:description"] = BOOK["pdf_subject"]
+        doc.docinfo["/Title"] = BOOK["pdf_title"]
+        doc.docinfo["/Subject"] = BOOK["pdf_subject"]
         doc.Root.PageMode = pikepdf.Name.UseOutlines
         # Rewrite every bookmark title from headings.json (Chromium drops the space where a heading
         # wraps onto a second line) and prefix chapters with their label ("Chapter 3 — …").

@@ -1,0 +1,19 @@
+/* Lecture Q&A booklet: appended after the main notes' styles (see make.sh) */
+
+/* question row: text on the left, page tag on the right */
+.qa .q .qt { flex: 1 1 auto; }
+.pref {
+  display: inline-block; font-size: 7.2pt; font-weight: 700; color: #475569; background: #eef2f7;
+  border: 1px solid #dbe2ea; border-radius: 8px; padding: 0 6pt; line-height: 11pt; white-space: nowrap;
+  letter-spacing: 0.01em; vertical-align: 1pt;
+}
+.qa .q .pref { flex: 0 0 auto; align-self: flex-start; margin: 1.5pt 0 0 8pt; height: 11pt; }
+.qnote { font-weight: 500; font-style: italic; color: #64748b; font-size: 0.9em; margin-left: 3pt; }
+
+/* part openers and a tighter contents list, so it fits on the first page */
+.opener::before { content: "Q&A"; font-family: var(--sans); font-weight: 800; font-size: 17pt; right: 13pt; top: 20pt; }
+.toc-ch { margin-top: 6pt; padding: 3pt 6pt; }
+.toc-sec { padding: 0.5pt 6pt 0.5pt 26pt; }
+
+/* cover badge holds three characters */
+.cv-badge { font-size: 13pt; padding: 0 1.6mm 1.6mm 0; }

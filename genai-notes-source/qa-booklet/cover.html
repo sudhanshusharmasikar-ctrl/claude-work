@@ -1,0 +1,44 @@
+<div class="cover">
+  <div class="cv-shape cv-circle"></div>
+  <div class="cv-shape cv-ring"></div>
+  <div class="cv-shape cv-dots"></div>
+
+  <div class="cv-top">
+    <div class="cv-badge">Q&amp;A</div>
+    <div class="cv-series"><b>INTERVIEW PRACTICE</b><br>STRIKE GenAI Lectures 8–16 and 20–21<br>52 questions with answers</div>
+  </div>
+
+  <div class="cv-main">
+    <div class="cv-title">Lecture Q&amp;A</div>
+    <div class="cv-title2">Interview Practice</div>
+    <div class="cv-sub">
+      The questions interviewers ask about what you have studied so far: embeddings, vector search
+      (IVF, KD-tree, HNSW, PQ), RAG, advanced RAG, graph databases and LangGraph. Each answer is
+      short enough to say out loud in under a minute, and each question points to the page of your
+      <b>GenAI, RAG &amp; Agents</b> notes that explains it in full.
+    </div>
+
+    <div class="cv-card">
+      <div class="cv-card-bar"><span></span><span></span><span></span><em>resume.mjs</em></div>
+<pre><span class="c">// Part 2, Q9: the trap question</span>
+<span class="k">const</span> config = { configurable: { thread_id: <span class="s">"pdf-001"</span> } };
+
+<span class="k">await</span> app.<span class="f">invoke</span>(<span class="k">null</span>, config); <span class="c">// resume where it stopped</span>
+<span class="k">await</span> app.<span class="f">invoke</span>({}, config);   <span class="c">// a new run from START</span></pre>
+    </div>
+  </div>
+
+  <div class="cv-topics">
+    <span>Embeddings</span><span>Cosine vs Euclidean</span><span>Brute Force &amp; ANN</span><span>Recall@k</span>
+    <span>IVF</span><span>KD-tree</span><span>HNSW</span><span>Product Quantization</span>
+    <span>FAISS vs Vector DB</span><span>RAG</span><span>Chunking</span><span>Query Rewriting</span>
+    <span>Multi-hop &amp; Agentic RAG</span><span>Hybrid Search</span><span>Reranking</span><span>Neo4j &amp; Cypher</span>
+    <span>LangGraph</span><span>Reducers</span><span>Checkpointers</span><span>Idempotency</span>
+  </div>
+
+  <div class="cv-foot">
+    <div>Questions and answers from our study sessions on Rohit Negi's <b>STRIKE GenAI</b> course. Page tags point
+      to <b>GenAI-RAG-Agents-Explained-Simply.pdf</b>. The LangGraph answers marked "I tested" were run on
+      LangGraph JS 1.4.18.</div>
+  </div>
+</div>

@@ -1,10 +1,11 @@
 # Study notes — Explained Simply
 
-Two PDF study guides for a student who already knows C++:
+Study guides for a student who already knows C++:
 
 | PDF | What it covers | Pages |
 |---|---|---|
 | **[GenAI-RAG-Agents-Explained-Simply.pdf](GenAI-RAG-Agents-Explained-Simply.pdf)** | Generative AI, agents, RAG, vector databases, vectorless RAG, Graph RAG and LangGraph (STRIKE GenAI Lectures 1–30), interview prep for the PaperRAG, SchemaMind and StanceScope projects, and a 45-day plan | 218 |
+| **[Lecture-QA-Interview-Practice.pdf](Lecture-QA-Interview-Practice.pdf)** | 52 interview questions with answers for the STRIKE GenAI lectures finished so far: Lectures 8–16 (embeddings, vector search, RAG, advanced RAG, graph databases) and 20–21 (LangGraph) | 12 |
 | **[JavaScript-Explained-Simply.pdf](JavaScript-Explained-Simply.pdf)** | JavaScript Lectures 12 and 17–22 of the MERN course, plus the Day 17–22 code | 166 |
 
 ## GenAI, RAG & Agents — Explained Simply
@@ -58,6 +59,28 @@ cd genai-notes-source
 ./make.sh ../GenAI-RAG-Agents-Explained-Simply.pdf
 python3 tools/layout_check.py ../GenAI-RAG-Agents-Explained-Simply.pdf   # overlaps / margins
 python3 tools/svg_bounds.py                                              # diagram clipping
+```
+
+## Lecture Q&A — Interview Practice
+
+**[Lecture-QA-Interview-Practice.pdf](Lecture-QA-Interview-Practice.pdf)** collects the interview questions and answers
+from the study sessions, for the lectures finished so far:
+
+| Part | Lectures | Topics | Questions |
+|---|---|---|---|
+| 1 | 8–16 | Embeddings, vector search (brute force, IVF, KD-tree, HNSW, PQ), RAG, advanced RAG, graph databases | 31 |
+| 2 | 20–21 | LangGraph: state, reducers, checkpointers, resuming after a crash, the three pipeline designs, StanceScope | 21 |
+
+Each question has a page tag that points to the page of the GenAI PDF where the topic is explained. The answers
+that say "I tested it" were checked by running LangGraph JS 1.4.18.
+
+The booklet uses the GenAI toolchain. Its Markdown is in `genai-notes-source/qa-booklet/content/`, and
+`qa-booklet/book.json` sets its header, footer and PDF metadata. To rebuild it:
+
+```bash
+cd genai-notes-source
+./fonts/get_fonts.sh     # once
+./qa-booklet/make.sh ../Lecture-QA-Interview-Practice.pdf
 ```
 
 ## JavaScript — Explained Simply
