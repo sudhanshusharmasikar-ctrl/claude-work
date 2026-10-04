@@ -180,7 +180,7 @@ def chapter_block(m):
     state["chapter"], state["fig"], state["q"] = num, 0, 0
     learn = md(m.group(2))
     learn_title = html.escape(BOOK.get("learn_title", "In this chapter you will learn"))
-    label = f"Chapter {num}" if num.isdigit() else num
+    label = f"{BOOK.get('chapter_word', 'Chapter')} {num}" if num.isdigit() else num
     return "\n\n" + put(
         f'<section class="opener">'
         f'<div class="kicker"><span class="num">{html.escape(label)}</span>'
