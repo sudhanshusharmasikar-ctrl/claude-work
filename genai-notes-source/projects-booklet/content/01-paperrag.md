@@ -196,7 +196,7 @@ Now ask *"What is a good chocolate cake recipe?"*. Step 4 finds nothing close (b
 
 ## 1.7 How it is measured and tested
 
-**Tests** check that the code does what it promises. There are 37, run with `pytest`, offline, in about a second. They don't download MiniLM: a tiny stand-in that counts words replaces it, so the tests are fast and give the same result every time. They cover cleaning, reading order, chunk sizes and overlap, the saved files, the guard, the answer format, the API, and the evaluation's arithmetic.
+**Tests** check that the code does what it promises. There are 37, run with `pytest`, offline, in about a second. They don't download MiniLM: a tiny stand-in that counts words replaces it, so the tests are fast and give the same result every time. They cover cleaning, reading order, chunk sizes and overlap, the saved files, the guard, the answer format, the API, and the evaluation's arithmetic. Since session 6, GitHub runs them after every push, on Python 3.11 and 3.14 (see 3.3).
 
 **Evaluation** measures how *good* the answers are, which tests can't do. `eval/run_eval.py` needs a file of your own questions of two kinds: **answerable** (with the page where the answer is) and **unanswerable** (on topic, but not in your papers). It reports:
 
@@ -220,6 +220,7 @@ Now ask *"What is a good chocolate cake recipe?"*. Step 4 finds nothing close (b
 | 3 | Two-column pages read column by column | chunks no longer mix sentences from two columns |
 | 3 | The overlap can't push a chunk past 900 characters | no chunk is longer than the model can read, except a single sentence over 900 characters |
 | 3 | An overlap of 0 no longer repeats whole chunks | in Python, `text[-0:]` is the whole string, so chunks had snowballed to 1,877 characters |
+| 6 | The tests run on GitHub after every push (CI) | a change that breaks something shows a red cross before it is merged |
 
 **What we tried for the two-column fix.** The first idea, from your notes, gave every block a single sort key: wide blocks first, then the left column, then the right. A test showed it breaks normal pages: a short line on a one-column page moved to the end, and a wide caption in the middle jumped to the top. The band method passed all three layout tests and read a realistic five-page two-column paper in the right order, while one-column documents came out exactly as before.
 

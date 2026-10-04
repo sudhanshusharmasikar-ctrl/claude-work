@@ -5,7 +5,7 @@
 - Each step: table cards, picking tables, writing SQL, checking it, running it, the repair loop
 - **The safety layers**, and why safe is not the same as correct
 - One question followed from start to finish, with real output
-- What we fixed in sessions 4–5, and what we tried
+- What we changed in each session, and what we tried
 - **Questions and answers**
 :::
 
@@ -145,7 +145,7 @@ Before session 5, the same question returned **150**, the total of all orders: "
 
 ## 2.6 How it is measured and tested
 
-**Tests:** 52, run with `pytest`, offline, in a few seconds. They build their own copy of the database and never load MiniLM.
+**Tests:** 52, run with `pytest`, offline, in a few seconds. They build their own copy of the database and never load MiniLM. Since session 6, GitHub runs them after every push, on Python 3.11 and 3.14 (see 3.3).
 
 | Test file | What it checks | Tests |
 |---|---|---|
@@ -167,6 +167,7 @@ Before session 5, the same question returned **150**, the total of all orders: "
 | 4 | The first 33 tests | including the attacks above |
 | 5 | Template mode needs the whole question to match | five valid-but-wrong answers fixed |
 | 5 | One definition of revenue | "revenue by category" and "by city" now agree with total payments, 4,791,200 |
+| 6 | The tests run on GitHub after every push (CI) | a change that breaks something shows a red cross before it is merged |
 
 **What we tried and found.** The hidden second statement came from `parse_one()`, which in sqlglot 26–28 looked only at the first statement; the new check was tested on sqlglot 26, 27, 28, 29 and 30. The time limit was found by writing a recursive query that never ends and watching it keep running. The five wrong template answers were found by asking natural questions and comparing with SQL written by hand: *how many orders from Pune* (150, not 22), *Revenue by Category* (grouped by city), *orders in the last month* (searched for a city called "The"), *top 3 customers by orders* (ranked by money), *how many cancelled orders* (listed rows instead of a count).
 

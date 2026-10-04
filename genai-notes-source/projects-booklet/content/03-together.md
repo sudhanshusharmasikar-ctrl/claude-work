@@ -29,7 +29,7 @@ Put the two pipelines next to each other and the same four steps appear. Once yo
 | The evidence shown | file and page of every passage | the SQL itself |
 | Its honest "no" | "I don't have enough supporting material…" | "Could not generate a query for this question." |
 | Without an API key | extractive mode | template mode |
-| Tests | 37 | 52 |
+| Tests, run by CI on every push | 37 | 52 |
 | Biggest open item | evaluation numbers on your own papers | accuracy numbers for Mistral mode |
 
 Two differences are worth noticing. PaperRAG's worst mistake is a **wrong answer**; SchemaMind's output is **code that runs on a database**, so its worst mistake could be a deleted table. That's why SchemaMind has three safety layers where PaperRAG has one guard. And SchemaMind doesn't need FAISS: comparing a question with 5 table cards takes one line of numpy.
@@ -79,8 +79,20 @@ PaperRAG refuses when its search finds nothing close enough, or when Mistral say
 Q: Could you combine the two projects?
 Yes, as one assistant with two tools: questions about documents go to PaperRAG's search, questions about numbers go to SchemaMind. A router, either simple rules or an LLM, picks the tool, and each tool keeps its own checks. Letting a model choose its tools like this is what **agentic RAG** means.
 
+Q: How do you know a change didn't break anything?
+Both projects have offline tests, 37 and 52, that finish in seconds. **GitHub Actions** runs all of them after every push, on a fresh Linux machine, with Python 3.11 and with 3.14. A pull request shows a green tick or a red cross before it is merged, and the badge in each README shows the state of `main`.
+
+Q: Why does CI install the CPU-only build of PyTorch?
+PyTorch comes in with sentence-transformers, and its default Linux build includes several GB of GPU libraries. The tests never run a model and GitHub's machines have no GPU, so the much smaller CPU-only build is enough. A whole run takes about a minute and a half.
+
+Q: Why test on Python 3.11 and 3.14?
+3.11 is the oldest version the READMEs promise, and 3.14 is the one on your Mac. Testing both ends catches code, or a pinned library, that works on one version but not on the other.
+
+Q: What if a test tried to download the embedding model?
+CI sets `HF_HUB_OFFLINE=1`, so the download fails and the test fails with it, instead of quietly downloading the model. That keeps the promise that the tests run offline.
+
 Q: What would you do with one more week?
-Put real numbers in both READMEs: add papers and write about 30 test questions for PaperRAG, and write 15–20 questions with gold SQL for SchemaMind's Mistral mode. Then add CI, so that all 89 tests run automatically on every push to GitHub.
+Put real numbers in both READMEs: add papers and write 40–60 test questions for PaperRAG, at least a third of them unanswerable, and write 15–20 questions with gold SQL for SchemaMind's Mistral mode. CI already runs all 89 tests on every push, so each of these changes would be checked automatically.
 
 Q: What did building both projects teach you?
 That testing finds bugs that reading the code doesn't: two chunking bugs, an injection check that worked only by luck, a timeout that never stopped a slow query, and five template answers that were valid SQL but wrong. And that a confident wrong answer is worse than an honest refusal, which is why both projects are built to say no.
@@ -95,11 +107,11 @@ Every word in this guide, in one line each. The last column says which project u
 | Agentic RAG | an LLM decides which search or tool to use for each question | idea |
 | API | a way for one program to ask another for something; here, over HTTP | both |
 | Band | a strip of a two-column page between two wide blocks | PaperRAG |
-| Block | a piece of text PyMuPDF finds on a page, about one paragraph, with its position | PaperRAG |
+| Block | a paragraph-sized piece of text on a PDF page, with its position | PaperRAG |
 | Chunk | up to 900 characters of text from one page; the piece PaperRAG searches | PaperRAG |
-| CI | a service that runs your tests automatically on every push | next step |
+| CI | continuous integration: GitHub runs the tests on every push | both |
 | Citation | the file and page that a passage came from | PaperRAG |
-| Cosine similarity | how closely two vectors point the same way: 1 = same meaning, 0 = unrelated | both |
+| Cosine similarity | how closely two vectors point the same way; 1 = same meaning | both |
 | Dot product | multiply two lists number by number, then add; for length-1 vectors it equals cosine similarity | both |
 | Embedding | a list of numbers (384 here) that describes what a text means | both |
 | Endpoint | an address on a server that does one job, like `/ask` or `/health` | both |
