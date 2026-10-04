@@ -5,7 +5,7 @@ Study guides for a student who already knows C++:
 | PDF | What it covers | Pages |
 |---|---|---|
 | **[GenAI-RAG-Agents-Explained-Simply.pdf](GenAI-RAG-Agents-Explained-Simply.pdf)** | Generative AI, agents, RAG, vector databases, vectorless RAG, Graph RAG and LangGraph (STRIKE GenAI Lectures 1–30), interview prep for the PaperRAG, SchemaMind and StanceScope projects, and a 45-day plan | 218 |
-| **[Projects-Explained-PaperRAG-SchemaMind.pdf](Projects-Explained-PaperRAG-SchemaMind.pdf)** | A beginner's picture guide to the PaperRAG and SchemaMind projects as they are after build sessions 1–6: 13 pipeline diagrams, each step tied to its file in the code, and 69 how / why / what-if / why-not questions with answers | 34 |
+| **[Projects-Explained-PaperRAG-SchemaMind.pdf](Projects-Explained-PaperRAG-SchemaMind.pdf)** | A beginner's picture guide to the PaperRAG and SchemaMind projects as they are after build sessions 1–7: 13 pipeline diagrams, each step tied to its file in the code, PaperRAG's real evaluation results, and 74 how / why / what-if / why-not questions with answers | 36 |
 | **[Lecture-QA-Interview-Practice.pdf](Lecture-QA-Interview-Practice.pdf)** | 52 interview questions with answers for the STRIKE GenAI lectures finished so far: Lectures 8–16 (embeddings, vector search, RAG, advanced RAG, graph databases) and 20–21 (LangGraph) | 12 |
 | **[JavaScript-Explained-Simply.pdf](JavaScript-Explained-Simply.pdf)** | JavaScript Lectures 12 and 17–22 of the MERN course, plus the Day 17–22 code | 166 |
 
@@ -67,14 +67,14 @@ python3 tools/svg_bounds.py                                              # diagr
 **[Projects-Explained-PaperRAG-SchemaMind.pdf](Projects-Explained-PaperRAG-SchemaMind.pdf)** explains the two main
 resume projects from zero, for someone seeing them for the first time. It describes the code in
 [paperrag](https://github.com/sudhanshusharmasikar-ctrl/paperrag) and
-[schemamind](https://github.com/sudhanshusharmasikar-ctrl/schemamind) after build sessions 1–6, so where it differs
+[schemamind](https://github.com/sudhanshusharmasikar-ctrl/schemamind) after build sessions 1–7, so where it differs
 from Chapters 17–18 of the GenAI PDF (written earlier), this guide is the current one.
 
 | Part | Topic | Figures | Questions |
 |---|---|---|---|
-| 1 | **PaperRAG**: the pipeline in one picture, then each step: text blocks, two-column reading order, chunks and overlap, embeddings, the FAISS index, the "I don't know" guard, the answer; how the web page and server talk; tests, evaluation and what each session fixed | 7 | 27 |
+| 1 | **PaperRAG**: the pipeline in one picture, then each step: text blocks, two-column reading order, chunks and overlap, embeddings, the FAISS index, the "I don't know" guard, the answer; how the web page and server talk; tests, the real evaluation (51 questions, the threshold sweep, what went wrong) and what each session fixed | 7 | 33 |
 | 2 | **SchemaMind**: the shop database, the pipeline, table cards, picking tables, template and Mistral SQL, the sqlglot validator, the three safety layers, the repair loop; tests, evaluation and what each session fixed | 5 | 30 |
-| 3 | Both projects side by side, one-minute explanations, questions about both (including the CI that tests them), and a glossary | 1 | 12 |
+| 3 | Both projects side by side, one-minute explanations, questions about both (including the CI that tests them), and a glossary | 1 | 11 |
 
 Outputs marked "real" were produced by running the project code (the SchemaMind answers come from the seeded
 `data/shop.db`); scores marked "example" are illustrations, because the real ones depend on the papers you index.

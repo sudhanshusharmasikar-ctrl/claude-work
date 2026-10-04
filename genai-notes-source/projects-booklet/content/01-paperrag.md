@@ -116,7 +116,7 @@ You type into the Streamlit page, which sends the question to the server's `/ask
 
 ```json title="what the web page sends to POST /ask"
 {"question": "Which optimizer did they use?", "top_k": 5,
- "threshold": 0.35, "mode": "extractive"}
+ "threshold": 0.50, "mode": "extractive"}
 ```
 
 The server checks the input first: 3 to 1,000 characters, `top_k` between 1 and 20, `mode` either `extractive` or `mistral`. Anything else is rejected with an error (HTTP 422) before any work starts.
@@ -131,19 +131,19 @@ FAISS compares the question's vector with every chunk's vector and returns the *
 
 ### B4 · The guard
 
-[[fig:pb-guard|The guard compares only the best score with the threshold. Below 0.35 PaperRAG refuses; at 0.35 or above it answers.]]
+[[fig:pb-guard|The guard compares only the best score with the threshold. Below 0.50 PaperRAG refuses; at 0.50 or above it answers.]]
 
 If even the best chunk scores below the **threshold**, your papers probably don't cover the question, so PaperRAG refuses instead of guessing. The refusal shows both numbers (the format is **real**; the score is an example):
 
 ```output title="the refusal message, wrapped onto two lines here"
 I don't have enough supporting material in the indexed papers to answer
-that. The closest passage scored 0.123, below the 0.350 threshold.
+that. The closest passage scored 0.123, below the 0.500 threshold.
 ```
 
 Two details matter:
 
 - It uses the **best (top-1)** score, not the average of the top 5. The average drops as you ask for more results, so the cut-off would quietly depend on `top_k`.
-- 0.35 is only a **starting value**. The right value depends on your papers; once you add them, a later session sets it from your own test questions.
+- The threshold is **0.50**, chosen in session 7 from your own evaluation (1.7). It started at 0.35, which let 10 of the 17 unanswerable test questions through.
 
 ### B5 · Write the answer
 
@@ -159,7 +159,7 @@ In mistral mode there is a **second guard**: if the model replies `INSUFFICIENT_
 ```json title="what /ask sends back (the shape is real, the values are an example)"
 {"question": "Which optimizer did they use?",
  "answer": "Extractive mode -- passages returned verbatim ...",
- "abstained": false, "top_score": 0.712, "threshold": 0.35,
+ "abstained": false, "top_score": 0.712, "threshold": 0.50,
  "mode": "extractive",
  "citations": [{"n": 1, "source": "transformers.pdf", "page": 2,
                 "score": 0.712, "chunk_id": "transformers::p2::c0"}],
@@ -188,7 +188,7 @@ Question: *"Which optimizer did the transformer paper use?"* The scores are an *
 | 2 | The input is checked (length, `top_k`, mode) | `AskRequest` in `app/api.py` | OK |
 | 3 | The question becomes 384 numbers | `embed()` in `app/index.py` | one vector |
 | 4 | FAISS finds the 5 closest chunks | `Retriever.__call__` in `app/retrieve.py` | best: `transformers.pdf p.2`, score 0.71 |
-| 5 | The guard compares 0.71 with 0.35 | the same function | answer allowed |
+| 5 | The guard compares 0.71 with 0.50 | the same function | answer allowed |
 | 6 | The extractive answer is built | `answer()` in `app/generate.py` | passages starting `[1] transformers.pdf p.2` |
 | 7 | The reply goes back with citations and timing | `ask()` in `app/api.py` | shown on the page |
 
@@ -196,36 +196,56 @@ Now ask *"What is a good chocolate cake recipe?"*. Step 4 finds nothing close (b
 
 ## 1.7 How it is measured and tested
 
-**Tests** check that the code does what it promises. There are 37, run with `pytest`, offline, in about a second. They don't download MiniLM: a tiny stand-in that counts words replaces it, so the tests are fast and give the same result every time. They cover cleaning, reading order, chunk sizes and overlap, the saved files, the guard, the answer format, the API, and the evaluation's arithmetic. Since session 6, GitHub runs them after every push, on Python 3.11 and 3.14 (see 3.3).
+**Tests** check that the code does what it promises. There are 51, run with `pytest`, offline, in about a second. They don't download MiniLM: a tiny stand-in that counts words replaces it, so the tests are fast and give the same result every time. They cover cleaning, reading order, chunk sizes and overlap, the saved files, the guard, the answer format, the API, the evaluation's arithmetic, the question checker, settings from `.env` and the web page's slider. GitHub runs them after every push, on Python 3.11 and 3.14 (see 3.3).
 
-**Evaluation** measures how *good* the answers are, which tests can't do. `eval/run_eval.py` needs a file of your own questions of two kinds: **answerable** (with the page where the answer is) and **unanswerable** (on topic, but not in your papers). It reports:
+**Evaluation** measures how *good* the answers are, which tests can't do. In session 7 you built the question set, `eval/questions.jsonl`: **51 questions** about your 8 papers (905 chunks).
 
-| Number | Meaning |
-|---|---|
-| Unsupported answers, no guard | % of questions answered without support in the papers when nothing ever refuses |
-| Unsupported answers, with guard | the same with the guard switched on |
-| False refusals | answerable questions that were refused |
-| Citation hit rate | how often the right page is among the cited ones |
+- **34 answerable**, each with the page that answers it and a short **evidence phrase** copied from that page.
+- **17 unanswerable**: on topic, but about models none of your papers mention (LLaVA, Whisper, T5 …).
 
-`--sweep` then tries thresholds from 0.20 to 0.66:
+`python -m eval.check_questions` confirms that every evidence phrase is really on its page and that no paper names the models in the unanswerable questions. Then `python -m eval.run_eval` asks every question and counts (**real**, at threshold 0.50):
 
-[[fig:pb-tradeoff|A stricter guard gives fewer wrong answers but more false refusals. The evaluation finds the threshold where wrong answers have dropped and refusals are still rare.]]
+| Number | Meaning | Your result |
+|---|---|---|
+| Unsupported answers, no guard | answers with no support in the papers, if nothing ever refused | 33.3%: all 17 unanswerable get an answer |
+| Unsupported answers, with guard | the same, with the guard on | 5.9%: only 3 of 51 |
+| False refusals | answerable questions that were refused | 11.8%: 4 of 34 |
+| Citation hit rate | answered questions whose right page is among the citations | 63.3%: 19 of 30 |
+| Retrieval time | turning the question into numbers and searching | median 9.3 ms, p95 10.4 ms |
+
+`--sweep` repeats this for every threshold from 0.20 to 0.66. Your real curve:
+
+[[fig:pb-tradeoff|Your sweep (real). Raising the threshold makes more unanswerable questions refused, but from 0.44 on also more good ones. At 0.50 the blue line has dropped to 3 of 17 while the orange one is still at 4 of 34.]]
+
+**Why 0.50.** Up to 0.42 no good question is refused, but 8 or more of the 17 unanswerable ones still get an answer. From 0.42 to 0.50, five more unanswerable questions are refused for the price of four good ones. Above 0.50 it gets expensive: each further refusal of an unanswerable question costs one to three good ones, and 0.56 refuses a third of the good questions.
+
+**What went wrong at 0.50** (`--threshold 0.50` lists every miss):
+
+- **3 unanswerable questions got an answer**, all just above the threshold (0.507 to 0.549): the size of LAION-5B, T5's training data and XLNet's objective. Your papers don't mention these models, but they do talk about training data and objectives, so a passage on the same topic scores high. A score threshold catches *off-topic* questions; it can't catch an *on-topic* question whose answer is missing. That's the job of mistral mode's second guard.
+- **4 good questions were refused** (0.434 to 0.478). Each asks for one small detail: InfoNCE in CLIP, the fusion methods compared with TMPT, the tokenizer MLLM-SD uses, where ViT puts LayerNorm. Such narrow questions score lower than broad ones.
+- **11 answers cited the wrong page**, usually the right paper but another page: an overview passage outranked the page with the detail. One answer is a sentence split across a page break (Transformer, pages 6 and 7), which chunks that never cross a page can't keep together.
 
 ## 1.8 What we changed, and what we tried
 
 | Session | Change | Why it matters |
 |---|---|---|
 | 1 | Every library fixed to a tested version | the project installs the same way everywhere, including Python 3.14 on your Mac |
-| 2 | 34 tests with a stand-in embedder | writing them uncovered two bugs, fixed in session 3 (37 tests now) |
+| 2 | 34 tests with a stand-in embedder | writing them uncovered two bugs, fixed in session 3 |
 | 3 | Two-column pages read column by column | chunks no longer mix sentences from two columns |
 | 3 | The overlap can't push a chunk past 900 characters | no chunk is longer than the model can read, except a single sentence over 900 characters |
 | 3 | An overlap of 0 no longer repeats whole chunks | in Python, `text[-0:]` is the whole string, so chunks had snowballed to 1,877 characters |
 | 6 | The tests run on GitHub after every push (CI) | a change that breaks something shows a red cross before it is merged |
+| 7 | 51 evaluation questions, a checker for them, real numbers in the README | the results table was empty; now every number comes from your papers |
+| 7 | Threshold 0.50 instead of 0.35 | 0.35 let 10 of the 17 unanswerable questions through |
+| 7 | `.env` is really read | a threshold or API key set there was silently ignored |
+| 7 | The web page's slider starts at the server's threshold | its own 0.35 would have overridden the new default |
 
 **What we tried for the two-column fix.** The first idea, from your notes, gave every block a single sort key: wide blocks first, then the left column, then the right. A test showed it breaks normal pages: a short line on a one-column page moved to the end, and a wide caption in the middle jumped to the top. The band method passed all three layout tests and read a realistic five-page two-column paper in the right order, while one-column documents came out exactly as before.
 
+**What we tried in session 7.** The first speed measurement gave a median of 9 ms but a p95 of 164 ms. On a Mac the model runs on the GPU ("mps"), which most likely does one-off setup work the first few times it sees a question. Switching to the CPU made both commands crash with a *segmentation fault*, most likely because faiss and PyTorch each bring their own copy of the OpenMP threading library. So the GPU stayed, and questions are timed only after one untimed warm-up pass: p95 10.4 ms.
+
 :::honest Still missing
-No real evaluation numbers yet: they need your papers and your own test questions (a later session). No keyword search (BM25) and no reranker. Tables and scanned pages are skipped.
+Only about 6 in 10 answers cite the right page. 3 of 17 unanswerable questions still get an answer, because a score guard can't spot an on-topic question whose answer is missing. No keyword search (BM25) and no reranker yet. Tables and scanned pages are skipped.
 :::
 
 ## 1.9 Questions and answers
@@ -235,7 +255,7 @@ Q: How does PaperRAG know which page an answer came from?
 Every chunk is built from one page only, and its page number is saved next to its text in `chunks.jsonl`. When a chunk is found, its page comes with it. The LLM never chooses the page, so it can't invent one.
 
 Q: How does it decide to say "I don't know"?
-It compares the best similarity score between the question and any chunk with a threshold, 0.35 by default. Below it, the papers probably don't cover the question, so it refuses. In mistral mode a second check also refuses when the model replies `INSUFFICIENT_CONTEXT`.
+It compares the best similarity score between the question and any chunk with a threshold, 0.50, which the evaluation chose. Below it, the papers probably don't cover the question, so it refuses. In mistral mode a second check also refuses when the model replies `INSUFFICIENT_CONTEXT`.
 
 Q: How does it read a two-column paper in the right order?
 Blocks that cross the middle of the page (title, abstract, wide captions) cut the page into bands. Inside each band it reads the left column from top to bottom, then the right column. One-column pages are unchanged, because almost every block there crosses the middle.
@@ -284,15 +304,35 @@ Q: What if two chunks disagree?
 Extractive mode shows both with their pages, so you see the disagreement. Mistral mode is told to use only the passages and may mention both. Nothing resolves conflicts automatically.
 :::
 
+:::qa Your evaluation
+Q: How did you evaluate PaperRAG?
+With 51 questions about 8 papers: 34 answerable, each with its page and an evidence phrase, and 17 unanswerable, about models the papers never mention. A checker confirms every evidence phrase is on its page. Then a script counts unsupported answers, false refusals and how often the right page is cited, for every threshold from 0.20 to 0.66.
+
+Q: How did you choose the threshold?
+From the sweep. Up to 0.42 nothing good is refused, but 8 of 17 unanswerable questions still get an answer. At 0.50 only 3 get through, for 4 wrongly refused good questions. Beyond that each extra catch costs one to three good questions, and 0.56 refuses a third of them.
+
+Q: "Unsupported answers fell from 33.3% to 5.9%": isn't that inflated?
+A bit: without a guard every unanswerable question gets an answer, so the 33.3% is just their share of the set. I quote counts instead: the guard refused 14 of 17 unanswerable questions and wrongly refused 4 of 34 answerable ones.
+
+Q: Why does only 63% of answers cite the right page?
+Usually the right paper is found, but an overview page outranks the page with the detail, and vector search is weak at exact terms like "WordPiece" or "30,000". One miss is a sentence split across a page break. A few cited pages may also hold the answer, so 63% is a strict count. Next: keyword search plus a reranker, measured with the same questions.
+
+Q: How were the questions written? Couldn't they be biased?
+They were drafted from passages sampled across all 8 papers, reworded, and checked by hand. Because they start from the papers' own text, the citation score is probably a little higher than with real users' questions; the README says so.
+
+Q: Why did the first speed measurement show a p95 of 164 ms?
+On a Mac the model runs on the GPU, which most likely does one-off setup work the first few times. Forcing the CPU instead crashed with a segmentation fault (two copies of the OpenMP threading library, most likely). Timing after one warm-up pass gave the real figure: p95 10.4 ms.
+:::
+
 :::qa What more could you add?
 Q: What would you add next?
-1) The evaluation with your own questions, and a threshold set from it. 2) Keyword search (BM25) next to vector search, merged with RRF, for exact names and numbers. 3) A reranker that rescores the top 20 chunks. 4) In mistral mode, citing only the passages the model actually used. 5) Tables and OCR.
+1) Keyword search (BM25) next to vector search, merged with RRF, because only 63% of answers cite the right page and exact terms like "WordPiece" are what vector search misses. 2) A reranker that rescores the top 20 chunks. 3) Testing mistral mode's second guard on the 3 unanswerable questions that slip through. 4) Citing only the passages the model actually used. 5) Tables and OCR.
 
 Q: How would hybrid search help?
 Vector search finds meaning; keyword search finds exact terms such as a model name or "Table 3". Running both and merging their rankings with Reciprocal Rank Fusion catches questions that either one alone would miss.
 
 Q: How would you know that an improvement really helped?
-Run the same evaluation before and after and compare the numbers: citation hit rate, false refusals and unsupported answers. If they don't move, the change isn't worth its extra complexity.
+Run the same 51 questions before and after and compare the numbers: citation hit rate (63.3% today), false refusals and unsupported answers. If they don't move, the change isn't worth its extra complexity.
 :::
 
 :::qa Why not something else?
@@ -320,5 +360,5 @@ Q: Why do the tests use a fake embedder?
 Unit tests should be fast, offline and give the same result every time. A word-counting stand-in keeps all three, while the real model's quality is measured separately by the evaluation.
 
 Q: What did you learn from building it?
-The hard parts of RAG aren't the LLM call: they're reading PDFs correctly, chunking, knowing when to refuse, and measuring. And tests find real bugs: two of the three chunking bugs appeared only because a test was written.
+The hard parts of RAG aren't the LLM call: they're reading PDFs correctly, chunking, knowing when to refuse, and measuring. And tests find real bugs: two of the three chunking bugs appeared only because a test was written. Measuring then showed where the real weakness is: finding the right page, not the LLM.
 :::

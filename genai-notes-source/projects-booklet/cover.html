@@ -20,7 +20,7 @@
     <div class="cv-card">
       <div class="cv-card-bar"><span></span><span></span><span></span><em>the two ideas to remember</em></div>
 <pre><span class="c"># PaperRAG: refuse when nothing is close enough</span>
-abstain = top_score &lt; threshold          <span class="c"># 0.35 for now</span>
+abstain = top_score &lt; threshold          <span class="c"># 0.50, from the eval</span>
 
 <span class="c"># SchemaMind: exactly one read query, or nothing</span>
 <span class="k">if</span> len(statements) != <span class="n">1</span>:
@@ -38,7 +38,7 @@ abstain = top_score &lt; threshold          <span class="c"># 0.35 for now</span
 
   <div class="cv-foot">
     <div>Written for a beginner. Describes the code in <b>github.com/sudhanshusharmasikar-ctrl/paperrag</b> and
-      <b>…/schemamind</b> after build sessions 1–6. Outputs marked "real" were produced by running that code;
+      <b>…/schemamind</b> after build sessions 1–7. Outputs marked "real" were produced by running that code;
       scores marked "example" are illustrations.</div>
   </div>
 </div>

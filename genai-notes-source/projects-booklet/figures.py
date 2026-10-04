@@ -36,7 +36,7 @@ def pb_paperrag_pipeline():
     b = [("Question", ["typed on", "the web page"], "white"),
          ("To numbers", ["the same", "MiniLM model"], "white"),
          ("Find closest", ["FAISS: top 5", "chunks + scores"], "white"),
-         ("Guard", ["best score", "≥ 0.35 ?"], "orange"),
+         ("Guard", ["best score", "≥ 0.50 ?"], "orange"),
          ("Write answer", ["quote the chunks,", "or ask Mistral"], "purple"),
          ("Answer", ["+ file & page", "citations"], "green")]
     xb = _steps(s, 17, 224, b, h=78, labels=[None, None, None, "yes", None])
@@ -50,7 +50,7 @@ def pb_paperrag_pipeline():
     s.text(gx + 7, 320, "no", size=9, weight=700, color="#b91c1c", anchor="start")
     s.box(gx - 110, 332, 220, 30, title="\"I don't know\": the papers don't cover it", kind="red", tsize=10)
     for i, t in enumerate(["server: FastAPI  (app/api.py)", "web page: Streamlit  (ui/)",
-                           "checks: eval script + 37 tests"]):
+                           "checks: 51-question eval + 51 tests"]):
         s.box(8 + i * 224, 382, 216, 30, title=t, kind="grey", tsize=10)
     return s.render()
 
@@ -189,7 +189,7 @@ def pb_embedding_space():
 def pb_guard():
     s = Svg(680, 182, "pbgd")
     x0, x1, y = 60, 620, 110
-    t = 0.35
+    t = 0.50
     xt = x0 + t * (x1 - x0)
     s.rect(x0, y - 16, xt - x0, 32, fill="#ffe4e4", stroke="#ffe4e4", sw=0.5, rx=0)
     s.rect(xt, y - 16, x1 - xt, 32, fill="#dcf5e6", stroke="#dcf5e6", sw=0.5, rx=0)
@@ -202,7 +202,7 @@ def pb_guard():
     s.text((x0 + x1) / 2, y + 52, "best (top-1) similarity score of the question with any chunk", size=10,
            color=INK)
     s.line(xt, y - 40, xt, y + 22, color="#dc2626", sw=1.8, dash="4 3", arrow=False)
-    s.text(xt, y - 46, "threshold 0.35", size=10, weight=700, color="#b91c1c")
+    s.text(xt, y - 46, "threshold 0.50", size=10, weight=700, color="#b91c1c")
     for v, label, kind in [(0.12, "\"Chocolate cake recipe?\" → 0.12", "red"),
                            (0.71, "\"Which optimizer did they use?\" → 0.71", "green")]:
         xv = x0 + v * (x1 - x0)
@@ -213,31 +213,53 @@ def pb_guard():
 
 @fig
 def pb_tradeoff():
-    s = Svg(680, 236, "pbto")
-    x0, y0, w, h = 70, 196, 440, 160
-    s.line(x0, y0, x0 + w + 10, y0, color="#6b7280", sw=1.2)
-    s.line(x0, y0, x0, y0 - h - 10, color="#6b7280", sw=1.2)
-    s.text(x0 + w / 2, y0 + 30, "threshold →  (stricter guard)", size=10, color=INK)
-    s.text(x0 - 4, y0 - h - 18, "% of questions", size=10, color=INK, anchor="start")
-    s.rect(x0 + 8.4 * w / 20, y0 - h, 3.4 * w / 20, h, fill="#fef9c3", stroke="#fde68a", sw=1, rx=4,
-           opacity=1)
-    # wrong answers fall, false refusals rise
-    pts_a = " ".join(f"L {x0 + i * w / 20:.0f} {y0 - 8 - (h - 20) * (1 / (1 + 2.718 ** ((i - 7) / 1.6))):.0f}"
-                     for i in range(1, 21))
-    s.path(f"M {x0} {y0 - 8 - (h - 20) * (1 / (1 + 2.718 ** (-7 / 1.6))):.0f} " + pts_a, color="#dc2626", sw=2.2,
-           arrow=False)
-    pts_b = " ".join(f"L {x0 + i * w / 20:.0f} {y0 - 8 - (h - 20) * (1 / (1 + 2.718 ** (-(i - 13) / 1.8))):.0f}"
-                     for i in range(1, 21))
-    s.path(f"M {x0} {y0 - 8 - (h - 20) * (1 / (1 + 2.718 ** (13 / 1.8))):.0f} " + pts_b, color="#2563eb", sw=2.2,
-           arrow=False)
-    s.text(x0 + 10.1 * w / 20, y0 - h - 6, "pick here", size=10, weight=700, color="#92400e")
-    s.box(528, 40, 146, 58, title="Wrong answers", body=["to questions the", "papers can't answer"], kind="red",
-          tsize=10.5, bsize=9)
-    s.box(528, 110, 146, 58, title="False refusals", body=["good questions", "it refused"], kind="blue",
-          tsize=10.5, bsize=9)
-    s.text(601, 190, "the shape only: your real", size=9, italic=True, color=MUTED)
-    s.text(601, 203, "curve comes from your", size=9, italic=True, color=MUTED)
-    s.text(601, 216, "own test questions", size=9, italic=True, color=MUTED)
+    """The real sweep (session 7): 51 questions, 8 papers, 905 chunks."""
+    s = Svg(680, 290, "pbto")
+    thr = [round(0.20 + 0.02 * i, 2) for i in range(24)]
+    answered = [16, 16, 16, 16, 15, 14, 12, 10, 10, 10, 9, 8, 8, 7, 5, 3, 2, 1, 0, 0, 0, 0, 0, 0]  # of 17
+    refused = [0] * 12 + [2, 3, 4, 4, 5, 8, 11, 13, 17, 20, 23, 27]                              # of 34
+    blue, orange, grid = "#2a78d6", "#eb6834", "#e5e7eb"
+    x0, x1, yb, yt = 64, 560, 236, 64
+
+    def X(t):
+        return x0 + (t - 0.20) / 0.46 * (x1 - x0)
+
+    def Y(pct):
+        return yb - pct / 100 * (yb - yt)
+
+    for pct in (0, 25, 50, 75, 100):  # recessive grid, labels in muted ink
+        s.line(x0, Y(pct), x1, Y(pct), color=grid if pct else "#9ca3af", sw=1, arrow=False)
+        s.text(x0 - 8, Y(pct) + 3.5, f"{pct}%", size=9, color=MUTED, anchor="end")
+    for t in (0.20, 0.30, 0.40, 0.50, 0.60):
+        s.text(X(t), yb + 15, f"{t:.2f}", size=9, color=MUTED)
+    s.text((x0 + x1) / 2, yb + 33, "threshold  (higher = stricter guard)", size=10, color=INK)
+    for t, label, dark in ((0.35, "old: 0.35", False), (0.50, "chosen: 0.50", True)):
+        s.line(X(t), yt - 6, X(t), yb, color="#374151" if dark else "#9ca3af", sw=1.2, dash="4 3", arrow=False)
+        s.text(X(t), yt - 12, label, size=9.5, weight=700 if dark else 400, color=INK if dark else MUTED)
+    for counts, total, color in ((answered, 17, blue), (refused, 34, orange)):
+        pts = [(X(t), Y(c / total * 100)) for t, c in zip(thr, counts)]
+        s.path("M " + " L ".join(f"{x:.1f} {y:.1f}" for x, y in pts), color=color, sw=2, arrow=False)
+        for t in (0.35, 0.50):  # markers with a surface ring where the reference lines cross
+            c = counts[thr.index(0.34)] if t == 0.35 else counts[thr.index(t)]
+            s.circle(X(t), Y(c / total * 100), 4, fill=color, stroke="#ffffff", sw=2)
+    # direct labels at the line ends, in ink, beside a swatch of the series colour
+    s.line(x1 + 8, Y(27 / 34 * 100), x1 + 22, Y(27 / 34 * 100), color=orange, sw=2, arrow=False)
+    s.text(x1 + 26, Y(27 / 34 * 100) + 3.5, "good questions", size=9.5, color=INK, anchor="start")
+    s.text(x1 + 26, Y(27 / 34 * 100) + 15.5, "refused", size=9.5, color=INK, anchor="start")
+    s.line(x1 + 8, Y(0) - 10, x1 + 22, Y(0) - 10, color=blue, sw=2, arrow=False)
+    s.text(x1 + 26, Y(0) - 6.5, "unanswerable", size=9.5, color=INK, anchor="start")
+    s.text(x1 + 26, Y(0) + 5.5, "ones answered", size=9.5, color=INK, anchor="start")
+    # legend row (two series: always a legend)
+    s.line(x0, 16, x0 + 16, 16, color=blue, sw=2, arrow=False)
+    s.text(x0 + 22, 19.5, "unanswerable questions that still got an answer (of 17)", size=9.5, color=INK,
+           anchor="start")
+    s.line(x0, 33, x0 + 16, 33, color=orange, sw=2, arrow=False)
+    s.text(x0 + 22, 36.5, "answerable questions refused (of 34)", size=9.5, color=INK, anchor="start")
+    # what the two marked thresholds mean, in counts (in the empty space right of each line)
+    for t, lines in ((0.35, ["10 of 17 answered", "0 of 34 refused"]),
+                     (0.50, ["3 of 17 answered", "4 of 34 refused"])):
+        for i, line in enumerate(lines):
+            s.text(X(t) + 7, Y(86) + 12 * i, line, size=9, color=INK, anchor="start")
     return s.render()
 
 
