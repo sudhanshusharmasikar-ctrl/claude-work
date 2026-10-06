@@ -1,0 +1,1094 @@
+<title>30-Day Placement Sprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a study logbook — today's routine is the main sheet; the 30-day calendar, tallies and leftovers sit in a side rail */
+:root {
+  --bg: #F3F5FA;
+  --surface: #FFFFFF;
+  --ink: #141A33;
+  --muted: #59617F;
+  --line: #DADFEC;
+  --accent: #2F43C4;
+  --hl: #FFD83D;
+  --hl-soft: rgba(255, 216, 61, .72);
+  --on-hl: #141A33;
+  --sd: #2F43C4;
+  --proj: #0C8577;
+  --miss: #C93A50;
+  --rest: #E4E8F2;
+  --f-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --f-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D1020; --surface: #151A2D; --ink: #E8EAF5; --muted: #9AA2C2; --line: #283050;
+    --accent: #95A3FF; --hl: #DDBB36; --hl-soft: rgba(229, 195, 58, .34); --on-hl: #141A33;
+    --sd: #95A3FF; --proj: #4CCFBC; --miss: #F07C8E; --rest: #1E2440;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D1020; --surface: #151A2D; --ink: #E8EAF5; --muted: #9AA2C2; --line: #283050;
+  --accent: #95A3FF; --hl: #DDBB36; --hl-soft: rgba(229, 195, 58, .34); --on-hl: #141A33;
+  --sd: #95A3FF; --proj: #4CCFBC; --miss: #F07C8E; --rest: #1E2440;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 15px/1.5 var(--f-body);
+  -webkit-font-smoothing: antialiased;
+}
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-inline: clamp(16px, 4vw, 40px);
+  padding-block: 28px 64px;
+}
+
+.eyebrow {
+  font: 500 11.5px/1.3 var(--f-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* Header */
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 32px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: grid; gap: 6px; min-width: 0; }
+h1 {
+  margin: 0;
+  font: 800 clamp(30px, 4.6vw, 46px)/1.02 var(--f-display);
+  letter-spacing: -.025em;
+  text-wrap: balance;
+}
+h1 .hl {
+  background: linear-gradient(var(--hl-soft), var(--hl-soft)) no-repeat 0 78% / 100% 38%;
+  padding-inline: 2px;
+}
+.countdown { display: grid; gap: 4px; justify-items: end; text-align: right; }
+.countdown .big {
+  font: 800 clamp(34px, 5vw, 52px)/1 var(--f-display);
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.countdown .sub { color: var(--muted); font-size: 13.5px; }
+.sync {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: 500 12px var(--f-mono); color: var(--muted);
+}
+.sync::before {
+  content: ""; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--muted);
+}
+.sync[data-state="synced"]::before { background: var(--proj); }
+.sync[data-state="saving"]::before { background: var(--hl); }
+.sync[data-state="local"]::before { background: var(--hl); }
+.sync[data-state="error"]::before, .sync[data-state="readonly"]::before { background: var(--miss); }
+
+/* Main layout */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 24px;
+}
+@media (min-width: 940px) {
+  .layout { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+}
+
+/* Today sheet */
+.sheet {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  min-width: 0;
+}
+.daybar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding: 20px 20px 16px;
+}
+.daytitle { display: grid; gap: 4px; min-width: 0; }
+.daytitle h2 {
+  margin: 0;
+  font: 800 28px/1.1 var(--f-display);
+  letter-spacing: -.015em;
+}
+.daytitle h2 .of { color: var(--muted); font-weight: 600; font-size: 20px; }
+.daymeta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; color: var(--muted); font-size: 14px; }
+.phase {
+  font: 500 11.5px var(--f-mono);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+}
+.phase.sd { color: var(--sd); }
+.phase.proj { color: var(--proj); }
+.phase.rest { color: var(--muted); }
+.nav { display: flex; gap: 8px; }
+.btn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.2;
+}
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.icon { padding: 7px 11px; font-family: var(--f-mono); }
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px 24px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--line);
+}
+.meter-block { display: grid; gap: 8px; min-width: 0; }
+.meter-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.meter-head strong { font: 500 20px var(--f-mono); font-variant-numeric: tabular-nums; }
+.meter-head span { color: var(--muted); font-size: 13px; }
+.pips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.pip { height: 8px; border-radius: 2px; background: var(--rest); }
+.pip.on { background: var(--hl); }
+.bar { position: relative; height: 8px; border-radius: 2px; background: var(--rest); overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; background: var(--hl); border-radius: 2px; transition: width .3s ease; }
+.bar .tick { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); opacity: .45; }
+
+.rest-note {
+  margin: 0 20px 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: repeating-linear-gradient(135deg, var(--rest) 0 6px, transparent 6px 12px), var(--surface);
+  border: 1px solid var(--line);
+  font-size: 14px;
+}
+
+/* Task rows */
+.tasks { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.task {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 6px 14px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.task:last-child { border-bottom: 0; }
+.task.is-optional { background: color-mix(in srgb, var(--rest) 40%, var(--surface)); border-radius: 0 0 14px 14px; }
+input[type="checkbox"] {
+  width: 20px; height: 20px; margin: 2px 0 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.task > input[type="checkbox"] { width: 22px; height: 22px; margin-top: 18px; }
+.task-main { display: grid; gap: 8px; min-width: 0; }
+.task-head { display: grid; gap: 2px; cursor: pointer; }
+.task.phase-sd .task-head .eyebrow { color: var(--sd); }
+.task.phase-proj .task-head .eyebrow { color: var(--proj); }
+.task-name {
+  font: 600 18px/1.3 var(--f-display);
+  letter-spacing: -.005em;
+  text-wrap: balance;
+}
+.task-name mark {
+  color: inherit;
+  background: linear-gradient(var(--hl-soft), var(--hl-soft)) no-repeat 0 85% / var(--frac, 0%) 62%;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding-inline: 2px;
+  transition: background-size .45s cubic-bezier(.2, .7, .2, 1);
+}
+
+.subs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.subs li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; }
+.subs label { cursor: pointer; font-size: 14.5px; line-height: 1.45; }
+.subs label b { font-weight: 600; }
+.subs input:checked + label { color: var(--muted); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  border: 1px solid var(--line);
+  background: transparent;
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.chip:hover:not(:disabled) { border-color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+.counter { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.counter .btn { width: 34px; height: 34px; padding: 0; font: 500 18px var(--f-mono); }
+.counter output { min-width: 2ch; text-align: center; font: 500 22px var(--f-mono); font-variant-numeric: tabular-nums; }
+.counter .meta { color: var(--muted); font-size: 13.5px; }
+
+.note {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px dashed var(--line);
+  background: transparent;
+  padding: 4px 0;
+  font-size: 14px;
+  color: var(--ink);
+}
+.note::placeholder { color: var(--muted); opacity: .8; }
+.note:focus { outline: none; border-bottom: 1px solid var(--accent); }
+
+.task-hrs { display: grid; justify-items: end; align-content: start; gap: 6px; padding-top: 2px; }
+.plan { font: 500 12px var(--f-mono); color: var(--muted); white-space: nowrap; }
+.hrs { display: inline-flex; align-items: center; gap: 4px; font: 500 13px var(--f-mono); color: var(--muted); }
+.hrs input {
+  width: 62px;
+  padding: 5px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  text-align: right;
+  font: 500 14px var(--f-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+input:disabled, button:disabled { cursor: default; }
+
+@media (max-width: 560px) {
+  .task { grid-template-columns: auto minmax(0, 1fr); padding: 14px 16px; }
+  .task-hrs { grid-column: 2; display: flex; justify-content: flex-start; align-items: center; gap: 12px; }
+  .daybar, .summary { padding-inline: 16px; }
+  .rest-note { margin-inline: 16px; }
+  .countdown { justify-items: start; text-align: left; }
+}
+
+/* Rail */
+.rail { display: grid; gap: 26px; min-width: 0; }
+.rail section, .rail details { display: grid; gap: 12px; min-width: 0; }
+.rail h3 {
+  margin: 0;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  font: 600 17px/1.2 var(--f-display);
+}
+.rail h3 .eyebrow { font-size: 11px; }
+
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.cal .wd { text-align: center; font: 500 10.5px var(--f-mono); letter-spacing: .06em; color: var(--muted); }
+.cell {
+  position: relative;
+  aspect-ratio: 1;
+  max-width: 100%;
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 13px/1 var(--f-mono);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  padding: 0;
+}
+.cell small { font-size: 8.5px; letter-spacing: .04em; color: inherit; opacity: .75; margin-top: 2px; }
+.cell::after {
+  content: "";
+  position: absolute;
+  left: 22%; right: 22%; bottom: 4px;
+  height: 2px; border-radius: 1px;
+  background: var(--phase, transparent);
+}
+.cell.ph-sd { --phase: var(--sd); }
+.cell.ph-proj { --phase: var(--proj); }
+.cell.fill { background: color-mix(in srgb, var(--hl) var(--p), var(--surface)); }
+.cell.fill.strong { color: var(--on-hl); }
+.cell.future { border-style: dashed; color: var(--muted); }
+.cell.rest {
+  background: repeating-linear-gradient(135deg, var(--rest) 0 4px, transparent 4px 8px), var(--surface);
+  color: var(--muted);
+}
+.cell.rest::after { display: none; }
+.cell.missed { border-color: var(--miss); color: var(--miss); }
+.cell.today { border: 2px solid var(--accent); }
+.cell[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
+.cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line); background: var(--surface); }
+.sw.full { background: var(--hl); border-color: var(--hl); }
+.sw.part { background: color-mix(in srgb, var(--hl) 45%, var(--surface)); }
+.sw.miss { border-color: var(--miss); }
+.sw.off { background: repeating-linear-gradient(135deg, var(--rest) 0 3px, transparent 3px 6px), var(--surface); }
+.sw.line { height: 3px; border: 0; border-radius: 1px; }
+.sw.line.sd { background: var(--sd); }
+.sw.line.proj { background: var(--proj); }
+
+.tally { margin: 0; display: grid; gap: 0; }
+.tally .row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  align-items: baseline;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+.tally .row:first-child { border-top: 1px solid var(--line); }
+.tally dt { color: var(--muted); font-size: 13.5px; }
+.tally dd { margin: 0; font: 500 15px var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.tally .row .bar { grid-column: 1 / -1; height: 5px; }
+.tally .row.stack dd { grid-column: 1 / -1; text-align: left; font-size: 14px; }
+.tally .hint { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
+.tally .hint.behind { color: var(--miss); }
+
+.backlog { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.backlog button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 10px;
+  text-align: left;
+  padding: 8px 10px;
+  border: 0;
+  border-left: 2px solid var(--miss);
+  background: transparent;
+  cursor: pointer;
+  border-radius: 0 6px 6px 0;
+}
+.backlog button:hover { background: color-mix(in srgb, var(--miss) 8%, transparent); }
+.backlog .d { font: 500 12.5px var(--f-mono); color: var(--miss); padding-top: 1px; }
+.backlog .m { font-size: 13.5px; }
+.empty { color: var(--muted); font-size: 13.5px; margin: 0; }
+
+details.settings summary {
+  cursor: pointer;
+  font: 600 15px var(--f-display);
+  color: var(--muted);
+  list-style-position: inside;
+}
+.settings form { display: grid; gap: 10px; }
+.settings label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.settings input[type="date"] {
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 14px var(--f-mono);
+}
+.settings .msg { font-size: 12.5px; color: var(--muted); margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .task-name mark, .bar i { transition: none; }
+}
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">Placement prep · 12–13 h a day · Sundays off</span>
+      <h1>30-Day <span class="hl">Placement</span> Sprint</h1>
+      <span class="sync" id="sync" data-state="local">Saved in this browser</span>
+    </div>
+    <div class="countdown">
+      <span class="big" id="cdBig">30</span>
+      <span class="sub" id="cdSub">days to placement</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="sheet" aria-labelledby="dayHeading">
+      <div class="daybar">
+        <div class="daytitle">
+          <h2 id="dayHeading"><span id="dayNum">Day 1</span> <span class="of">of 30</span></h2>
+          <div class="daymeta">
+            <span id="dayDate">Tuesday 6 October</span>
+            <span class="phase sd" id="dayPhase">System design phase</span>
+          </div>
+        </div>
+        <div class="nav">
+          <button class="btn icon" id="prevDay" type="button" aria-label="Previous day">‹</button>
+          <button class="btn" id="goToday" type="button">Today</button>
+          <button class="btn icon" id="nextDay" type="button" aria-label="Next day">›</button>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="meter-block">
+          <div class="meter-head"><strong id="sumTasks">0 / 5</strong><span id="sumTasksLabel">tasks done</span></div>
+          <div class="pips" id="pips" aria-hidden="true"><i class="pip"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></div>
+        </div>
+        <div class="meter-block">
+          <div class="meter-head"><strong id="sumHrs">0 h</strong><span>of 12–13 h target</span></div>
+          <div class="bar" aria-hidden="true"><i id="hrsFill" style="width:0%"></i><span class="tick" style="left:92.3%"></span></div>
+        </div>
+      </div>
+
+      <p class="rest-note" id="restNote" hidden><strong>Sunday is your day off.</strong> Nothing is due today. Anything you tick here counts as extra.</p>
+
+      <ul class="tasks" id="tasks" aria-label="Daily routine"></ul>
+    </section>
+
+    <aside class="rail">
+      <section aria-labelledby="calHeading">
+        <h3 id="calHeading">30 days <span class="eyebrow" id="calRange">6 Oct – 4 Nov</span></h3>
+        <div class="cal" id="cal"></div>
+        <div class="legend">
+          <span><i class="sw full"></i>All 5 done</span>
+          <span><i class="sw part"></i>Partly done</span>
+          <span><i class="sw miss"></i>Missed</span>
+          <span><i class="sw off"></i>Sunday off</span>
+          <span><i class="sw line sd"></i>System design</span>
+          <span><i class="sw line proj"></i>Projects</span>
+        </div>
+      </section>
+
+      <section aria-labelledby="tallyHeading">
+        <h3 id="tallyHeading">Tally <span class="eyebrow">so far</span></h3>
+        <dl class="tally" id="tally"></dl>
+      </section>
+
+      <section aria-labelledby="backlogHeading">
+        <h3 id="backlogHeading">Left unfinished <span class="eyebrow" id="backlogCount"></span></h3>
+        <ul class="backlog" id="backlog"></ul>
+      </section>
+
+      <details class="settings" id="settings">
+        <summary>Change plan dates</summary>
+        <form id="settingsForm">
+          <label for="setStart">Day 1 of the plan
+            <input type="date" id="setStart" required>
+          </label>
+          <label for="setPlacement">Placement date
+            <input type="date" id="setPlacement" required>
+          </label>
+          <div><button class="btn" type="submit" id="setSave">Save dates</button></div>
+          <p class="msg" id="setMsg">Days 1–15 are system design, days 16–30 are projects.</p>
+        </form>
+      </details>
+    </aside>
+  </main>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ---------- Plan content ---------- */
+  const DEFAULTS = { start: '2026-10-06', placement: '2026-11-05' };
+  const PLAN_LEN = 30;
+  const SD_DAYS = 15;
+  const LS_KEY = 'placement-sprint-v1';
+
+  const SD = [
+    { title: 'Foundations', learn: 'Client–server, DNS, HTTP, latency vs throughput, vertical vs horizontal scaling', practise: 'Explain out loud what happens when you type a URL and press Enter' },
+    { title: 'Load balancing', learn: 'L4 vs L7 load balancers, round robin and least connections, health checks, consistent hashing', practise: 'Design a URL shortener: requirements, APIs, back-of-envelope numbers' },
+    { title: 'Caching', learn: 'Cache-aside, write-through, write-back, LRU eviction, CDN, cache invalidation', practise: 'URL shortener part 2: add a cache and handle 100× more reads' },
+    { title: 'Databases', learn: 'SQL vs NoSQL, B-tree indexes, ACID vs BASE, when to pick which', practise: 'Pick and defend a database for a chat app, a bank ledger and a product catalog' },
+    { title: 'Scaling data', learn: 'Leader–follower replication, sharding keys, CAP theorem, eventual consistency', practise: 'Design Pastebin with sharded storage' },
+    { title: 'Async processing', learn: 'Message queues, pub/sub, Kafka basics, retries, dead-letter queues', practise: 'Design a notification system for email, SMS and push' },
+    { title: 'APIs and rate limits', learn: 'REST vs GraphQL vs gRPC, pagination, idempotency keys, token bucket and sliding window', practise: 'Design a rate limiter' },
+    { title: 'Files and media', learn: 'Object storage (S3), pre-signed uploads, CDN for media, thumbnails', practise: 'Design Instagram: the photo upload and storage path' },
+    { title: 'Real-time', learn: 'WebSockets vs long polling vs SSE, presence, message ordering', practise: 'Design WhatsApp one-to-one chat' },
+    { title: 'Feeds and services', learn: 'Monolith vs microservices, API gateway, fan-out on write vs fan-out on read', practise: 'Design a news feed' },
+    { title: 'Search', learn: 'Inverted index, Elasticsearch basics, tries for typeahead, ranking', practise: 'Design search autocomplete' },
+    { title: 'Reliability', learn: 'Availability nines, redundancy, failover, monitoring and alerts', practise: 'Design YouTube video upload and streaming' },
+    { title: 'AI systems', learn: 'A RAG service at scale: ingestion, chunking, vector DB, answer cache, cost and latency', practise: 'Full 45-minute mock interview on any design you found hard' }
+  ];
+
+  const PROJ = [
+    { title: 'PaperRAG: the whole pipeline', learn: 'PDF → text blocks → chunks → embeddings → FAISS → answer, in one picture', practise: 'Say your 30-second and 2-minute pitch out loud' },
+    { title: 'PaperRAG: reading PDFs', learn: 'Text blocks, two-column reading order, chunk size and overlap', practise: 'Answer: why overlap? What breaks on two-column papers?' },
+    { title: 'PaperRAG: retrieval', learn: 'Embeddings, the FAISS index, the "I don\'t know" guard and its threshold', practise: 'Draw the retrieval path from memory and defend the threshold' },
+    { title: 'PaperRAG: quality', learn: 'Web page ↔ server, tests, the 51-question evaluation, the threshold sweep', practise: 'Explain what went wrong in the evaluation and how you fixed it' },
+    { title: 'PaperRAG: question drill', learn: 'The 33 PaperRAG questions in the projects guide', practise: 'Answer 15 out loud without notes and mark the weak ones' },
+    { title: 'SchemaMind: the whole pipeline', learn: 'The shop database, table cards, picking the right tables', practise: 'Say your 30-second and 2-minute pitch out loud' },
+    { title: 'SchemaMind: writing SQL', learn: 'Template SQL vs Mistral-generated SQL, the sqlglot validator', practise: 'Answer: why validate generated SQL? What does sqlglot catch?' },
+    { title: 'SchemaMind: safety', learn: 'The three safety layers and the repair loop', practise: 'Walk an attack query through each layer and show where it stops' },
+    { title: 'SchemaMind: question drill', learn: 'Tests, evaluation, then the 30 SchemaMind questions', practise: 'Answer 15 out loud without notes and mark the weak ones' },
+    { title: 'Both projects side by side', learn: 'The comparison, the CI that tests both, the glossary', practise: 'Answer the 11 questions about both projects' },
+    { title: 'Scale your projects', learn: 'PaperRAG with 1 million PDFs; SchemaMind with 500 tables', practise: 'Sketch both on paper the way you would in a system design round' },
+    { title: 'Mock project round', learn: 'Explain both projects to a friend, or record yourself', practise: 'Handle why / what-if / why-not follow-ups for 20 minutes' },
+    { title: 'Final polish', learn: 'Resume bullets, the numbers to remember, every question you marked weak', practise: 'One last timed run of both pitches' }
+  ];
+
+  const TOPICS = ['DP', 'Graph', 'Tree', 'Other'];
+
+  const TASKS = [
+    { key: 'dsaRev', kind: 'check', group: 'DSA · 3 h', name: 'Revision', short: 'DSA revision', plan: 3, planLabel: '3 h plan', note: 'What did you revise? e.g. arrays, binary search, recursion' },
+    { key: 'dsaNew', kind: 'topic', group: 'DSA · 4–5 h', name: 'Important topic', short: 'DSA topic', plan: 4.5, planLabel: '4–5 h plan', note: 'Problems solved and patterns learned' },
+    { key: 'js', kind: 'subs', group: 'JavaScript · 2 h', name: '30-day challenge', short: 'JavaScript', plan: 2, planLabel: '2 h plan', note: 'Challenge day and topics covered', subs: [['Code', 'Practice problems for today\'s challenge day'], ['Interview', 'Answer today\'s interview questions out loud']] },
+    { key: 'focus', kind: 'subs', plan: 2, planLabel: '2 h plan' },
+    { key: 'sql', kind: 'count', group: 'SQL · 1 h', name: 'LeetCode SQL 50', short: 'SQL', plan: 1, planLabel: '1 h plan', note: 'Question names, e.g. 1757 Recyclable and Low Fat Products', target: 2 },
+    { key: 'py', kind: 'subs', group: 'Python · bonus', name: 'When time permits', short: 'Python', plan: null, planLabel: 'optional', optional: true, note: 'What you practised', subs: [['Code', 'Practice problems'], ['Interview', 'Basic interview questions']] }
+  ];
+  const REQUIRED = TASKS.filter(t => !t.optional).map(t => t.key);
+  const SQL_TOTAL = 50;
+
+  /* ---------- Dates ---------- */
+  const pad = n => String(n).padStart(2, '0');
+  const isoOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+  const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 86400000);
+  const validIso = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(parse(s));
+  const fmt = (d, o) => d.toLocaleDateString('en-GB', o);
+  const todayIso = () => isoOf(new Date());
+
+  /* ---------- State ---------- */
+  let settings = { ...DEFAULTS };
+  let days = {};
+  let plan = buildPlan();
+  let today = todayIso();
+  let selected = clampToPlan(today);
+  let db = null;
+  let readOnly = false;
+  let mode = 'local';
+  const dirty = new Set();
+  const timers = {}, inflight = {}, again = {};
+
+  function buildPlan() {
+    const start = parse(settings.start);
+    let sd = 0, pj = 0;
+    const list = [];
+    for (let i = 0; i < PLAN_LEN; i++) {
+      const date = addDays(start, i);
+      const sunday = date.getDay() === 0;
+      const phase = i < SD_DAYS ? 'sd' : 'proj';
+      const session = sunday ? null : (phase === 'sd' ? ++sd : ++pj);
+      list.push({ n: i + 1, iso: isoOf(date), date, sunday, phase, session });
+    }
+    const byIso = {};
+    list.forEach(p => { byIso[p.iso] = p; });
+    return { list, byIso, sdTotal: sd, projTotal: pj, first: list[0].iso, last: list[list.length - 1].iso };
+  }
+
+  function clampToPlan(iso) {
+    if (iso < plan.first) return plan.first;
+    if (iso > plan.last) return plan.last;
+    return iso;
+  }
+
+  function blankDay(iso) {
+    return {
+      date: iso,
+      t: {
+        dsaRev: { done: false, hrs: null, note: '' },
+        dsaNew: { done: false, hrs: null, note: '', topic: '' },
+        js: { subs: [false, false], hrs: null, note: '' },
+        focus: { subs: [false, false], hrs: null, note: '' },
+        sql: { count: 0, hrs: null, note: '' },
+        py: { subs: [false, false], hrs: null, note: '' }
+      }
+    };
+  }
+
+  function normalize(raw, iso) {
+    const b = blankDay(iso);
+    const src = (raw && typeof raw.t === 'object' && raw.t) || {};
+    for (const k of Object.keys(b.t)) {
+      const s = src[k] || {};
+      const d = b.t[k];
+      if ('done' in d) d.done = !!s.done;
+      if ('subs' in d) d.subs = d.subs.map((_, i) => !!(Array.isArray(s.subs) && s.subs[i]));
+      if ('count' in d) d.count = Math.max(0, Math.min(20, Number(s.count) || 0));
+      if ('topic' in d) d.topic = TOPICS.includes(s.topic) ? s.topic : '';
+      d.hrs = (typeof s.hrs === 'number' && isFinite(s.hrs)) ? s.hrs : null;
+      d.note = typeof s.note === 'string' ? s.note.slice(0, 300) : '';
+    }
+    return b;
+  }
+
+  const getDay = iso => days[iso] || blankDay(iso);
+  const ensureDay = iso => (days[iso] = days[iso] || blankDay(iso));
+
+  function taskDef(key) { return TASKS.find(t => t.key === key); }
+
+  function frac(day, key) {
+    const s = day.t[key];
+    if ('subs' in s) return s.subs.filter(Boolean).length / s.subs.length;
+    if ('count' in s) return Math.min(1, s.count / 2);
+    return s.done ? 1 : 0;
+  }
+  const isDone = (day, key) => frac(day, key) >= 1;
+  const requiredDone = day => REQUIRED.filter(k => isDone(day, k)).length;
+  const dayHours = day => Object.values(day.t).reduce((a, s) => a + (s.hrs || 0), 0);
+  const fmtH = h => (Math.round(h * 10) / 10).toString().replace(/\.0$/, '');
+
+  function focusMeta(pd) {
+    const sd = pd.phase === 'sd';
+    const group = sd ? 'System design · 2 h' : 'Projects · 2 h';
+    if (pd.sunday) {
+      return { group: group.replace(' · 2 h', ''), eyebrow: 'Sunday', name: 'Catch-up, if you want', short: sd ? 'System design' : 'Projects', note: 'What you caught up on',
+        subs: [['Review', 'Go back over one earlier session'], ['Practise', 'One practice question']] };
+    }
+    const list = sd ? SD : PROJ;
+    const total = sd ? plan.sdTotal : plan.projTotal;
+    const s = list[Math.min(pd.session, list.length) - 1];
+    return {
+      group, eyebrow: `Session ${pd.session} of ${total}`, name: s.title, short: sd ? 'System design' : 'Projects',
+      note: sd ? 'Key trade-offs you can now explain' : 'Questions you still find hard',
+      subs: [[sd ? 'Learn' : 'Revise', s.learn], ['Practise', s.practise]]
+    };
+  }
+
+  function labelFor(key, pd) {
+    return key === 'focus' ? focusMeta(pd).short : taskDef(key).short;
+  }
+
+  /* ---------- Persistence ---------- */
+  function cacheLocal() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ settings, days })); } catch (e) { /* storage blocked */ }
+  }
+  function loadLocal() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+      if (!raw) return;
+      if (raw.settings && validIso(raw.settings.start) && validIso(raw.settings.placement)) settings = { start: raw.settings.start, placement: raw.settings.placement };
+      if (raw.days && typeof raw.days === 'object') {
+        for (const [k, v] of Object.entries(raw.days)) if (validIso(k)) days[k] = normalize(v, k);
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  const syncEl = document.getElementById('sync');
+  function setSync(state) {
+    const text = {
+      synced: 'Saved to your account',
+      saving: 'Saving…',
+      local: 'Saved in this browser only',
+      readonly: 'View only — changes are not saved',
+      error: 'Could not save. Your last change is kept in this browser.'
+    }[state];
+    syncEl.dataset.state = state;
+    syncEl.textContent = text;
+  }
+
+  function queueSave(iso, delay) {
+    dirty.add(iso);
+    cacheLocal();
+    if (mode === 'db') setSync('saving');
+    clearTimeout(timers[iso]);
+    timers[iso] = setTimeout(() => flush(iso), delay);
+  }
+
+  async function flush(iso) {
+    if (inflight[iso]) { again[iso] = true; return; }
+    inflight[iso] = true;
+    let ok = true;
+    if (mode === 'db' && db && !readOnly) {
+      const body = JSON.parse(JSON.stringify(days[iso]));
+      body.updatedAt = new Date().toISOString();
+      try {
+        await writeWithRetry(db.doc('days/' + iso), body);
+      } catch (e) {
+        ok = false;
+        if (e && e.code === 'invalid_argument') { readOnly = true; setSync('readonly'); renderAll(); }
+        else setSync('error');
+      }
+    }
+    inflight[iso] = false;
+    if (again[iso]) { again[iso] = false; flush(iso); return; }
+    dirty.delete(iso);
+    if (ok && mode === 'db' && dirty.size === 0 && !readOnly) setSync('synced');
+  }
+
+  async function writeWithRetry(ref, body) {
+    try { await ref.set(body); }
+    catch (e) {
+      if (e && (e.code === 'unavailable' || e.code === 'resource_exhausted')) {
+        await new Promise(r => setTimeout(r, 600 + Math.random() * 900));
+        await ref.set(body);
+      } else throw e;
+    }
+  }
+
+  /* ---------- Rendering ---------- */
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const dis = () => (readOnly ? ' disabled' : '');
+
+  function renderTop() {
+    const left = diffDays(today, settings.placement);
+    const big = $('cdBig'), sub = $('cdSub');
+    const pDate = fmt(parse(settings.placement), { weekday: 'short', day: 'numeric', month: 'short' });
+    if (left > 1) { big.textContent = left; sub.textContent = `days to placement · ${pDate}`; }
+    else if (left === 1) { big.textContent = '1'; sub.textContent = `day to placement · ${pDate}`; }
+    else if (left === 0) { big.textContent = 'Today'; sub.textContent = 'Placement day. You prepared for this.'; }
+    else { big.textContent = 'Done'; sub.textContent = `Placement was on ${pDate}`; }
+    const a = parse(plan.first), b = parse(plan.last);
+    $('calRange').textContent = `${fmt(a, { day: 'numeric', month: 'short' })} – ${fmt(b, { day: 'numeric', month: 'short' })}`;
+  }
+
+  function renderDayBar() {
+    const pd = plan.byIso[selected];
+    const day = getDay(selected);
+    $('dayNum').textContent = `Day ${pd.n}`;
+    $('dayDate').textContent = fmt(pd.date, { weekday: 'long', day: 'numeric', month: 'long' }) + (selected === today ? ' · today' : '');
+    const ph = $('dayPhase');
+    ph.className = 'phase ' + (pd.sunday ? 'rest' : pd.phase);
+    ph.textContent = pd.sunday ? 'Rest day' : (pd.phase === 'sd' ? 'System design phase' : 'Project phase');
+    $('prevDay').disabled = selected === plan.first;
+    $('nextDay').disabled = selected === plan.last;
+    const todayInPlan = !!plan.byIso[today];
+    $('goToday').hidden = !todayInPlan || selected === today;
+
+    const done = requiredDone(day);
+    $('sumTasks').textContent = `${done} / ${REQUIRED.length}`;
+    $('sumTasksLabel').textContent = pd.sunday ? 'extra tasks done' : 'tasks done';
+    [...$('pips').children].forEach((p, i) => p.classList.toggle('on', i < done));
+    const h = dayHours(day);
+    $('sumHrs').textContent = `${fmtH(h)} h`;
+    $('hrsFill').style.width = Math.min(100, (h / 13) * 100) + '%';
+    $('restNote').hidden = !pd.sunday;
+  }
+
+  function subsHtml(key, subs, state) {
+    return `<ul class="subs">${subs.map(([lead, text], i) => `
+      <li><input type="checkbox" id="${key}-sub${i}" data-act="sub" data-key="${key}" data-i="${i}"${state.subs[i] ? ' checked' : ''}${dis()}>
+      <label for="${key}-sub${i}"><b>${esc(lead)}:</b> ${esc(text)}</label></li>`).join('')}</ul>`;
+  }
+
+  function sqlTotal() {
+    return plan.list.reduce((a, p) => a + (days[p.iso] ? days[p.iso].t.sql.count : 0), 0);
+  }
+
+  function renderTasks() {
+    const pd = plan.byIso[selected];
+    const day = getDay(selected);
+    const html = TASKS.map(t => {
+      const st = day.t[t.key];
+      const meta = t.key === 'focus' ? focusMeta(pd) : t;
+      const f = frac(day, t.key);
+      let body = '';
+      if (t.kind === 'topic') {
+        body = `<div class="chips" role="group" aria-label="Today's topic">${TOPICS.map(v =>
+          `<button type="button" class="chip" id="topic-${v}" data-act="topic" data-key="${t.key}" data-v="${v}" aria-pressed="${st.topic === v}"${dis()}>${v}</button>`).join('')}</div>`;
+      } else if (t.kind === 'subs') {
+        body = subsHtml(t.key, meta.subs, st);
+      } else if (t.kind === 'count') {
+        body = `<div class="counter">
+          <button type="button" class="btn" id="sql-dec" data-act="dec" data-key="sql" aria-label="One question fewer"${st.count <= 0 || readOnly ? ' disabled' : ''}>−</button>
+          <output id="sql-count" aria-live="polite">${st.count}</output>
+          <button type="button" class="btn" id="sql-inc" data-act="inc" data-key="sql" aria-label="One more question"${dis()}>+</button>
+          <span class="meta">solved today · target 2 · <span class="num">${sqlTotal()}</span> of ${SQL_TOTAL} overall</span></div>`;
+      }
+      const eyebrow = meta.eyebrow ? `${esc(meta.group)} · ${esc(meta.eyebrow)}` : esc(meta.group);
+      const cls = ['task', t.optional ? 'is-optional' : '', t.key === 'focus' ? 'phase-' + pd.phase : ''].join(' ');
+      return `<li class="${cls}" data-key="${t.key}">
+        <input type="checkbox" id="${t.key}-main" data-act="main" data-key="${t.key}"${f >= 1 ? ' checked' : ''}${dis()} aria-label="${esc(meta.short || meta.name)} done">
+        <div class="task-main">
+          <label class="task-head" for="${t.key}-main"><span class="eyebrow">${eyebrow}</span>
+            <span class="task-name"><mark style="--frac:${Math.round(f * 100)}%">${esc(meta.name)}</mark></span></label>
+          ${body}
+          <input class="note" type="text" id="${t.key}-note" data-act="note" data-key="${t.key}" maxlength="300" value="${esc(st.note)}" placeholder="${esc(meta.note)}" aria-label="Notes for ${esc(meta.short || meta.name)}"${dis()}>
+        </div>
+        <div class="task-hrs">
+          <span class="plan">${t.planLabel}</span>
+          <label class="hrs"><input type="number" id="${t.key}-hrs" data-act="hrs" data-key="${t.key}" min="0" max="16" step="0.5" inputmode="decimal" value="${st.hrs ?? ''}" placeholder="0" aria-label="Hours spent on ${esc(meta.short || meta.name)}"${dis()}>h</label>
+        </div>
+      </li>`;
+    }).join('');
+    const el = $('tasks');
+    el.innerHTML = html;
+    TASKS.forEach(t => {
+      const box = $(`${t.key}-main`);
+      const f = frac(day, t.key);
+      box.indeterminate = f > 0 && f < 1;
+    });
+  }
+
+  function renderCal() {
+    const cal = $('cal');
+    const wd = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    let html = wd.map(w => `<span class="wd" aria-hidden="true">${w.slice(0, 2)}</span>`).join('');
+    const offset = (plan.list[0].date.getDay() + 6) % 7;
+    for (let i = 0; i < offset; i++) html += '<span aria-hidden="true"></span>';
+    plan.list.forEach((pd, i) => {
+      const day = days[pd.iso];
+      const done = day ? requiredDone(day) : 0;
+      const p = done / REQUIRED.length;
+      const past = pd.iso < today;
+      const isToday = pd.iso === today;
+      const cls = ['cell', 'ph-' + pd.phase];
+      let state;
+      let style = '';
+      if (pd.sunday) { cls.push('rest'); state = 'Sunday off'; }
+      else if (pd.iso > today) { cls.push('future'); state = 'upcoming'; }
+      else if (done > 0) {
+        cls.push('fill'); if (p >= 0.6) cls.push('strong');
+        style = ` style="--p:${Math.round(20 + p * 80)}%"`;
+        state = `${done} of ${REQUIRED.length} done`;
+      } else if (past) { cls.push('missed'); state = 'missed'; }
+      else state = 'not started';
+      if (isToday) cls.push('today');
+      const d = pd.date.getDate();
+      const mon = (i === 0 || d === 1) ? `<small>${fmt(pd.date, { month: 'short' })}</small>` : '';
+      const label = `Day ${pd.n}, ${fmt(pd.date, { weekday: 'long', day: 'numeric', month: 'long' })}${isToday ? ', today' : ''}: ${state}`;
+      html += `<button type="button" class="${cls.join(' ')}" id="cell-${pd.iso}" data-iso="${pd.iso}" aria-pressed="${pd.iso === selected}" aria-label="${label}" title="${label}"${style}>${d}${mon}</button>`;
+    });
+    cal.innerHTML = html;
+  }
+
+  function renderTally() {
+    const worked = plan.list.filter(p => !p.sunday && p.iso <= today);
+    const reqTotal = worked.length * REQUIRED.length;
+    const reqDone = worked.reduce((a, p) => a + (days[p.iso] ? requiredDone(days[p.iso]) : 0), 0);
+    const allHours = plan.list.reduce((a, p) => a + (days[p.iso] ? dayHours(days[p.iso]) : 0), 0);
+    const pastFull = plan.list.filter(p => !p.sunday && p.iso <= today).length;
+    const sql = sqlTotal();
+    const finishedDays = plan.list.filter(p => !p.sunday && p.iso < today).length;
+    const sqlExpected = Math.min(SQL_TOTAL, finishedDays * 2);
+    const sqlGap = sqlExpected - sql;
+    const count = (key, filter) => plan.list.filter(p => (!filter || filter(p)) && days[p.iso] && isDone(days[p.iso], key)).length;
+    const topicCounts = TOPICS.map(t => [t, plan.list.filter(p => days[p.iso] && days[p.iso].t.dsaNew.topic === t).length]);
+    const pct = reqTotal ? Math.round((reqDone / reqTotal) * 100) : null;
+    const st = streak();
+
+    const rows = [
+      ['Streak', `${st} ${st === 1 ? 'day' : 'days'}`, '', 'Working days in a row with all 5 tasks done'],
+      ['Plan done', pct === null ? '—' : `${pct}%`, pct === null ? '' : bar(pct / 100), `${reqDone} of ${reqTotal} tasks across ${worked.length} working ${worked.length === 1 ? 'day' : 'days'}`],
+      ['Hours logged', `${fmtH(allHours)} h`, '', pastFull ? `About ${fmtH(allHours / pastFull)} h per working day` : ''],
+      ['LeetCode SQL 50', `${sql} / ${SQL_TOTAL}`, bar(sql / SQL_TOTAL), sql >= SQL_TOTAL ? 'All 50 solved' : (sqlGap > 0 ? `${sqlGap} behind the 2-a-day pace` : 'On pace'), sqlGap > 0 && sql < SQL_TOTAL ? 'behind' : ''],
+      ['JavaScript days', `${count('js')}`, '', 'Days with both code and interview questions done'],
+      ['System design sessions', `${count('focus', p => p.phase === 'sd' && !p.sunday)} / ${plan.sdTotal}`, bar(count('focus', p => p.phase === 'sd' && !p.sunday) / plan.sdTotal), ''],
+      ['Project sessions', `${count('focus', p => p.phase === 'proj' && !p.sunday)} / ${plan.projTotal}`, bar(count('focus', p => p.phase === 'proj' && !p.sunday) / plan.projTotal), ''],
+      ['DSA topic days', topicCounts.map(([t, n]) => `${t} ${n}`).join(' · '), '', '', '', 'stack'],
+      ['Python bonus days', `${count('py')}`, '', '']
+    ];
+    $('tally').innerHTML = rows.map(([k, v, b, hint, hintCls, rowCls]) =>
+      `<div class="row ${rowCls || ''}"><dt>${k}</dt><dd>${v}</dd>${b}${hint ? `<span class="hint ${hintCls || ''}">${hint}</span>` : ''}</div>`).join('');
+  }
+
+  function bar(x) {
+    return `<div class="bar" aria-hidden="true"><i style="width:${Math.max(0, Math.min(1, x)) * 100}%"></i></div>`;
+  }
+
+  function streak() {
+    const wd = plan.list.filter(p => !p.sunday && p.iso <= today);
+    let i = wd.length - 1, s = 0;
+    const full = p => days[p.iso] && requiredDone(days[p.iso]) === REQUIRED.length;
+    if (i >= 0 && wd[i].iso === today && !full(wd[i])) i--;
+    for (; i >= 0; i--) { if (full(wd[i])) s++; else break; }
+    return s;
+  }
+
+  function renderBacklog() {
+    const items = plan.list
+      .filter(p => !p.sunday && p.iso < today)
+      .map(p => {
+        const day = getDay(p.iso);
+        const missing = REQUIRED.filter(k => !isDone(day, k)).map(k => k === 'sql' && day.t.sql.count > 0 ? `SQL (${day.t.sql.count}/2)` : labelFor(k, p));
+        return { p, missing };
+      })
+      .filter(x => x.missing.length)
+      .reverse();
+    $('backlogCount').textContent = items.length ? `${items.length} ${items.length === 1 ? 'day' : 'days'}` : '';
+    $('backlog').innerHTML = items.length
+      ? items.slice(0, 8).map(({ p, missing }) => `<li><button type="button" id="bl-${p.iso}" data-iso="${p.iso}">
+          <span class="d">${fmt(p.date, { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+          <span class="m">${esc(missing.join(', '))}</span></button></li>`).join('')
+        + (items.length > 8 ? `<li class="empty">and ${items.length - 8} more earlier days</li>` : '')
+      : `<li class="empty">${plan.list.some(p => !p.sunday && p.iso < today) ? 'Nothing left over from earlier days.' : 'Nothing yet. Missed tasks from earlier days will show up here.'}</li>`;
+  }
+
+  function renderSettings() {
+    if (document.activeElement && document.activeElement.closest && document.activeElement.closest('#settingsForm')) return;
+    $('setStart').value = settings.start;
+    $('setPlacement').value = settings.placement;
+    $('settings').hidden = readOnly;
+  }
+
+  function renderAll(opts = {}) {
+    const checklist = opts.checklist !== false;
+    const a = document.activeElement;
+    const activeId = a && a !== document.body ? a.id : null;
+    renderTop();
+    renderDayBar();
+    if (checklist) renderTasks();
+    renderCal();
+    renderTally();
+    renderBacklog();
+    renderSettings();
+    if (activeId) {
+      const el = document.getElementById(activeId);
+      if (el && el !== document.activeElement && !el.disabled) el.focus({ preventScroll: true });
+    }
+  }
+
+  /* ---------- Interaction ---------- */
+  function mutate(key, fn, { checklist = true, delay = 350 } = {}) {
+    if (readOnly) return;
+    const day = ensureDay(selected);
+    const def = taskDef(key);
+    const was = isDone(day, key);
+    fn(day.t[key]);
+    const now = isDone(day, key);
+    const st = day.t[key];
+    if (def.plan != null && was !== now) {
+      if (now && st.hrs == null) st.hrs = def.plan;
+      else if (!now && st.hrs === def.plan) st.hrs = null;
+    }
+    queueSave(selected, delay);
+    renderAll({ checklist });
+  }
+
+  const tasksEl = $('tasks');
+  tasksEl.addEventListener('change', e => {
+    const el = e.target;
+    const { act, key } = el.dataset;
+    if (act === 'main') {
+      mutate(key, st => {
+        if ('subs' in st) { const all = st.subs.every(Boolean); st.subs = st.subs.map(() => !all); }
+        else if ('count' in st) { st.count = st.count >= 2 ? 0 : 2; }
+        else st.done = !st.done;
+      });
+    } else if (act === 'sub') {
+      const i = Number(el.dataset.i);
+      mutate(key, st => { st.subs[i] = el.checked; });
+    }
+  });
+  tasksEl.addEventListener('click', e => {
+    const el = e.target.closest('button');
+    if (!el || el.disabled) return;
+    const { act, key } = el.dataset;
+    if (act === 'topic') mutate(key, st => { st.topic = st.topic === el.dataset.v ? '' : el.dataset.v; });
+    else if (act === 'inc') mutate(key, st => { st.count = Math.min(20, st.count + 1); });
+    else if (act === 'dec') mutate(key, st => { st.count = Math.max(0, st.count - 1); });
+  });
+  tasksEl.addEventListener('input', e => {
+    const el = e.target;
+    const { act, key } = el.dataset;
+    if (act === 'note') mutate(key, st => { st.note = el.value.slice(0, 300); }, { checklist: false, delay: 900 });
+    else if (act === 'hrs') {
+      const v = parseFloat(el.value);
+      mutate(key, st => { st.hrs = isFinite(v) ? Math.max(0, Math.min(16, v)) : null; }, { checklist: false, delay: 900 });
+    }
+  });
+
+  function select(iso) {
+    if (!plan.byIso[iso]) return;
+    selected = iso;
+    renderAll();
+  }
+  $('prevDay').addEventListener('click', () => select(isoOf(addDays(parse(selected), -1))));
+  $('nextDay').addEventListener('click', () => select(isoOf(addDays(parse(selected), 1))));
+  $('goToday').addEventListener('click', () => select(today));
+  $('cal').addEventListener('click', e => { const b = e.target.closest('[data-iso]'); if (b) select(b.dataset.iso); });
+  $('backlog').addEventListener('click', e => {
+    const b = e.target.closest('[data-iso]');
+    if (!b) return;
+    select(b.dataset.iso);
+    $('dayHeading').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  });
+
+  $('settingsForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (readOnly) return;
+    const start = $('setStart').value, placement = $('setPlacement').value;
+    const msg = $('setMsg');
+    if (!validIso(start) || !validIso(placement)) { msg.textContent = 'Pick both dates.'; return; }
+    if (placement < start) { msg.textContent = 'The placement date has to come after day 1.'; return; }
+    settings = { start, placement };
+    applySettings();
+    cacheLocal();
+    if (mode === 'db' && db) {
+      try { await writeWithRetry(db.doc('plan/settings'), { ...settings, updatedAt: new Date().toISOString() }); msg.textContent = 'Saved. The calendar now starts on ' + fmt(parse(start), { day: 'numeric', month: 'long' }) + '.'; }
+      catch (err) { msg.textContent = 'Could not save the dates to your account. They are kept in this browser.'; }
+    } else msg.textContent = 'Saved in this browser.';
+  });
+
+  function applySettings() {
+    plan = buildPlan();
+    selected = clampToPlan(plan.byIso[selected] ? selected : today);
+    renderAll();
+  }
+
+  // Keep "today" correct if the page stays open past midnight.
+  function tick() {
+    const t = todayIso();
+    if (t !== today) {
+      const wasOnToday = selected === today;
+      today = t;
+      if (wasOnToday && plan.byIso[t]) selected = t;
+      renderAll();
+    }
+  }
+  setInterval(tick, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+
+  /* ---------- Boot ---------- */
+  loadLocal();
+  plan = buildPlan();
+  selected = clampToPlan(today);
+  setSync('local');
+  renderAll();
+
+  async function connect() {
+    if (!window.claude || typeof window.claude.use !== 'function') return;
+    let dbNs = null;
+    try { dbNs = await window.claude.use('db'); } catch (e) { dbNs = null; }
+    if (!dbNs) return;
+    db = dbNs;
+    mode = 'db';
+    setSync('synced');
+
+    try {
+      const user = await window.claude.use('user');
+      if (user) {
+        const can = await user.can('data.write');
+        if (can === false) { readOnly = true; setSync('readonly'); renderAll(); }
+      }
+    } catch (e) { /* keep inputs; a refused write decides */ }
+
+    db.collection('days').onSnapshot(snap => {
+      const next = {};
+      snap.docs.forEach(d => { if (d.exists && validIso(d.id)) next[d.id] = normalize(d.data(), d.id); });
+      dirty.forEach(k => { if (days[k]) next[k] = days[k]; });
+      const before = JSON.stringify(days[selected] ? days[selected].t : null);
+      const after = JSON.stringify(next[selected] ? next[selected].t : null);
+      days = next;
+      cacheLocal();
+      renderAll({ checklist: before !== after });
+    }, err => {
+      if (err && err.code === 'revoked') { readOnly = true; setSync('readonly'); }
+      else setSync('error');
+      renderAll();
+    });
+
+    db.doc('plan/settings').onSnapshot(s => {
+      const d = s.exists ? s.data() : null;
+      const next = d && validIso(d.start) && validIso(d.placement) ? { start: d.start, placement: d.placement } : { ...DEFAULTS };
+      if (next.start !== settings.start || next.placement !== settings.placement) {
+        settings = next;
+        cacheLocal();
+        applySettings();
+      }
+    }, () => { /* the plan keeps its current dates */ });
+  }
+  connect();
+})();
+</script>

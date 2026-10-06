@@ -9,6 +9,24 @@ Study guides for a student who already knows C++:
 | **[Lecture-QA-Interview-Practice.pdf](Lecture-QA-Interview-Practice.pdf)** | 52 interview questions with answers for the STRIKE GenAI lectures finished so far: Lectures 8–16 (embeddings, vector search, RAG, advanced RAG, graph databases) and 20–21 (LangGraph) | 12 |
 | **[JavaScript-Explained-Simply.pdf](JavaScript-Explained-Simply.pdf)** | JavaScript Lectures 12 and 17–22 of the MERN course, plus the Day 17–22 code | 166 |
 
+## 30-Day Placement Sprint tracker
+
+**[tracker/placement-sprint.html](tracker/placement-sprint.html)** is the source of a daily checklist for the 30 days before
+placement (6 Oct – 4 Nov 2026, Sundays off). It is published as a private claude.ai artifact, where ticks, hours and notes
+are saved to your account. Opened as a local file, it saves to that browser instead.
+
+| Block | Time | What the checklist tracks |
+|---|---|---|
+| DSA revision | 3 h | done, hours, what you revised |
+| DSA important topic | 4–5 h | DP / Graph / Tree / Other, hours, problems solved |
+| JavaScript | 2 h | 30-day challenge code + interview questions |
+| System design (days 1–15) → Projects (days 16–30) | 2 h | one suggested session a day: 13 system design topics, then 13 PaperRAG / SchemaMind sessions that follow the projects guide |
+| SQL | 1 h | LeetCode SQL 50 counter, target 2 a day |
+| Python | bonus | code + interview questions, not counted in the daily score |
+
+The side rail has the 30-day calendar, a streak, total hours, SQL pace, session counts and a list of unfinished tasks from
+earlier days. The plan dates can be changed under "Change plan dates".
+
 ## GenAI, RAG & Agents — Explained Simply
 
 Placement preparation for AI roles, planned as 45 days of about 3 hours a day. It explains the course code from
