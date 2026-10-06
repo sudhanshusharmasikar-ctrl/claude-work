@@ -199,7 +199,7 @@ h1 .hl {
   border-bottom: 1px solid var(--line);
 }
 .task:last-child { border-bottom: 0; }
-.task.is-optional { background: color-mix(in srgb, var(--rest) 40%, var(--surface)); border-radius: 0 0 14px 14px; }
+.task.is-optional { background: color-mix(in srgb, var(--rest) 40%, var(--surface)); }
 input[type="checkbox"] {
   width: 20px; height: 20px; margin: 2px 0 0;
   accent-color: var(--accent);
@@ -229,18 +229,6 @@ input[type="checkbox"] {
 .subs label { cursor: pointer; font-size: 14.5px; line-height: 1.45; }
 .subs label b { font-weight: 600; }
 .subs input:checked + label { color: var(--muted); }
-
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip {
-  border: 1px solid var(--line);
-  background: transparent;
-  border-radius: 999px;
-  padding: 3px 12px;
-  font-size: 13.5px;
-  cursor: pointer;
-}
-.chip:hover:not(:disabled) { border-color: var(--muted); }
-.chip[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
 
 .counter { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
 .counter .btn { width: 34px; height: 34px; padding: 0; font: 500 18px var(--f-mono); }
@@ -400,6 +388,39 @@ details.settings summary {
   font: 500 14px var(--f-mono);
 }
 .settings .msg { font-size: 12.5px; color: var(--muted); margin: 0; }
+.settings input[type="number"] {
+  width: 90px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 14px var(--f-mono);
+}
+
+/* Saving */
+.savebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-width: 0; }
+.btn.save {
+  background: var(--ink);
+  color: var(--surface);
+  border-color: var(--ink);
+  font-weight: 600;
+  padding: 7px 16px;
+}
+.btn.save:hover:not(:disabled) { border-color: var(--ink); opacity: .88; }
+.sheet-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+}
+.sync { max-width: 100%; }
+@media (max-width: 560px) {
+  .sheet-foot { padding-inline: 16px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .task-name mark, .bar i { transition: none; }
@@ -411,7 +432,10 @@ details.settings summary {
     <div class="brand">
       <span class="eyebrow">Placement prep · 12–13 h a day · Sundays off</span>
       <h1>30-Day <span class="hl">Placement</span> Sprint</h1>
-      <span class="sync" id="sync" data-state="local">Saved in this browser</span>
+      <div class="savebar">
+        <span class="sync" id="sync" data-state="saving" role="status">Connecting to your account…</span>
+        <button class="btn save" id="saveTop" type="button">Save</button>
+      </div>
     </div>
     <div class="countdown">
       <span class="big" id="cdBig">30</span>
@@ -447,9 +471,14 @@ details.settings summary {
         </div>
       </div>
 
-      <p class="rest-note" id="restNote" hidden><strong>Sunday is your day off.</strong> Nothing is due today. Anything you tick here counts as extra.</p>
+      <p class="rest-note" id="restNote" hidden><strong>Sunday is your day off.</strong> Nothing is due. Anything you tick here counts as extra.</p>
 
-      <ul class="tasks" id="tasks" aria-label="Daily routine"></ul>
+      <ul class="tasks" id="tasks" aria-label="Plan for this day"></ul>
+
+      <div class="sheet-foot">
+        <span class="sync" id="sync2" data-state="saving">Connecting to your account…</span>
+        <button class="btn save" id="saveBottom" type="button">Save</button>
+      </div>
     </section>
 
     <aside class="rail">
@@ -477,7 +506,7 @@ details.settings summary {
       </section>
 
       <details class="settings" id="settings">
-        <summary>Change plan dates</summary>
+        <summary>Change plan settings</summary>
         <form id="settingsForm">
           <label for="setStart">Day 1 of the plan
             <input type="date" id="setStart" required>
@@ -485,8 +514,14 @@ details.settings summary {
           <label for="setPlacement">Placement date
             <input type="date" id="setPlacement" required>
           </label>
-          <div><button class="btn" type="submit" id="setSave">Save dates</button></div>
-          <p class="msg" id="setMsg">Days 1–15 are system design, days 16–30 are projects.</p>
+          <label for="setJs">JavaScript challenge day on day 1
+            <input type="number" id="setJs" min="1" max="30" step="1" required>
+          </label>
+          <label for="setSql">SQL 50 questions already solved before day 1
+            <input type="number" id="setSql" min="0" max="50" step="1" required>
+          </label>
+          <div><button class="btn" type="submit" id="setSave">Save settings</button></div>
+          <p class="msg" id="setMsg">Days 1–15 are system design, days 16–30 are projects. Sundays are off.</p>
         </form>
       </details>
     </aside>
@@ -497,11 +532,74 @@ details.settings summary {
 (() => {
   'use strict';
 
-  /* ---------- Plan content ---------- */
-  const DEFAULTS = { start: '2026-10-06', placement: '2026-11-05' };
+  /* ---------- The fixed plan ---------- */
+  const DEFAULTS = { start: '2026-10-06', placement: '2026-11-05', jsDay1: 1, sqlBefore: 0 };
   const PLAN_LEN = 30;
   const SD_DAYS = 15;
-  const LS_KEY = 'placement-sprint-v1';
+  const SQL_TOTAL = 50;
+  const JS_TOTAL = 30;
+  const LS_KEY = 'placement-sprint-v2';
+  const LS_OLD = 'placement-sprint-v1';
+
+  // DSA revision, 3 h: one fixed topic per working day.
+  const REV = [
+    'Arrays: prefix sums and Kadane\'s algorithm',
+    'Two pointers',
+    'Sliding window',
+    'Hashing with maps and sets',
+    'Binary search on sorted arrays',
+    'Binary search on the answer',
+    'Sorting: merge sort, quick sort, custom comparators',
+    'Strings: palindromes, anagrams, string building',
+    'Recursion basics',
+    'Backtracking: subsets, permutations, N-Queens',
+    'Linked list: reverse, detect a cycle, merge',
+    'Linked list: reverse in k-groups, LRU cache',
+    'Stack: valid parentheses, next greater element',
+    'Monotonic stack: largest rectangle, stock span',
+    'Queue and deque: sliding window maximum',
+    'Heap: kth largest, top-k frequent, merge k lists',
+    'Greedy: intervals, jump game, activity selection',
+    'Bit manipulation basics',
+    'Maths: GCD, sieve of primes, modular arithmetic',
+    'Matrix: spiral order, rotate, set zeroes',
+    'Tries: insert, search, prefix count',
+    'Re-solve this sprint\'s tree problems',
+    'Re-solve this sprint\'s graph problems',
+    'Re-solve this sprint\'s DP problems',
+    'Problems you got wrong, from your notes',
+    'Timed mock: 2 problems in 60 minutes'
+  ];
+
+  // DSA important topic, 4–5 h: trees first, then graphs, then DP.
+  const TOPIC_PLAN = [
+    ['Trees', 'Traversals: inorder, preorder, postorder, level order'],
+    ['Trees', 'Height, diameter, balanced check, maximum path sum'],
+    ['Trees', 'Views: left, right, top, bottom; zigzag and vertical order'],
+    ['Trees', 'Lowest common ancestor, root-to-node path, nodes at distance K'],
+    ['Trees', 'Build a tree from traversals; serialize and deserialize'],
+    ['Trees', 'BST: search, insert, delete, validate, kth smallest'],
+    ['Trees', 'BST: LCA, floor and ceil, two-sum, BST iterator'],
+    ['Trees', 'Mixed tree problems and re-solving the weak ones'],
+    ['Graphs', 'Representation, BFS, DFS, connected components'],
+    ['Graphs', 'Grids: number of islands, flood fill, rotting oranges'],
+    ['Graphs', 'Cycle detection (undirected and directed), bipartite check'],
+    ['Graphs', 'Topological sort (Kahn and DFS), course schedule'],
+    ['Graphs', 'Shortest paths: BFS on unit weights, Dijkstra'],
+    ['Graphs', 'Bellman-Ford and Floyd-Warshall'],
+    ['Graphs', 'Minimum spanning tree: Prim and Kruskal, disjoint set union'],
+    ['Graphs', 'DSU problems: provinces, accounts merge, redundant connection'],
+    ['Graphs', 'Mixed graph problems and re-solving the weak ones'],
+    ['DP', '1D DP: climbing stairs, frog jump, house robber'],
+    ['DP', 'Grid DP: unique paths, minimum path sum, triangle'],
+    ['DP', 'Subsets: subset sum, equal partition, 0/1 knapsack'],
+    ['DP', 'Unbounded knapsack: coin change I and II, rod cutting'],
+    ['DP', 'Strings: LCS, longest palindromic subsequence'],
+    ['DP', 'Strings: edit distance, wildcard matching, distinct subsequences'],
+    ['DP', 'Stocks: buy and sell I to IV, cooldown, fee'],
+    ['DP', 'LIS: longest increasing subsequence and its variants'],
+    ['DP', 'Partition DP: matrix chain multiplication, burst balloons']
+  ];
 
   const SD = [
     { title: 'Foundations', learn: 'Client–server, DNS, HTTP, latency vs throughput, vertical vs horizontal scaling', practise: 'Explain out loud what happens when you type a URL and press Enter' },
@@ -535,18 +633,11 @@ details.settings summary {
     { title: 'Final polish', learn: 'Resume bullets, the numbers to remember, every question you marked weak', practise: 'One last timed run of both pitches' }
   ];
 
-  const TOPICS = ['DP', 'Graph', 'Tree', 'Other'];
-
-  const TASKS = [
-    { key: 'dsaRev', kind: 'check', group: 'DSA · 3 h', name: 'Revision', short: 'DSA revision', plan: 3, planLabel: '3 h plan', note: 'What did you revise? e.g. arrays, binary search, recursion' },
-    { key: 'dsaNew', kind: 'topic', group: 'DSA · 4–5 h', name: 'Important topic', short: 'DSA topic', plan: 4.5, planLabel: '4–5 h plan', note: 'Problems solved and patterns learned' },
-    { key: 'js', kind: 'subs', group: 'JavaScript · 2 h', name: '30-day challenge', short: 'JavaScript', plan: 2, planLabel: '2 h plan', note: 'Challenge day and topics covered', subs: [['Code', 'Practice problems for today\'s challenge day'], ['Interview', 'Answer today\'s interview questions out loud']] },
-    { key: 'focus', kind: 'subs', plan: 2, planLabel: '2 h plan' },
-    { key: 'sql', kind: 'count', group: 'SQL · 1 h', name: 'LeetCode SQL 50', short: 'SQL', plan: 1, planLabel: '1 h plan', note: 'Question names, e.g. 1757 Recyclable and Low Fat Products', target: 2 },
-    { key: 'py', kind: 'subs', group: 'Python · bonus', name: 'When time permits', short: 'Python', plan: null, planLabel: 'optional', optional: true, note: 'What you practised', subs: [['Code', 'Practice problems'], ['Interview', 'Basic interview questions']] }
-  ];
-  const REQUIRED = TASKS.filter(t => !t.optional).map(t => t.key);
-  const SQL_TOTAL = 50;
+  const TASK_KEYS = ['dsaRev', 'dsaNew', 'js', 'focus', 'sql', 'py'];
+  const REQUIRED = ['dsaRev', 'dsaNew', 'js', 'focus', 'sql'];
+  const PLAN_H = { dsaRev: 3, dsaNew: 4.5, js: 2, focus: 2, sql: 1, py: null };
+  const PLAN_LABEL = { dsaRev: '3 h plan', dsaNew: '4–5 h plan', js: '2 h plan', focus: '2 h plan', sql: '1 h plan', py: 'optional' };
+  const BLOCKED_CODES = ['not_granted', 'capability_disabled', 'capability_removed', 'revoked'];
 
   /* ---------- Dates ---------- */
   const pad = n => String(n).padStart(2, '0');
@@ -556,34 +647,56 @@ details.settings summary {
   const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 86400000);
   const validIso = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(parse(s));
   const fmt = (d, o) => d.toLocaleDateString('en-GB', o);
+  const clock = d => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   const todayIso = () => isoOf(new Date());
+  const intIn = (v, lo, hi, dflt) => { const n = Math.round(Number(v)); return Number.isFinite(n) && n >= lo && n <= hi ? n : dflt; };
 
   /* ---------- State ---------- */
   let settings = { ...DEFAULTS };
+  let settingsUpdatedAt = 0;
+  let settingsPending = false;
   let days = {};
   let plan = buildPlan();
   let today = todayIso();
   let selected = clampToPlan(today);
+
   let db = null;
+  let mode = 'connecting';            // connecting | db | local | blocked
+  let ready = false;                  // first answer from the account has arrived
+  let settingsSeen = false;
   let readOnly = false;
-  let mode = 'local';
-  const dirty = new Set();
-  const timers = {}, inflight = {}, again = {};
+  let lastSaved = null;
+  let lastError = null;
+  let retryTimer = null;
+  let settingsInflight = false;
+  let flash = null;
+  const pending = new Set();          // days changed here and not yet confirmed saved to the account
+  const editSeq = {}, timers = {}, inflight = {}, again = {};
+
+  function cleanSettings(s) {
+    s = s || {};
+    return {
+      start: validIso(s.start) ? s.start : DEFAULTS.start,
+      placement: validIso(s.placement) ? s.placement : DEFAULTS.placement,
+      jsDay1: intIn(s.jsDay1, 1, 30, DEFAULTS.jsDay1),
+      sqlBefore: intIn(s.sqlBefore, 0, 50, DEFAULTS.sqlBefore)
+    };
+  }
 
   function buildPlan() {
     const start = parse(settings.start);
-    let sd = 0, pj = 0;
+    let sd = 0, pj = 0, work = 0;
     const list = [];
     for (let i = 0; i < PLAN_LEN; i++) {
       const date = addDays(start, i);
       const sunday = date.getDay() === 0;
       const phase = i < SD_DAYS ? 'sd' : 'proj';
       const session = sunday ? null : (phase === 'sd' ? ++sd : ++pj);
-      list.push({ n: i + 1, iso: isoOf(date), date, sunday, phase, session });
+      list.push({ n: i + 1, iso: isoOf(date), date, sunday, phase, session, work: sunday ? null : ++work });
     }
     const byIso = {};
     list.forEach(p => { byIso[p.iso] = p; });
-    return { list, byIso, sdTotal: sd, projTotal: pj, first: list[0].iso, last: list[list.length - 1].iso };
+    return { list, byIso, sdTotal: sd, projTotal: pj, workTotal: work, first: list[0].iso, last: list[list.length - 1].iso };
   }
 
   function clampToPlan(iso) {
@@ -595,9 +708,10 @@ details.settings summary {
   function blankDay(iso) {
     return {
       date: iso,
+      updatedAt: 0,
       t: {
         dsaRev: { done: false, hrs: null, note: '' },
-        dsaNew: { done: false, hrs: null, note: '', topic: '' },
+        dsaNew: { done: false, hrs: null, note: '' },
         js: { subs: [false, false], hrs: null, note: '' },
         focus: { subs: [false, false], hrs: null, note: '' },
         sql: { count: 0, hrs: null, note: '' },
@@ -608,24 +722,29 @@ details.settings summary {
 
   function normalize(raw, iso) {
     const b = blankDay(iso);
-    const src = (raw && typeof raw.t === 'object' && raw.t) || {};
-    for (const k of Object.keys(b.t)) {
+    raw = raw || {};
+    const at = raw.updatedAt;
+    b.updatedAt = typeof at === 'number' ? at : (Date.parse(at) || 0);
+    const src = (raw.t && typeof raw.t === 'object') ? raw.t : {};
+    for (const k of TASK_KEYS) {
       const s = src[k] || {};
       const d = b.t[k];
       if ('done' in d) d.done = !!s.done;
       if ('subs' in d) d.subs = d.subs.map((_, i) => !!(Array.isArray(s.subs) && s.subs[i]));
-      if ('count' in d) d.count = Math.max(0, Math.min(20, Number(s.count) || 0));
-      if ('topic' in d) d.topic = TOPICS.includes(s.topic) ? s.topic : '';
+      if ('count' in d) d.count = intIn(s.count, 0, 20, 0);
       d.hrs = (typeof s.hrs === 'number' && isFinite(s.hrs)) ? s.hrs : null;
       d.note = typeof s.note === 'string' ? s.note.slice(0, 300) : '';
     }
     return b;
   }
 
+  const hasProgress = day => TASK_KEYS.some(k => {
+    const s = day.t[k];
+    return s.done || (s.subs && s.subs.some(Boolean)) || s.count > 0 || s.hrs || s.note;
+  });
+
   const getDay = iso => days[iso] || blankDay(iso);
   const ensureDay = iso => (days[iso] = days[iso] || blankDay(iso));
-
-  function taskDef(key) { return TASKS.find(t => t.key === key); }
 
   function frac(day, key) {
     const s = day.t[key];
@@ -635,95 +754,248 @@ details.settings summary {
   }
   const isDone = (day, key) => frac(day, key) >= 1;
   const requiredDone = day => REQUIRED.filter(k => isDone(day, k)).length;
-  const dayHours = day => Object.values(day.t).reduce((a, s) => a + (s.hrs || 0), 0);
+  const dayHours = day => TASK_KEYS.reduce((a, k) => a + (day.t[k].hrs || 0), 0);
   const fmtH = h => (Math.round(h * 10) / 10).toString().replace(/\.0$/, '');
+  const pick = (list, w) => list[Math.min(w, list.length) - 1];
+
+  /* ---------- What each task is on a given date ---------- */
+  function areaPos(w) {
+    const area = pick(TOPIC_PLAN, w)[0];
+    const upto = Math.min(w, TOPIC_PLAN.length);
+    const used = TOPIC_PLAN.slice(0, Math.min(plan.workTotal, TOPIC_PLAN.length));
+    return {
+      area,
+      idx: TOPIC_PLAN.slice(0, upto).filter(t => t[0] === area).length,
+      total: used.filter(t => t[0] === area).length
+    };
+  }
 
   function focusMeta(pd) {
     const sd = pd.phase === 'sd';
-    const group = sd ? 'System design · 2 h' : 'Projects · 2 h';
+    const short = sd ? 'System design' : 'Projects';
     if (pd.sunday) {
-      return { group: group.replace(' · 2 h', ''), eyebrow: 'Sunday', name: 'Catch-up, if you want', short: sd ? 'System design' : 'Projects', note: 'What you caught up on',
+      return { kind: 'subs', group: `${short} · Sunday`, name: 'Catch-up, if you want', short, note: 'What you caught up on',
         subs: [['Review', 'Go back over one earlier session'], ['Practise', 'One practice question']] };
     }
     const list = sd ? SD : PROJ;
     const total = sd ? plan.sdTotal : plan.projTotal;
-    const s = list[Math.min(pd.session, list.length) - 1];
+    const s = pick(list, pd.session);
     return {
-      group, eyebrow: `Session ${pd.session} of ${total}`, name: s.title, short: sd ? 'System design' : 'Projects',
+      kind: 'subs', group: `${short} · session ${pd.session} of ${total}`, name: s.title, short,
       note: sd ? 'Key trade-offs you can now explain' : 'Questions you still find hard',
       subs: [[sd ? 'Learn' : 'Revise', s.learn], ['Practise', s.practise]]
     };
   }
 
-  function labelFor(key, pd) {
-    return key === 'focus' ? focusMeta(pd).short : taskDef(key).short;
-  }
-
-  /* ---------- Persistence ---------- */
-  function cacheLocal() {
-    try { localStorage.setItem(LS_KEY, JSON.stringify({ settings, days })); } catch (e) { /* storage blocked */ }
-  }
-  function loadLocal() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
-      if (!raw) return;
-      if (raw.settings && validIso(raw.settings.start) && validIso(raw.settings.placement)) settings = { start: raw.settings.start, placement: raw.settings.placement };
-      if (raw.days && typeof raw.days === 'object') {
-        for (const [k, v] of Object.entries(raw.days)) if (validIso(k)) days[k] = normalize(v, k);
+  function taskMeta(key, pd) {
+    const sun = pd.sunday;
+    const w = pd.work;
+    const catchUp = 'Catch-up, if you want';
+    if (key === 'dsaRev') {
+      return { kind: 'check', group: sun ? 'DSA revision · Sunday' : `DSA revision · ${w} of ${plan.workTotal}`,
+        name: sun ? catchUp : pick(REV, w), short: 'DSA revision', note: 'Problems you re-solved and mistakes to remember' };
+    }
+    if (key === 'dsaNew') {
+      if (sun) return { kind: 'check', group: 'DSA important topic · Sunday', name: catchUp, short: 'DSA topic', note: 'What you caught up on' };
+      const a = areaPos(w);
+      return { kind: 'check', group: `DSA ${a.area} · ${a.idx} of ${a.total}`, name: pick(TOPIC_PLAN, w)[1], short: `DSA ${a.area}`, note: 'Problems solved and patterns learned' };
+    }
+    if (key === 'js') {
+      if (sun) return { kind: 'subs', group: 'JavaScript · Sunday', name: catchUp, short: 'JavaScript', note: 'What you caught up on',
+        subs: [['Code', 'Redo one earlier challenge day'], ['Interview', 'Revise questions you got wrong']] };
+      const n = settings.jsDay1 + w - 1;
+      if (n > JS_TOTAL) {
+        return { kind: 'subs', group: 'JavaScript · challenge finished', name: 'Revise your weakest challenge days', short: 'JavaScript', note: 'Which days you revised',
+          subs: [['Code', 'Re-write the code from one weak day'], ['Interview', 'Answer that day\'s questions again']] };
       }
-    } catch (e) { /* ignore */ }
+      return { kind: 'subs', group: 'JavaScript · 30-day challenge', name: `Challenge day ${n} of ${JS_TOTAL}`, short: 'JavaScript', note: 'Topics covered today',
+        subs: [['Code', `Practice code for challenge day ${n}`], ['Interview', `Interview questions for challenge day ${n}`]] };
+    }
+    if (key === 'focus') return focusMeta(pd);
+    if (key === 'sql') {
+      if (sun) return { kind: 'count', group: 'SQL · Sunday', name: catchUp, short: 'SQL', note: 'Question names' };
+      const from = settings.sqlBefore + 2 * (w - 1) + 1;
+      const name = from > SQL_TOTAL ? 'SQL 50 finished: redo the ones you got wrong'
+        : from === SQL_TOTAL ? 'LeetCode SQL 50 · question 50'
+        : `LeetCode SQL 50 · questions ${from}–${from + 1}`;
+      return { kind: 'count', group: 'SQL · 2 a day', name, short: 'SQL', note: 'Question names and anything you looked up' };
+    }
+    return { kind: 'subs', group: 'Python · bonus', name: 'When time permits', short: 'Python', optional: true, note: 'What you practised',
+      subs: [['Code', 'Practice problems'], ['Interview', 'Basic interview questions']] };
   }
 
-  const syncEl = document.getElementById('sync');
-  function setSync(state) {
-    const text = {
-      synced: 'Saved to your account',
-      saving: 'Saving…',
-      local: 'Saved in this browser only',
-      readonly: 'View only — changes are not saved',
-      error: 'Could not save. Your last change is kept in this browser.'
-    }[state];
-    syncEl.dataset.state = state;
-    syncEl.textContent = text;
+  /* ---------- Saving ---------- */
+  function cacheLocal() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({ settings, settingsUpdatedAt, settingsPending, days, pending: [...pending] }));
+    } catch (e) { /* storage blocked */ }
   }
 
-  function queueSave(iso, delay) {
-    dirty.add(iso);
-    cacheLocal();
-    if (mode === 'db') setSync('saving');
+  function loadLocal() {
+    let raw = null, old = false;
+    try { raw = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) { raw = null; }
+    if (!raw) {
+      try { raw = JSON.parse(localStorage.getItem(LS_OLD) || 'null'); old = !!raw; } catch (e) { raw = null; }
+    }
+    if (!raw || typeof raw !== 'object') return;
+    if (raw.settings) settings = cleanSettings(raw.settings);
+    settingsUpdatedAt = Number(raw.settingsUpdatedAt) || 0;
+    settingsPending = !!raw.settingsPending;
+    if (raw.days && typeof raw.days === 'object') {
+      for (const [k, v] of Object.entries(raw.days)) if (validIso(k)) days[k] = normalize(v, k);
+    }
+    if (Array.isArray(raw.pending)) raw.pending.forEach(k => { if (days[k]) pending.add(k); });
+    // Ticks kept only in this browser by the first version get uploaded now.
+    if (old) {
+      Object.keys(days).forEach(k => { if (hasProgress(days[k])) { days[k].updatedAt = days[k].updatedAt || 1; pending.add(k); } });
+      if (raw.settings && (raw.settings.start !== DEFAULTS.start || raw.settings.placement !== DEFAULTS.placement)) { settingsPending = true; settingsUpdatedAt = 1; }
+    }
+  }
+
+  const canWrite = () => mode === 'db' && !!db && !readOnly;
+
+  function withTimeout(promise, ms) {
+    return new Promise((resolve, reject) => {
+      const t = setTimeout(() => reject({ code: 'timeout', message: 'No answer from the save service' }), ms);
+      promise.then(v => { clearTimeout(t); resolve(v); }, e => { clearTimeout(t); reject(e); });
+    });
+  }
+
+  async function saveDoc(path, body) {
+    const once = () => withTimeout(db.doc(path).set(body), 15000);
+    try { await once(); }
+    catch (e) {
+      if (e && (e.code === 'unavailable' || e.code === 'resource_exhausted' || e.code === 'timeout')) {
+        await new Promise(r => setTimeout(r, 700 + Math.random() * 900));
+        await once();
+      } else throw e;
+    }
+  }
+
+  function noteError(e) {
+    const code = (e && e.code) || 'unknown';
+    lastError = code;
+    if (BLOCKED_CODES.includes(code)) mode = 'blocked';
+    else if (code !== 'invalid_argument' && code !== 'quota_exceeded') scheduleRetry();
+  }
+
+  function scheduleRetry() {
+    if (retryTimer) return;
+    retryTimer = setTimeout(() => { retryTimer = null; flushAll(); }, 15000);
+  }
+
+  function scheduleFlush(iso, delay) {
     clearTimeout(timers[iso]);
     timers[iso] = setTimeout(() => flush(iso), delay);
   }
 
   async function flush(iso) {
+    clearTimeout(timers[iso]);
+    timers[iso] = null;
+    if (!canWrite() || !ready || !pending.has(iso) || !days[iso]) { updateSync(); return; }
     if (inflight[iso]) { again[iso] = true; return; }
     inflight[iso] = true;
-    let ok = true;
-    if (mode === 'db' && db && !readOnly) {
-      const body = JSON.parse(JSON.stringify(days[iso]));
-      body.updatedAt = new Date().toISOString();
-      try {
-        await writeWithRetry(db.doc('days/' + iso), body);
-      } catch (e) {
-        ok = false;
-        if (e && e.code === 'invalid_argument') { readOnly = true; setSync('readonly'); renderAll(); }
-        else setSync('error');
-      }
-    }
+    updateSync();
+    const seq = editSeq[iso] || 0;
+    const body = JSON.parse(JSON.stringify(days[iso]));
+    let ok = false;
+    try { await saveDoc('days/' + iso, body); ok = true; }
+    catch (e) { noteError(e); }
     inflight[iso] = false;
-    if (again[iso]) { again[iso] = false; flush(iso); return; }
-    dirty.delete(iso);
-    if (ok && mode === 'db' && dirty.size === 0 && !readOnly) setSync('synced');
+    if (ok) {
+      lastSaved = new Date();
+      lastError = null;
+      if ((editSeq[iso] || 0) === seq) pending.delete(iso);
+      cacheLocal();
+    }
+    if (again[iso] || (ok && pending.has(iso))) { again[iso] = false; flush(iso); return; }
+    updateSync();
   }
 
-  async function writeWithRetry(ref, body) {
-    try { await ref.set(body); }
-    catch (e) {
-      if (e && (e.code === 'unavailable' || e.code === 'resource_exhausted')) {
-        await new Promise(r => setTimeout(r, 600 + Math.random() * 900));
-        await ref.set(body);
-      } else throw e;
+  async function flushSettings() {
+    if (!canWrite() || !settingsSeen || !settingsPending || settingsInflight) { updateSync(); return; }
+    settingsInflight = true;
+    updateSync();
+    const at = settingsUpdatedAt;
+    try {
+      await saveDoc('plan/settings', { ...settings, updatedAt: at });
+      lastSaved = new Date();
+      lastError = null;
+      if (settingsUpdatedAt === at) settingsPending = false;
+    } catch (e) { noteError(e); }
+    settingsInflight = false;
+    cacheLocal();
+    if (settingsPending && settingsUpdatedAt !== at) { flushSettings(); return; }
+    updateSync();
+  }
+
+  function flushAll() {
+    [...pending].forEach(iso => flush(iso));
+    if (settingsPending) flushSettings();
+    updateSync();
+  }
+
+  function syncInfo() {
+    const n = pending.size + (settingsPending ? 1 : 0);
+    const busy = Object.values(inflight).some(Boolean) || settingsInflight;
+    if (flash && Date.now() < flash.until) return [flash.state, flash.text];
+    if (readOnly) return ['readonly', 'View only. Changes here are not saved.'];
+    if (mode === 'connecting') return ['saving', n ? 'Connecting to your account… your ticks are kept until it connects' : 'Connecting to your account…'];
+    if (mode === 'local') return ['local', 'Saved on this device only. Open the tracker on claude.ai to save to your account.'];
+    if (mode === 'blocked') return ['error', 'Saving to your account is switched off for this page. Press Allow saving.'];
+    if (!ready) return ['saving', n ? 'Loading your saved progress… your new ticks are kept' : 'Loading your saved progress…'];
+    if (n && lastError === 'invalid_argument') return ['error', 'Not saved: this account cannot change this tracker.'];
+    if (n && lastError === 'quota_exceeded') return ['error', 'Not saved: the tracker\'s storage is full.'];
+    if (n && lastError) return ['error', `Not saved yet (${lastError}). Retrying soon, or press Save.`];
+    if (busy || n) return ['saving', 'Saving…'];
+    return ['synced', lastSaved ? `All changes saved to your account · ${clock(lastSaved)}` : 'Everything is saved to your account'];
+  }
+
+  function updateSync() {
+    const [state, text] = syncInfo();
+    ['sync', 'sync2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el.dataset.state !== state) el.dataset.state = state;
+      if (el.textContent !== text) el.textContent = text;
+    });
+    const label = mode === 'blocked' ? 'Allow saving' : 'Save';
+    ['saveTop', 'saveBottom'].forEach(id => {
+      const b = document.getElementById(id);
+      b.textContent = label;
+      b.hidden = readOnly;
+    });
+  }
+
+  function showFlash(state, text) {
+    flash = { state, text, until: Date.now() + 4000 };
+    updateSync();
+    setTimeout(updateSync, 4100);
+  }
+
+  async function onSave() {
+    cacheLocal();
+    if (mode === 'blocked') {
+      let perms = null;
+      try { perms = await window.claude.use('permissions'); } catch (e) { perms = null; }
+      if (!perms) { showFlash('error', 'Open the page\'s Permissions menu and turn saving on, then reload.'); return; }
+      try { await perms.manage(); } catch (e) { showFlash('error', 'Open the page\'s Permissions menu and turn saving on, then reload.'); return; }
+      let st = 'denied';
+      try { st = await perms.state('db'); } catch (e) { st = 'denied'; }
+      if (st === 'granted') { mode = 'db'; lastError = null; subscribe(); flushAll(); }
+      else showFlash('error', 'Saving is still switched off. Turn it on in the Permissions menu, then reload.');
+      updateSync();
+      return;
     }
+    if (mode === 'db') {
+      Object.keys(timers).forEach(k => { clearTimeout(timers[k]); timers[k] = null; });
+      if (!ready) { showFlash('saving', 'Still loading your saved progress. Your ticks will upload in a moment.'); return; }
+      if (!pending.size && !settingsPending) { showFlash('synced', `All changes saved to your account · ${clock(lastSaved || new Date())}`); return; }
+      lastError = null;
+      flushAll();
+      return;
+    }
+    if (mode === 'local') { showFlash('local', `Saved on this device · ${clock(new Date())}`); return; }
+    showFlash('saving', 'Still connecting to your account. Your ticks are kept and will upload when it connects.');
   }
 
   /* ---------- Rendering ---------- */
@@ -739,22 +1011,21 @@ details.settings summary {
     else if (left === 1) { big.textContent = '1'; sub.textContent = `day to placement · ${pDate}`; }
     else if (left === 0) { big.textContent = 'Today'; sub.textContent = 'Placement day. You prepared for this.'; }
     else { big.textContent = 'Done'; sub.textContent = `Placement was on ${pDate}`; }
-    const a = parse(plan.first), b = parse(plan.last);
-    $('calRange').textContent = `${fmt(a, { day: 'numeric', month: 'short' })} – ${fmt(b, { day: 'numeric', month: 'short' })}`;
+    $('calRange').textContent = `${fmt(parse(plan.first), { day: 'numeric', month: 'short' })} – ${fmt(parse(plan.last), { day: 'numeric', month: 'short' })}`;
   }
 
   function renderDayBar() {
     const pd = plan.byIso[selected];
     const day = getDay(selected);
+    const rel = selected === today ? ' · today' : selected < today ? '' : ` · in ${diffDays(today, selected)} ${diffDays(today, selected) === 1 ? 'day' : 'days'}`;
     $('dayNum').textContent = `Day ${pd.n}`;
-    $('dayDate').textContent = fmt(pd.date, { weekday: 'long', day: 'numeric', month: 'long' }) + (selected === today ? ' · today' : '');
+    $('dayDate').textContent = fmt(pd.date, { weekday: 'long', day: 'numeric', month: 'long' }) + rel;
     const ph = $('dayPhase');
     ph.className = 'phase ' + (pd.sunday ? 'rest' : pd.phase);
     ph.textContent = pd.sunday ? 'Rest day' : (pd.phase === 'sd' ? 'System design phase' : 'Project phase');
     $('prevDay').disabled = selected === plan.first;
     $('nextDay').disabled = selected === plan.last;
-    const todayInPlan = !!plan.byIso[today];
-    $('goToday').hidden = !todayInPlan || selected === today;
+    $('goToday').hidden = !plan.byIso[today] || selected === today;
 
     const done = requiredDone(day);
     $('sumTasks').textContent = `${done} / ${REQUIRED.length}`;
@@ -766,121 +1037,78 @@ details.settings summary {
     $('restNote').hidden = !pd.sunday;
   }
 
-  function subsHtml(key, subs, state) {
-    return `<ul class="subs">${subs.map(([lead, text], i) => `
-      <li><input type="checkbox" id="${key}-sub${i}" data-act="sub" data-key="${key}" data-i="${i}"${state.subs[i] ? ' checked' : ''}${dis()}>
-      <label for="${key}-sub${i}"><b>${esc(lead)}:</b> ${esc(text)}</label></li>`).join('')}</ul>`;
-  }
-
   function sqlTotal() {
-    return plan.list.reduce((a, p) => a + (days[p.iso] ? days[p.iso].t.sql.count : 0), 0);
+    return settings.sqlBefore + plan.list.reduce((a, p) => a + (days[p.iso] ? days[p.iso].t.sql.count : 0), 0);
   }
 
   function renderTasks() {
     const pd = plan.byIso[selected];
     const day = getDay(selected);
-    const html = TASKS.map(t => {
-      const st = day.t[t.key];
-      const meta = t.key === 'focus' ? focusMeta(pd) : t;
-      const f = frac(day, t.key);
+    $('tasks').innerHTML = TASK_KEYS.map(key => {
+      const st = day.t[key];
+      const m = taskMeta(key, pd);
+      const f = frac(day, key);
       let body = '';
-      if (t.kind === 'topic') {
-        body = `<div class="chips" role="group" aria-label="Today's topic">${TOPICS.map(v =>
-          `<button type="button" class="chip" id="topic-${v}" data-act="topic" data-key="${t.key}" data-v="${v}" aria-pressed="${st.topic === v}"${dis()}>${v}</button>`).join('')}</div>`;
-      } else if (t.kind === 'subs') {
-        body = subsHtml(t.key, meta.subs, st);
-      } else if (t.kind === 'count') {
+      if (m.kind === 'subs') {
+        body = `<ul class="subs">${m.subs.map(([lead, text], i) => `
+          <li><input type="checkbox" id="${key}-sub${i}" data-act="sub" data-key="${key}" data-i="${i}"${st.subs[i] ? ' checked' : ''}${dis()}>
+          <label for="${key}-sub${i}"><b>${esc(lead)}:</b> ${esc(text)}</label></li>`).join('')}</ul>`;
+      } else if (m.kind === 'count') {
         body = `<div class="counter">
           <button type="button" class="btn" id="sql-dec" data-act="dec" data-key="sql" aria-label="One question fewer"${st.count <= 0 || readOnly ? ' disabled' : ''}>−</button>
           <output id="sql-count" aria-live="polite">${st.count}</output>
           <button type="button" class="btn" id="sql-inc" data-act="inc" data-key="sql" aria-label="One more question"${dis()}>+</button>
-          <span class="meta">solved today · target 2 · <span class="num">${sqlTotal()}</span> of ${SQL_TOTAL} overall</span></div>`;
+          <span class="meta">solved this day · target 2 · <span class="num">${sqlTotal()}</span> of ${SQL_TOTAL} overall</span></div>`;
       }
-      const eyebrow = meta.eyebrow ? `${esc(meta.group)} · ${esc(meta.eyebrow)}` : esc(meta.group);
-      const cls = ['task', t.optional ? 'is-optional' : '', t.key === 'focus' ? 'phase-' + pd.phase : ''].join(' ');
-      return `<li class="${cls}" data-key="${t.key}">
-        <input type="checkbox" id="${t.key}-main" data-act="main" data-key="${t.key}"${f >= 1 ? ' checked' : ''}${dis()} aria-label="${esc(meta.short || meta.name)} done">
+      const cls = ['task', m.optional ? 'is-optional' : '', key === 'focus' ? 'phase-' + pd.phase : ''].join(' ');
+      return `<li class="${cls}" data-key="${key}">
+        <input type="checkbox" id="${key}-main" data-act="main" data-key="${key}"${f >= 1 ? ' checked' : ''}${dis()} aria-label="${esc(m.short)} done">
         <div class="task-main">
-          <label class="task-head" for="${t.key}-main"><span class="eyebrow">${eyebrow}</span>
-            <span class="task-name"><mark style="--frac:${Math.round(f * 100)}%">${esc(meta.name)}</mark></span></label>
+          <label class="task-head" for="${key}-main"><span class="eyebrow">${esc(m.group)}</span>
+            <span class="task-name"><mark style="--frac:${Math.round(f * 100)}%">${esc(m.name)}</mark></span></label>
           ${body}
-          <input class="note" type="text" id="${t.key}-note" data-act="note" data-key="${t.key}" maxlength="300" value="${esc(st.note)}" placeholder="${esc(meta.note)}" aria-label="Notes for ${esc(meta.short || meta.name)}"${dis()}>
+          <input class="note" type="text" id="${key}-note" data-act="note" data-key="${key}" maxlength="300" value="${esc(st.note)}" placeholder="${esc(m.note)}" aria-label="Notes for ${esc(m.short)}"${dis()}>
         </div>
         <div class="task-hrs">
-          <span class="plan">${t.planLabel}</span>
-          <label class="hrs"><input type="number" id="${t.key}-hrs" data-act="hrs" data-key="${t.key}" min="0" max="16" step="0.5" inputmode="decimal" value="${st.hrs ?? ''}" placeholder="0" aria-label="Hours spent on ${esc(meta.short || meta.name)}"${dis()}>h</label>
+          <span class="plan">${PLAN_LABEL[key]}</span>
+          <label class="hrs"><input type="number" id="${key}-hrs" data-act="hrs" data-key="${key}" min="0" max="16" step="0.5" inputmode="decimal" value="${st.hrs ?? ''}" placeholder="0" aria-label="Hours spent on ${esc(m.short)}"${dis()}>h</label>
         </div>
       </li>`;
     }).join('');
-    const el = $('tasks');
-    el.innerHTML = html;
-    TASKS.forEach(t => {
-      const box = $(`${t.key}-main`);
-      const f = frac(day, t.key);
-      box.indeterminate = f > 0 && f < 1;
+    TASK_KEYS.forEach(key => {
+      const f = frac(day, key);
+      $(`${key}-main`).indeterminate = f > 0 && f < 1;
     });
   }
 
   function renderCal() {
-    const cal = $('cal');
-    const wd = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    let html = wd.map(w => `<span class="wd" aria-hidden="true">${w.slice(0, 2)}</span>`).join('');
+    const wd = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+    let html = wd.map(w => `<span class="wd" aria-hidden="true">${w}</span>`).join('');
     const offset = (plan.list[0].date.getDay() + 6) % 7;
     for (let i = 0; i < offset; i++) html += '<span aria-hidden="true"></span>';
     plan.list.forEach((pd, i) => {
       const day = days[pd.iso];
       const done = day ? requiredDone(day) : 0;
       const p = done / REQUIRED.length;
-      const past = pd.iso < today;
       const isToday = pd.iso === today;
       const cls = ['cell', 'ph-' + pd.phase];
-      let state;
-      let style = '';
+      let state, style = '';
       if (pd.sunday) { cls.push('rest'); state = 'Sunday off'; }
-      else if (pd.iso > today) { cls.push('future'); state = 'upcoming'; }
       else if (done > 0) {
         cls.push('fill'); if (p >= 0.6) cls.push('strong');
         style = ` style="--p:${Math.round(20 + p * 80)}%"`;
         state = `${done} of ${REQUIRED.length} done`;
-      } else if (past) { cls.push('missed'); state = 'missed'; }
+      } else if (pd.iso > today) { cls.push('future'); state = 'upcoming'; }
+      else if (pd.iso < today) { cls.push('missed'); state = 'missed'; }
       else state = 'not started';
       if (isToday) cls.push('today');
       const d = pd.date.getDate();
       const mon = (i === 0 || d === 1) ? `<small>${fmt(pd.date, { month: 'short' })}</small>` : '';
-      const label = `Day ${pd.n}, ${fmt(pd.date, { weekday: 'long', day: 'numeric', month: 'long' })}${isToday ? ', today' : ''}: ${state}`;
-      html += `<button type="button" class="${cls.join(' ')}" id="cell-${pd.iso}" data-iso="${pd.iso}" aria-pressed="${pd.iso === selected}" aria-label="${label}" title="${label}"${style}>${d}${mon}</button>`;
+      const topic = pd.sunday ? '' : ` · DSA ${pick(TOPIC_PLAN, pd.work)[0]}`;
+      const label = `Day ${pd.n}, ${fmt(pd.date, { weekday: 'long', day: 'numeric', month: 'long' })}${isToday ? ', today' : ''}: ${state}${topic}`;
+      html += `<button type="button" class="${cls.join(' ')}" id="cell-${pd.iso}" data-iso="${pd.iso}" aria-pressed="${pd.iso === selected}" aria-label="${esc(label)}" title="${esc(label)}"${style}>${d}${mon}</button>`;
     });
-    cal.innerHTML = html;
-  }
-
-  function renderTally() {
-    const worked = plan.list.filter(p => !p.sunday && p.iso <= today);
-    const reqTotal = worked.length * REQUIRED.length;
-    const reqDone = worked.reduce((a, p) => a + (days[p.iso] ? requiredDone(days[p.iso]) : 0), 0);
-    const allHours = plan.list.reduce((a, p) => a + (days[p.iso] ? dayHours(days[p.iso]) : 0), 0);
-    const pastFull = plan.list.filter(p => !p.sunday && p.iso <= today).length;
-    const sql = sqlTotal();
-    const finishedDays = plan.list.filter(p => !p.sunday && p.iso < today).length;
-    const sqlExpected = Math.min(SQL_TOTAL, finishedDays * 2);
-    const sqlGap = sqlExpected - sql;
-    const count = (key, filter) => plan.list.filter(p => (!filter || filter(p)) && days[p.iso] && isDone(days[p.iso], key)).length;
-    const topicCounts = TOPICS.map(t => [t, plan.list.filter(p => days[p.iso] && days[p.iso].t.dsaNew.topic === t).length]);
-    const pct = reqTotal ? Math.round((reqDone / reqTotal) * 100) : null;
-    const st = streak();
-
-    const rows = [
-      ['Streak', `${st} ${st === 1 ? 'day' : 'days'}`, '', 'Working days in a row with all 5 tasks done'],
-      ['Plan done', pct === null ? '—' : `${pct}%`, pct === null ? '' : bar(pct / 100), `${reqDone} of ${reqTotal} tasks across ${worked.length} working ${worked.length === 1 ? 'day' : 'days'}`],
-      ['Hours logged', `${fmtH(allHours)} h`, '', pastFull ? `About ${fmtH(allHours / pastFull)} h per working day` : ''],
-      ['LeetCode SQL 50', `${sql} / ${SQL_TOTAL}`, bar(sql / SQL_TOTAL), sql >= SQL_TOTAL ? 'All 50 solved' : (sqlGap > 0 ? `${sqlGap} behind the 2-a-day pace` : 'On pace'), sqlGap > 0 && sql < SQL_TOTAL ? 'behind' : ''],
-      ['JavaScript days', `${count('js')}`, '', 'Days with both code and interview questions done'],
-      ['System design sessions', `${count('focus', p => p.phase === 'sd' && !p.sunday)} / ${plan.sdTotal}`, bar(count('focus', p => p.phase === 'sd' && !p.sunday) / plan.sdTotal), ''],
-      ['Project sessions', `${count('focus', p => p.phase === 'proj' && !p.sunday)} / ${plan.projTotal}`, bar(count('focus', p => p.phase === 'proj' && !p.sunday) / plan.projTotal), ''],
-      ['DSA topic days', topicCounts.map(([t, n]) => `${t} ${n}`).join(' · '), '', '', '', 'stack'],
-      ['Python bonus days', `${count('py')}`, '', '']
-    ];
-    $('tally').innerHTML = rows.map(([k, v, b, hint, hintCls, rowCls]) =>
-      `<div class="row ${rowCls || ''}"><dt>${k}</dt><dd>${v}</dd>${b}${hint ? `<span class="hint ${hintCls || ''}">${hint}</span>` : ''}</div>`).join('');
+    $('cal').innerHTML = html;
   }
 
   function bar(x) {
@@ -889,11 +1117,45 @@ details.settings summary {
 
   function streak() {
     const wd = plan.list.filter(p => !p.sunday && p.iso <= today);
-    let i = wd.length - 1, s = 0;
     const full = p => days[p.iso] && requiredDone(days[p.iso]) === REQUIRED.length;
+    let i = wd.length - 1, s = 0;
     if (i >= 0 && wd[i].iso === today && !full(wd[i])) i--;
     for (; i >= 0; i--) { if (full(wd[i])) s++; else break; }
     return s;
+  }
+
+  function renderTally() {
+    const worked = plan.list.filter(p => !p.sunday && p.iso <= today);
+    const reqTotal = worked.length * REQUIRED.length;
+    const reqDone = worked.reduce((a, p) => a + (days[p.iso] ? requiredDone(days[p.iso]) : 0), 0);
+    const allHours = plan.list.reduce((a, p) => a + (days[p.iso] ? dayHours(days[p.iso]) : 0), 0);
+    const sql = sqlTotal();
+    const finishedDays = plan.list.filter(p => !p.sunday && p.iso < today).length;
+    const sqlGap = Math.min(SQL_TOTAL, settings.sqlBefore + finishedDays * 2) - sql;
+    const count = (key, filter) => plan.list.filter(p => (!filter || filter(p)) && days[p.iso] && isDone(days[p.iso], key)).length;
+    const working = plan.list.filter(p => !p.sunday);
+    const areas = ['Trees', 'Graphs', 'DP'].map(a => {
+      const inArea = working.filter(p => pick(TOPIC_PLAN, p.work)[0] === a);
+      return `${a} ${inArea.filter(p => days[p.iso] && isDone(days[p.iso], 'dsaNew')).length}/${inArea.length}`;
+    }).join(' · ');
+    const pct = reqTotal ? Math.round((reqDone / reqTotal) * 100) : null;
+    const st = streak();
+    const sdDone = count('focus', p => p.phase === 'sd' && !p.sunday);
+    const pjDone = count('focus', p => p.phase === 'proj' && !p.sunday);
+
+    const rows = [
+      ['Streak', `${st} ${st === 1 ? 'day' : 'days'}`, '', 'Working days in a row with all 5 tasks done'],
+      ['Plan done', pct === null ? '—' : `${pct}%`, pct === null ? '' : bar(pct / 100), pct === null ? 'Starts on day 1' : `${reqDone} of ${reqTotal} tasks across ${worked.length} working ${worked.length === 1 ? 'day' : 'days'}`],
+      ['Hours logged', `${fmtH(allHours)} h`, '', worked.length ? `About ${fmtH(allHours / worked.length)} h per working day` : ''],
+      ['LeetCode SQL 50', `${sql} / ${SQL_TOTAL}`, bar(sql / SQL_TOTAL), sql >= SQL_TOTAL ? 'All 50 solved' : (sqlGap > 0 ? `${sqlGap} behind the 2-a-day pace` : 'On pace'), sqlGap > 0 && sql < SQL_TOTAL ? 'behind' : ''],
+      ['DSA important topics', areas, '', '', '', 'stack'],
+      ['JavaScript days', `${count('js')}`, '', 'Days with both code and interview questions done'],
+      ['System design sessions', `${sdDone} / ${plan.sdTotal}`, bar(sdDone / plan.sdTotal), ''],
+      ['Project sessions', `${pjDone} / ${plan.projTotal}`, bar(pjDone / plan.projTotal), ''],
+      ['Python bonus days', `${count('py')}`, '', '']
+    ];
+    $('tally').innerHTML = rows.map(([k, v, b, hint, hintCls, rowCls]) =>
+      `<div class="row ${rowCls || ''}"><dt>${k}</dt><dd>${v}</dd>${b}${hint ? `<span class="hint ${hintCls || ''}">${hint}</span>` : ''}</div>`).join('');
   }
 
   function renderBacklog() {
@@ -901,7 +1163,8 @@ details.settings summary {
       .filter(p => !p.sunday && p.iso < today)
       .map(p => {
         const day = getDay(p.iso);
-        const missing = REQUIRED.filter(k => !isDone(day, k)).map(k => k === 'sql' && day.t.sql.count > 0 ? `SQL (${day.t.sql.count}/2)` : labelFor(k, p));
+        const missing = REQUIRED.filter(k => !isDone(day, k))
+          .map(k => k === 'sql' && day.t.sql.count > 0 ? `SQL (${day.t.sql.count}/2)` : taskMeta(k, p).short);
         return { p, missing };
       })
       .filter(x => x.missing.length)
@@ -916,9 +1179,12 @@ details.settings summary {
   }
 
   function renderSettings() {
-    if (document.activeElement && document.activeElement.closest && document.activeElement.closest('#settingsForm')) return;
+    const a = document.activeElement;
+    if (a && a.closest && a.closest('#settingsForm')) return;
     $('setStart').value = settings.start;
     $('setPlacement').value = settings.placement;
+    $('setJs').value = settings.jsDay1;
+    $('setSql').value = settings.sqlBefore;
     $('settings').hidden = readOnly;
   }
 
@@ -933,6 +1199,7 @@ details.settings summary {
     renderTally();
     renderBacklog();
     renderSettings();
+    updateSync();
     if (activeId) {
       const el = document.getElementById(activeId);
       if (el && el !== document.activeElement && !el.disabled) el.focus({ preventScroll: true });
@@ -940,19 +1207,24 @@ details.settings summary {
   }
 
   /* ---------- Interaction ---------- */
-  function mutate(key, fn, { checklist = true, delay = 350 } = {}) {
+  function mutate(key, fn, { checklist = true, delay = 400 } = {}) {
     if (readOnly) return;
-    const day = ensureDay(selected);
-    const def = taskDef(key);
+    const iso = selected;
+    const day = ensureDay(iso);
     const was = isDone(day, key);
     fn(day.t[key]);
     const now = isDone(day, key);
     const st = day.t[key];
-    if (def.plan != null && was !== now) {
-      if (now && st.hrs == null) st.hrs = def.plan;
-      else if (!now && st.hrs === def.plan) st.hrs = null;
+    const ph = PLAN_H[key];
+    if (ph != null && was !== now) {
+      if (now && st.hrs == null) st.hrs = ph;
+      else if (!now && st.hrs === ph) st.hrs = null;
     }
-    queueSave(selected, delay);
+    day.updatedAt = Date.now();
+    editSeq[iso] = (editSeq[iso] || 0) + 1;
+    pending.add(iso);
+    cacheLocal();
+    scheduleFlush(iso, delay);
     renderAll({ checklist });
   }
 
@@ -963,7 +1235,7 @@ details.settings summary {
     if (act === 'main') {
       mutate(key, st => {
         if ('subs' in st) { const all = st.subs.every(Boolean); st.subs = st.subs.map(() => !all); }
-        else if ('count' in st) { st.count = st.count >= 2 ? 0 : 2; }
+        else if ('count' in st) st.count = st.count >= 2 ? 0 : 2;
         else st.done = !st.done;
       });
     } else if (act === 'sub') {
@@ -975,50 +1247,53 @@ details.settings summary {
     const el = e.target.closest('button');
     if (!el || el.disabled) return;
     const { act, key } = el.dataset;
-    if (act === 'topic') mutate(key, st => { st.topic = st.topic === el.dataset.v ? '' : el.dataset.v; });
-    else if (act === 'inc') mutate(key, st => { st.count = Math.min(20, st.count + 1); });
+    if (act === 'inc') mutate(key, st => { st.count = Math.min(20, st.count + 1); });
     else if (act === 'dec') mutate(key, st => { st.count = Math.max(0, st.count - 1); });
   });
   tasksEl.addEventListener('input', e => {
     const el = e.target;
     const { act, key } = el.dataset;
-    if (act === 'note') mutate(key, st => { st.note = el.value.slice(0, 300); }, { checklist: false, delay: 900 });
+    if (act === 'note') mutate(key, st => { st.note = el.value.slice(0, 300); }, { checklist: false, delay: 1000 });
     else if (act === 'hrs') {
       const v = parseFloat(el.value);
-      mutate(key, st => { st.hrs = isFinite(v) ? Math.max(0, Math.min(16, v)) : null; }, { checklist: false, delay: 900 });
+      mutate(key, st => { st.hrs = isFinite(v) ? Math.max(0, Math.min(16, v)) : null; }, { checklist: false, delay: 1000 });
     }
   });
 
-  function select(iso) {
+  const narrow = () => window.matchMedia('(max-width: 939px)').matches;
+  const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function select(iso, scroll) {
     if (!plan.byIso[iso]) return;
     selected = iso;
     renderAll();
+    if (scroll) $('dayHeading').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
   }
   $('prevDay').addEventListener('click', () => select(isoOf(addDays(parse(selected), -1))));
   $('nextDay').addEventListener('click', () => select(isoOf(addDays(parse(selected), 1))));
   $('goToday').addEventListener('click', () => select(today));
-  $('cal').addEventListener('click', e => { const b = e.target.closest('[data-iso]'); if (b) select(b.dataset.iso); });
-  $('backlog').addEventListener('click', e => {
-    const b = e.target.closest('[data-iso]');
-    if (!b) return;
-    select(b.dataset.iso);
-    $('dayHeading').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-  });
+  $('cal').addEventListener('click', e => { const b = e.target.closest('[data-iso]'); if (b) select(b.dataset.iso, narrow()); });
+  $('backlog').addEventListener('click', e => { const b = e.target.closest('[data-iso]'); if (b) select(b.dataset.iso, true); });
+  $('saveTop').addEventListener('click', onSave);
+  $('saveBottom').addEventListener('click', onSave);
 
-  $('settingsForm').addEventListener('submit', async e => {
+  $('settingsForm').addEventListener('submit', e => {
     e.preventDefault();
     if (readOnly) return;
-    const start = $('setStart').value, placement = $('setPlacement').value;
     const msg = $('setMsg');
+    const start = $('setStart').value, placement = $('setPlacement').value;
     if (!validIso(start) || !validIso(placement)) { msg.textContent = 'Pick both dates.'; return; }
     if (placement < start) { msg.textContent = 'The placement date has to come after day 1.'; return; }
-    settings = { start, placement };
-    applySettings();
+    const jsDay1 = intIn($('setJs').value, 1, 30, null);
+    const sqlBefore = intIn($('setSql').value, 0, 50, null);
+    if (jsDay1 === null) { msg.textContent = 'The JavaScript challenge day has to be between 1 and 30.'; return; }
+    if (sqlBefore === null) { msg.textContent = 'SQL questions solved has to be between 0 and 50.'; return; }
+    settings = { start, placement, jsDay1, sqlBefore };
+    settingsUpdatedAt = Date.now();
+    settingsPending = true;
     cacheLocal();
-    if (mode === 'db' && db) {
-      try { await writeWithRetry(db.doc('plan/settings'), { ...settings, updatedAt: new Date().toISOString() }); msg.textContent = 'Saved. The calendar now starts on ' + fmt(parse(start), { day: 'numeric', month: 'long' }) + '.'; }
-      catch (err) { msg.textContent = 'Could not save the dates to your account. They are kept in this browser.'; }
-    } else msg.textContent = 'Saved in this browser.';
+    applySettings();
+    flushSettings();
+    msg.textContent = mode === 'db' ? 'Settings saved.' : 'Settings saved on this device.';
   });
 
   function applySettings() {
@@ -1027,68 +1302,115 @@ details.settings summary {
     renderAll();
   }
 
-  // Keep "today" correct if the page stays open past midnight.
+  // Keep "today" right if the page stays open past midnight.
   function tick() {
     const t = todayIso();
-    if (t !== today) {
-      const wasOnToday = selected === today;
-      today = t;
-      if (wasOnToday && plan.byIso[t]) selected = t;
-      renderAll();
-    }
+    if (t === today) return;
+    const wasOnToday = selected === today;
+    today = t;
+    if (wasOnToday && plan.byIso[t]) selected = t;
+    renderAll();
   }
   setInterval(tick, 60000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { cacheLocal(); flushAll(); }
+    else tick();
+  });
+  window.addEventListener('pagehide', () => { cacheLocal(); flushAll(); });
 
-  /* ---------- Boot ---------- */
-  loadLocal();
-  plan = buildPlan();
-  selected = clampToPlan(today);
-  setSync('local');
-  renderAll();
+  /* ---------- Connecting to the account ---------- */
+  let subTries = 0;
+
+  function onDays(snap) {
+    const fromCache = !!(snap.metadata && snap.metadata.fromCache);
+    if (fromCache && snap.empty) return;              // wait for the account's real answer
+    const server = {};
+    snap.docs.forEach(d => { if (d.exists && validIso(d.id)) server[d.id] = normalize(d.data(), d.id); });
+    const next = { ...server };
+    for (const iso of [...pending]) {
+      const local = days[iso];
+      if (!local) { pending.delete(iso); continue; }
+      const srv = server[iso];
+      if (inflight[iso] || timers[iso] || !srv || (local.updatedAt || 0) >= (srv.updatedAt || 0)) next[iso] = local;
+      else pending.delete(iso);                       // a newer save from another device wins
+    }
+    const before = JSON.stringify(getDay(selected).t);
+    days = next;
+    const after = JSON.stringify(getDay(selected).t);
+    const first = !ready && !fromCache;
+    if (first) ready = true;
+    cacheLocal();
+    renderAll({ checklist: before !== after });
+    if (first) flushAll();
+  }
+
+  function onDaysError(e) {
+    const code = (e && e.code) || 'unknown';
+    if (BLOCKED_CODES.includes(code)) { mode = 'blocked'; lastError = code; }
+    else {
+      lastError = code;
+      ready = true;
+      if (subTries++ < 3) setTimeout(() => db.collection('days').onSnapshot(onDays, onDaysError), 4000);
+      flushAll();
+    }
+    renderAll();
+  }
+
+  function onSettings(s) {
+    settingsSeen = true;
+    const d = s.exists ? s.data() : null;
+    const srvAt = d ? (typeof d.updatedAt === 'number' ? d.updatedAt : (Date.parse(d.updatedAt) || 0)) : 0;
+    if (settingsPending && settingsUpdatedAt >= srvAt) { flushSettings(); return; }
+    settingsPending = false;
+    const next = cleanSettings(d);
+    settingsUpdatedAt = srvAt;
+    if (JSON.stringify(next) !== JSON.stringify(settings)) {
+      settings = next;
+      cacheLocal();
+      applySettings();
+    } else cacheLocal();
+  }
+
+  function subscribe() {
+    db.collection('days').onSnapshot(onDays, onDaysError);
+    db.doc('plan/settings').onSnapshot(onSettings, e => {
+      settingsSeen = true;
+      if (e && BLOCKED_CODES.includes(e.code)) { mode = 'blocked'; lastError = e.code; updateSync(); }
+    });
+    // If the account never answers, try saving anyway rather than holding changes forever.
+    setTimeout(() => {
+      if (mode !== 'db') return;
+      if (!ready) { ready = true; }
+      if (!settingsSeen) settingsSeen = true;
+      flushAll();
+    }, 12000);
+  }
 
   async function connect() {
-    if (!window.claude || typeof window.claude.use !== 'function') return;
-    let dbNs = null;
-    try { dbNs = await window.claude.use('db'); } catch (e) { dbNs = null; }
-    if (!dbNs) return;
-    db = dbNs;
+    if (!window.claude || typeof window.claude.use !== 'function') { mode = 'local'; updateSync(); return; }
+    mode = 'connecting';
+    updateSync();
+    let ns = null;
+    try { ns = await window.claude.use('db'); } catch (e) { ns = null; }
+    if (!ns) { mode = 'local'; updateSync(); return; }
+    db = ns;
     mode = 'db';
-    setSync('synced');
-
+    updateSync();
+    subscribe();
     try {
       const user = await window.claude.use('user');
       if (user) {
         const can = await user.can('data.write');
-        if (can === false) { readOnly = true; setSync('readonly'); renderAll(); }
+        if (can === false) { readOnly = true; renderAll(); }
       }
-    } catch (e) { /* keep inputs; a refused write decides */ }
-
-    db.collection('days').onSnapshot(snap => {
-      const next = {};
-      snap.docs.forEach(d => { if (d.exists && validIso(d.id)) next[d.id] = normalize(d.data(), d.id); });
-      dirty.forEach(k => { if (days[k]) next[k] = days[k]; });
-      const before = JSON.stringify(days[selected] ? days[selected].t : null);
-      const after = JSON.stringify(next[selected] ? next[selected].t : null);
-      days = next;
-      cacheLocal();
-      renderAll({ checklist: before !== after });
-    }, err => {
-      if (err && err.code === 'revoked') { readOnly = true; setSync('readonly'); }
-      else setSync('error');
-      renderAll();
-    });
-
-    db.doc('plan/settings').onSnapshot(s => {
-      const d = s.exists ? s.data() : null;
-      const next = d && validIso(d.start) && validIso(d.placement) ? { start: d.start, placement: d.placement } : { ...DEFAULTS };
-      if (next.start !== settings.start || next.placement !== settings.placement) {
-        settings = next;
-        cacheLocal();
-        applySettings();
-      }
-    }, () => { /* the plan keeps its current dates */ });
+    } catch (e) { /* keep the inputs; a refused save will say so */ }
   }
+
+  /* ---------- Start ---------- */
+  loadLocal();
+  plan = buildPlan();
+  selected = clampToPlan(today);
+  renderAll();
   connect();
 })();
 </script>

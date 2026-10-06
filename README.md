@@ -13,19 +13,23 @@ Study guides for a student who already knows C++:
 
 **[tracker/placement-sprint.html](tracker/placement-sprint.html)** is the source of a daily checklist for the 30 days before
 placement (6 Oct – 4 Nov 2026, Sundays off). It is published as a private claude.ai artifact, where ticks, hours and notes
-are saved to your account. Opened as a local file, it saves to that browser instead.
+are saved to your account (with a Save button and a status line that says whether the last change reached the account).
+Opened as a local file, it saves to that browser instead.
 
-| Block | Time | What the checklist tracks |
+Every date has its own fixed plan:
+
+| Block | Time | Plan for each working day |
 |---|---|---|
-| DSA revision | 3 h | done, hours, what you revised |
-| DSA important topic | 4–5 h | DP / Graph / Tree / Other, hours, problems solved |
-| JavaScript | 2 h | 30-day challenge code + interview questions |
-| System design (days 1–15) → Projects (days 16–30) | 2 h | one suggested session a day: 13 system design topics, then 13 PaperRAG / SchemaMind sessions that follow the projects guide |
-| SQL | 1 h | LeetCode SQL 50 counter, target 2 a day |
+| DSA revision | 3 h | one of 26 revision topics, from arrays to a final timed mock |
+| DSA important topic | 4–5 h | Trees (8 days), then Graphs (9), then DP (9), one sub-topic a day |
+| JavaScript | 2 h | challenge day N of your 30-day challenge: code + interview questions |
+| System design (days 1–15) → Projects (days 16–30) | 2 h | 13 system design sessions, then 13 PaperRAG / SchemaMind sessions that follow the projects guide |
+| SQL | 1 h | LeetCode SQL 50, two questions a day (questions 1–2, 3–4, …) with a counter |
 | Python | bonus | code + interview questions, not counted in the daily score |
 
-The side rail has the 30-day calendar, a streak, total hours, SQL pace, session counts and a list of unfinished tasks from
-earlier days. The plan dates can be changed under "Change plan dates".
+The side rail has the 30-day calendar, a streak, total hours, SQL pace, topic and session counts, and a list of unfinished
+tasks from earlier days. "Change plan settings" moves the dates and sets which JavaScript challenge day and how many SQL 50
+questions you start from.
 
 ## GenAI, RAG & Agents — Explained Simply
 
