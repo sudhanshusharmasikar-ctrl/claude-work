@@ -35,7 +35,7 @@ def pb_paperrag_pipeline():
                      ("   every time", {"color": "#1e40af"})], size=11)
     b = [("Question", ["typed on", "the web page"], "white"),
          ("To numbers", ["the same", "MiniLM model"], "white"),
-         ("Find closest", ["FAISS: top 5", "chunks + scores"], "white"),
+         ("Find closest", ["meaning +", "keywords: top 5"], "white"),
          ("Guard", ["best score", "≥ 0.50 ?"], "orange"),
          ("Write answer", ["quote the chunks,", "or ask Mistral"], "purple"),
          ("Answer", ["+ file & page", "citations"], "green")]
@@ -43,14 +43,14 @@ def pb_paperrag_pipeline():
     # the library built in A is what B searches
     s.path(f"M {xa[5] + 46} 136 L {xa[5] + 46} 166 L {xb[2] + 22} 166 L {xb[2] + 22} 220",
            color="#7c3aed", dash="4 3")
-    s.text(xb[2] + 30, 206, "the library is loaded once, when the server starts", size=9, italic=True,
-           color="#5b21b6", anchor="start")
+    s.text(xb[2] + 30, 206, "the library is loaded once, when the server starts; BM25 indexes its words then",
+           size=9, italic=True, color="#5b21b6", anchor="start")
     gx = xb[3] + 46
     s.line(gx, 304, gx, 329, color="#dc2626")
     s.text(gx + 7, 320, "no", size=9, weight=700, color="#b91c1c", anchor="start")
     s.box(gx - 110, 332, 220, 30, title="\"I don't know\": the papers don't cover it", kind="red", tsize=10)
     for i, t in enumerate(["server: FastAPI  (app/api.py)", "web page: Streamlit  (ui/)",
-                           "checks: 51-question eval + 51 tests"]):
+                           "checks: 51-question eval + 66 tests"]):
         s.box(8 + i * 224, 382, 216, 30, title=t, kind="grey", tsize=10)
     return s.render()
 
@@ -307,14 +307,14 @@ def pb_schemamind_pipeline():
     s.rich(16, 27, [("A · WHEN THE SERVER STARTS", {"weight": 800, "color": "#4c1d95"}),
                     ("   once", {"color": "#5b21b6"})], size=11)
     a = [("shop.db", ["5 tables: customers,", "orders, items, …"], "navy", 140),
-         ("Read the schema", ["tables, columns, keys", "+ 2 sample rows"], "white", 140),
+         ("Read the schema", ["tables, columns, keys,", "samples, short values"], "white", 140),
          ("Describe tables", ["one plain-text", "card per table"], "white", 140),
          ("To numbers", ["MiniLM: one vector", "per table card"], "white", 140)]
     xa = hchain(s, 20, 42, a, h=60, gap=30, tsize=11, bsize=9)
     s.rect(4, 136, 672, 298, fill="#eff6ff", stroke="#93c5fd", sw=1.2, rx=12)
     s.rich(16, 157, [("B · EACH QUESTION", {"weight": 800, "color": "#1e3a8a"})], size=11)
     b = [("Question", ["\"How many orders", "from Pune?\""], "white"),
-         ("Pick tables", ["top 3 by", "similarity"], "blue"),
+         ("Pick tables", ["top 3 + the", "join tables"], "blue"),
          ("Write SQL", ["template mode", "or Mistral"], "purple"),
          ("Check SQL", ["one read query?", "(validator)"], "orange"),
          ("Run SQL", ["read-only, 5 s,", "200 rows max"], "orange"),
@@ -337,7 +337,7 @@ def pb_schemamind_pipeline():
     s.box(420, 338, 236, 34, title="After 3 failed tries: stop and say why", kind="grey", tsize=10)
     s.line(398, 355, 417, 355, color="#64748b")
     s.lines(20, 400, ["Template mode answers a fixed list of question shapes and refuses everything else.",
-                      "Mistral mode writes new SQL from the 3 table cards (needs an API key)."],
+                      "Mistral mode (Codestral) writes new SQL from the picked table cards (needs an API key)."],
             size=9.5, color=MUTED, anchor="start", lh=14)
     return s.render()
 
@@ -492,10 +492,10 @@ def pb_skeleton():
     for t, x in cols:
         s.chip(x + 66, 10, t, kind="navy", size=10, anchor="middle")
     rows = [("PaperRAG", 44, "purple",
-             [["top 5 chunks", "(FAISS search)"], ["quote the chunks,", "or Mistral answer"],
+             [["top 5 chunks", "(meaning + keywords)"], ["quote the chunks,", "or Mistral answer"],
               ["score guard +", "INSUFFICIENT_CONTEXT"], ["file + page", "for every passage"]]),
             ("SchemaMind", 128, "blue",
-             [["top 3 tables", "(MiniLM similarity)"], ["SQL: template", "or Mistral"],
+             [["top 3 tables", "+ the join tables"], ["SQL: template", "or Mistral"],
               ["validator, read-only", "file, time + row limits"], ["the SQL shown", "with the rows"]])]
     for name, y, kind, cells in rows:
         s.box(8, y, 96, 70, title=name, kind=kind, tsize=11)
@@ -505,4 +505,114 @@ def pb_skeleton():
             s.line(x + 1, y + 35, x + 6, y + 35, color="#94a3b8", sw=1.2)
     s.text(340, 224, "Both refuse honestly: PaperRAG says \"I don't know\", SchemaMind says it can't write a query.",
            size=9.5, italic=True, color=MUTED)
+    return s.render()
+
+
+@fig
+def pb_hybrid():
+    """Hybrid search: two rankings merged by reciprocal rank fusion (example ranks)."""
+    s = Svg(680, 300, "pbhy")
+    s.box(110, 6, 460, 30, title="Question: How big is BERT's WordPiece vocabulary?   (example ranks)",
+          kind="white", tsize=10.5)
+    cols = [(12, "By meaning", "embeddings: cosine", "blue",
+             [("1", "bert p.3"), ("2", "bert p.2"), ("3", "bertweet p.3"), ("4", "bert p.13"),
+              ("5", "bert p.14"), ("…", ""), ("8", "bert p.4")]),
+            (244, "By keywords", "BM25: rare words count most", "orange",
+             [("1", "bert p.4"), ("2", "bert p.3"), ("3", "bert p.13"), ("4", "bert p.1"),
+              ("5", "bertweet p.2")]),
+            (476, "Merged: the 5 cited", "RRF: 1 / (60 + rank), per list", "purple",
+             [("bert p.3", "1/61 + 1/62"), ("bert p.13", "1/64 + 1/63"), ("bert p.4", "1/68 + 1/61"),
+              ("bert p.1", "1/67 + 1/64"), ("bertweet p.2", "1/90 + 1/65")])]
+    for x, title, sub, kind, rows in cols:
+        s.box(x, 50, 192, 40, title=title, body=[sub], kind=kind, tsize=11, bsize=9)
+        for i, (a, b) in enumerate(rows):
+            y = 100 + i * 22
+            right = "bert p.4" in (a, b)
+            s.rect(x, y, 192, 19, fill="#e2f7ea" if right else "#ffffff",
+                   stroke="#26a05e" if right else "#e5e7eb", sw=1.4 if right else 1, rx=5)
+            if kind == "purple":
+                s.text(x + 9, y + 13.5, a, size=9.5, weight=700 if right else 400, color=INK, anchor="start")
+                s.text(x + 183, y + 13.5, b, size=9, color=MUTED, anchor="end", mono=True)
+            else:
+                s.text(x + 9, y + 13.5, a, size=9.5, weight=700, color=MUTED, anchor="start")
+                s.text(x + 30, y + 13.5, b, size=9.5, weight=700 if right else 400, color=INK, anchor="start")
+    s.text(226, 160, "+", size=20, weight=700, color="#64748b")
+    s.text(458, 160, "→", size=20, weight=700, color="#64748b")
+    s.lines(340, 262, ["Embeddings alone cite p.3, p.2, bertweet p.3, p.13 and p.14, and miss p.4, the page with",
+                       "\"WordPiece\" and \"30,000\". Merged, a page near the top of both lists wins; the green row is the answer."],
+            size=9.5, color=MUTED, lh=14)
+    return s.render()
+
+
+def _mini_tables(s, x0, y0, picked, added, notes):
+    """The shop's five tables as small boxes; picked ones blue, added ones green."""
+    spots = {"customers": (x0, y0), "orders": (x0 + 82, y0), "order_items": (x0 + 164, y0),
+             "products": (x0 + 246, y0), "payments": (x0 + 82, y0 + 62)}
+    for name, (x, y) in spots.items():
+        kind = "blue" if name in picked else "green" if name in added else "grey"
+        s.box(x, y, 74, 26, title=name, kind=kind, tsize=9.5, dash=None if kind != "grey" else "3 3")
+    # foreign keys: each arrow goes from the table holding the id to the table it names
+    s.line(x0 + 82, y0 + 13, x0 + 76, y0 + 13, color="#64748b", sw=1.3)
+    s.line(x0 + 164, y0 + 13, x0 + 158, y0 + 13, color="#64748b", sw=1.3)
+    s.line(x0 + 238, y0 + 13, x0 + 244, y0 + 13, color="#64748b", sw=1.3)
+    s.line(x0 + 119, y0 + 62, x0 + 119, y0 + 28, color="#64748b", sw=1.3)
+    for i, n in enumerate(notes):
+        s.text(x0 + 160, y0 + 74 + 15 * i, n, size=9, color=INK, anchor="start")
+
+
+@fig
+def pb_join_tables():
+    s = Svg(680, 218, "pbjt")
+    s.rect(4, 4, 332, 186, fill="#fbfbfa", stroke="#e5e7eb", sw=1, rx=10)
+    s.rect(344, 4, 332, 186, fill="#fbfbfa", stroke="#e5e7eb", sw=1, rx=10)
+    s.text(16, 24, "Rule 1 · follow the ids", size=11, weight=800, color=INK, anchor="start")
+    s.lines(16, 42, ["\"Which city's customers bought the most Backpacks?\"",
+                     "(real, session 9: retrieval picked the 3 blue tables)"], size=9, color=MUTED,
+            anchor="start", lh=13)
+    _mini_tables(s, 12, 74, picked={"orders", "order_items", "products"}, added={"customers"},
+                 notes=["an order names its customer", "only by id, so customers", "comes along: added"])
+    s.text(356, 24, "Rule 2 · link two picked tables", size=11, weight=800, color=INK, anchor="start")
+    s.lines(356, 42, ["the same question, if retrieval had picked these 3",
+                      "(example)"], size=9, color=MUTED, anchor="start", lh=13)
+    _mini_tables(s, 352, 74, picked={"customers", "orders", "products"}, added={"order_items"},
+                 notes=["order_items points to both", "orders and products, so it", "joins them: added"])
+    s.rich(340, 210, [("blue", {"weight": 700, "color": "#1e3a8a"}), (" picked by retrieval     ", {"color": MUTED}),
+                      ("green", {"weight": 700, "color": "#14532d"}), (" added     ", {"color": MUTED}),
+                      ("dashed", {"weight": 700, "color": "#374151"}),
+                      (" left out     arrows: an id pointing to its table", {"color": MUTED})],
+           size=9.5, anchor="middle")
+    return s.render()
+
+
+@fig
+def pb_sm_results():
+    """SchemaMind's evaluation before and after session 9 (real): correct answers of 20."""
+    s = Svg(680, 196, "pbsr")
+    light, dark, link = "#86b6ef", "#1c5cab", "#cbd5e1"  # one hue, two validated shades
+    x0, x1 = 190, 630
+
+    def X(n):
+        return x0 + n / 20 * (x1 - x0)
+
+    # legend (two series), labels in ink beside a swatch
+    s.circle(x0, 16, 6, fill=light, stroke="#ffffff", sw=2)
+    s.text(x0 + 12, 19.5, "before the fixes (session 8)", size=9.5, color=INK, anchor="start")
+    s.circle(x0 + 196, 16, 6, fill=dark, stroke="#ffffff", sw=2)
+    s.text(x0 + 208, 19.5, "after: value lists + join tables (session 9)", size=9.5, color=INK,
+           anchor="start")
+    yb = 150
+    for n in (0, 5, 10, 15, 20):  # recessive grid
+        s.line(X(n), 40, X(n), yb, color="#e5e7eb" if n else "#9ca3af", sw=1, arrow=False)
+        s.text(X(n), yb + 15, str(n), size=9, color=MUTED)
+    s.text((x0 + x1) / 2, yb + 33, "correct answers, of 20 answerable questions", size=10, color=INK)
+    for y, name, sub, before, after in ((72, "Retrieved tables", "the normal way", 14, 19),
+                                        (118, "Full schema", "all 5 tables, for comparison", 17, 18)):
+        s.text(x0 - 14, y - 1, name, size=10.5, weight=700, color=INK, anchor="end")
+        s.text(x0 - 14, y + 12, sub, size=9, color=MUTED, anchor="end")
+        s.line(X(before), y, X(after), y, color=link, sw=2, arrow=False)
+        s.circle(X(before), y, 6, fill=light, stroke="#ffffff", sw=2)
+        s.circle(X(after), y, 6, fill=dark, stroke="#ffffff", sw=2)
+        s.text(X(before) - 11, y + 3.5, str(before), size=9.5, color=INK, anchor="end")
+        s.text(X(after) + 11, y + 3.5, f"{after}  ({after * 5}%)", size=9.5, weight=700, color=INK,
+               anchor="start")
     return s.render()

@@ -5,5 +5,5 @@
 .toc-sec { padding: 0.5pt 6pt 0.5pt 26pt; }
 .cv-badge { font-size: 13pt; padding: 0 1.6mm 1.6mm 0; }
 figure.diagram { margin-top: 6pt; }
-/* keep a lead-in line ("Two details matter:") on the same page as its list */
-p:has(+ ul), p:has(+ ol) { break-after: avoid; page-break-after: avoid; }
+/* keep a lead-in line ("Two details matter:") on the same page as its list or table */
+p:has(+ ul), p:has(+ ol), p:has(+ table) { break-after: avoid; page-break-after: avoid; }
