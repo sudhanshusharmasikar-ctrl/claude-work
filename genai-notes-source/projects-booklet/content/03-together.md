@@ -18,7 +18,7 @@ Put the two pipelines next to each other and the same four steps appear. Once yo
 |---|---|---|
 | You ask about | a folder of research papers | the database of a small shop |
 | What is searched | text chunks of up to 900 characters | one card per table |
-| How it searches | meaning (MiniLM, FAISS) + keywords (BM25), merged; top 5 | MiniLM numbers, top 3 + the join tables |
+| How it searches | meaning (MiniLM, FAISS) + keywords (BM25), merged; top 5 pages, one chunk each | MiniLM numbers, top 3 + the join tables |
 | The answer is made of | the passages, or Mistral's answer written from them | an SQL query and the rows it returns |
 
 **How each one stays honest**
@@ -29,7 +29,7 @@ Put the two pipelines next to each other and the same four steps appear. Once yo
 | The evidence shown | file and page of every passage | the SQL itself |
 | Its honest "no" | "I don't have enough supporting material…" | "Could not generate a query for this question." |
 | Without an API key | extractive mode | template mode |
-| Tests, run by CI on every push | 66 | 89 |
+| Tests, run by CI on every push | 70 | 89 |
 | Biggest open item | the first citation is right only 40% of the time | 3 answers count order lines instead of items |
 
 Two differences are worth noticing. PaperRAG's worst mistake is a **wrong answer**; SchemaMind's output is **code that runs on a database**, so its worst mistake could be a deleted table. That's why SchemaMind has three safety layers where PaperRAG has one guard. And SchemaMind doesn't need FAISS: comparing a question with 5 table cards takes one line of numpy.
@@ -43,11 +43,11 @@ Every project story has the same five parts. Here they are for both projects, so
 | The problem | LLMs make things up and don't say where an answer came from | most people can't write SQL, and SQL written by an LLM can be unsafe or quietly wrong |
 | How it works | blocks → chunks → meaning + keywords → top 5 → guard → answer | table cards → top 3 + join tables → SQL → validator → read-only run |
 | A decision you can defend | a chunk never crosses a page, so every chunk has one page number | the SQL is parsed into a tree instead of being searched for bad words |
-| How you know it works | 66 tests; on 51 questions the guard refused 14 of 17 unanswerable ones and 4 of 34 good ones, and hybrid search cites the right page for 80% (from 63%) | 89 tests, including real attacks; on 24 questions, 19 of 20 right with retrieval (from 14) |
-| What comes next | cite five different pages; a reranker for the first citation | tell the model what `quantity` means; more questions; per-user permissions |
+| How you know it works | 70 tests; on 51 questions the guard refused 14 of 17 unanswerable ones and 4 of 34 good ones, and the right page is cited for 87% (from 63%) | 89 tests, including real attacks; on 24 questions, 19 of 20 right with retrieval (from 14) |
+| What comes next | a reranker for the first citation; a stronger embedding model | tell the model what `quantity` means; more questions; per-user permissions |
 
 :::pitch PaperRAG in one minute
-"PaperRAG answers questions about a folder of research papers and gives the **file and page** of every passage it used. It reads each PDF in visual text blocks, puts two-column pages in reading order, and packs the blocks into chunks of at most 900 characters that **never cross a page**, so every chunk carries exactly one page number. Each chunk becomes a 384-number MiniLM vector in a FAISS index. For a question it ranks the chunks by meaning and by keywords with BM25, merges the two rankings and cites the top five; if even the best embedding score is below a threshold, it **refuses instead of guessing**. By default it returns the passages word for word, so it can't invent anything; with an API key, Mistral writes a short answer from them, with a second refusal check. It has a FastAPI server, a Streamlit page and 66 offline tests. On 51 hand-checked questions about 8 papers, the guard refused 14 of the 17 unanswerable questions while wrongly refusing 4 of the 34 answerable ones, I picked the threshold, 0.50, from that sweep, and adding keyword search raised the share of answers citing the right page from 63% to 80%."
+"PaperRAG answers questions about a folder of research papers and gives the **file and page** of every passage it used. It reads each PDF in visual text blocks, puts two-column pages in reading order, and packs the blocks into chunks of at most 900 characters that **never cross a page**, so every chunk carries exactly one page number. Each chunk becomes a 384-number MiniLM vector in a FAISS index. For a question it ranks the chunks by meaning and by keywords with BM25, merges the two rankings and cites the top five pages; if even the best embedding score is below a threshold, it **refuses instead of guessing**. By default it returns the passages word for word, so it can't invent anything; with an API key, Mistral writes a short answer from them, with a second refusal check. It has a FastAPI server, a Streamlit page and 70 offline tests. On 51 hand-checked questions about 8 papers, the guard refused 14 of the 17 unanswerable questions while wrongly refusing 4 of the 34 answerable ones, I picked the threshold, 0.50, from that sweep, and keyword search plus citing each page once raised the share of answers citing the right page from 63% to 87%."
 :::
 
 :::pitch SchemaMind in one minute
@@ -80,7 +80,7 @@ Q: Could you combine the two projects?
 Yes, as one assistant with two tools: questions about documents go to PaperRAG's search, questions about numbers go to SchemaMind. A router, either simple rules or an LLM, picks the tool, and each tool keeps its own checks. Letting a model choose its tools like this is what **agentic RAG** means.
 
 Q: How do you know a change didn't break anything?
-Both projects have offline tests, 66 and 89, that finish in seconds. **GitHub Actions** runs all of them after every push, on a fresh Linux machine, with Python 3.11 and with 3.14. A pull request shows a green tick or a red cross before it is merged, and the badge in each README shows the state of `main`.
+Both projects have offline tests, 70 and 89, that finish in seconds. **GitHub Actions** runs all of them after every push, on a fresh Linux machine, with Python 3.11 and with 3.14. A pull request shows a green tick or a red cross before it is merged, and the badge in each README shows the state of `main`.
 
 Q: Why does CI install the CPU-only build of PyTorch?
 PyTorch comes in with sentence-transformers, and its default Linux build includes several GB of GPU libraries. The tests never run a model and GitHub's machines have no GPU, so the much smaller CPU-only build is enough. A whole run takes about a minute and a half.
@@ -92,7 +92,7 @@ Q: What do your two evaluations have in common?
 Both run the same questions before and after a change, and both read every miss instead of trusting the total. And both fixes gave the model exact words: BM25 matches the question's rare terms in PaperRAG, and value lists show a column's real values in SchemaMind.
 
 Q: What would you do with one more week?
-Fix what each evaluation found: in PaperRAG, cite five different pages and add a reranker for the first citation; in SchemaMind, tell the model what `quantity` means and that the shop records no costs. Then re-run the same questions. CI already runs all 155 tests on every push, so each change would be checked automatically.
+Fix what each evaluation found: in PaperRAG, a reranker for the first citation; in SchemaMind, tell the model what `quantity` means and that the shop records no costs. Then re-run the same questions. CI already runs all 159 tests on every push, so each change would be checked automatically.
 
 Q: What did building both projects teach you?
 Testing finds bugs that reading the code doesn't: two chunking bugs, an injection check that worked only by luck, a timeout that never fired and five wrong template answers. Measuring finds the real weakness: the right page in PaperRAG, missing tables and hidden values in SchemaMind. And an honest refusal beats a confident wrong answer, so both projects are built to say no.
@@ -112,7 +112,7 @@ Every word in this guide, in one line each. The last column says which project u
 | Chunk | up to 900 characters of text from one page; the piece PaperRAG searches | PaperRAG |
 | CI | continuous integration: GitHub runs the tests on every push | both |
 | Citation | the file and page that a passage came from | PaperRAG |
-| Citation hit rate | how often the right page is among the cited ones (80% in PaperRAG) | PaperRAG |
+| Citation hit rate | how often the right page is among the cited ones (87% in PaperRAG) | PaperRAG |
 | Codestral | Mistral's model for code; SchemaMind's SQL writer (`codestral-2508`) | SchemaMind |
 | Cosine similarity | how closely two vectors point the same way; 1 = same meaning | both |
 | Dot product | multiply two lists number by number, then add; for vectors normalised to length 1 it equals cosine similarity | both |

@@ -136,7 +136,9 @@ The two lists are merged with **reciprocal rank fusion (RRF)**: each list gives 
 
 [[fig:pb-hybrid|How the two rankings merge (example ranks). Meaning alone ranks the page with the answer 8th, below the 5 that get cited; keywords rank it 1st. Merged, it makes the 5.]]
 
-Your evaluation measured it: the right page was among the citations for 24 of the 30 answered questions, up from 19 with meaning alone (1.7). `PAPERRAG_RETRIEVAL=dense` switches back to meaning only.
+Last, each page is cited **at most once** (session 11). A page is often cut into several chunks that rank close together; keeping only each page's best chunk makes the 5 citations 5 different pages. It can't drop a page that was already cited, so the first citation stays the same and the right page can only be gained.
+
+Your evaluation measured both steps: the right page was among the citations for 19 of the 30 answered questions with meaning alone, 24 with hybrid search, and 26 with one chunk per page (1.7). `PAPERRAG_RETRIEVAL=dense` and `PAPERRAG_DISTINCT_PAGES=0` switch them off.
 
 ### B4 · The guard
 
@@ -197,7 +199,7 @@ Question: *"Which optimizer did the transformer paper use?"* The scores are an *
 | 1 | The page sends the question to `/ask` | `ui/streamlit_app.py` | a JSON request |
 | 2 | The input is checked (length, `top_k`, mode) | `AskRequest` in `app/api.py` | OK |
 | 3 | The question becomes 384 numbers | `embed()` in `app/index.py` | one vector |
-| 4 | FAISS and BM25 rank the chunks; RRF merges them into the top 5 | `Retriever.__call__` in `app/retrieve.py` | first: `transformers.pdf p.2`; best score 0.71 |
+| 4 | FAISS and BM25 rank the chunks; RRF merges them; the top 5 pages, one chunk each | `Retriever.__call__` in `app/retrieve.py` | first: `transformers.pdf p.2`; best score 0.71 |
 | 5 | The guard compares 0.71 with 0.50 | the same function | answer allowed |
 | 6 | The extractive answer is built | `answer()` in `app/generate.py` | passages starting `[1] transformers.pdf p.2` |
 | 7 | The reply goes back with citations and timing | `ask()` in `app/api.py` | shown on the page |
@@ -206,7 +208,7 @@ Now ask *"What is a good chocolate cake recipe?"*. Step 4 finds nothing close (b
 
 ## 1.7 How it is measured and tested
 
-**Tests** check that the code does what it promises. There are 66, run with `pytest`, offline, in about three seconds. They don't download MiniLM: a tiny stand-in that counts words replaces it, so the tests are fast and give the same result every time. They cover cleaning, reading order, chunk sizes and overlap, the saved files, the guard, BM25 and hybrid search, the answer format, the API, the evaluation's arithmetic, the question checker, settings from `.env` and the web page's slider. GitHub runs them after every push, on Python 3.11 and 3.14 (see 3.3).
+**Tests** check that the code does what it promises. There are 70, run with `pytest`, offline, in about three seconds. They don't download MiniLM: a tiny stand-in that counts words replaces it, so the tests are fast and give the same result every time. They cover cleaning, reading order, chunk sizes and overlap, the saved files, the guard, BM25 and hybrid search, one chunk per page, the answer format, the API, the evaluation's arithmetic, the question checker, settings from `.env` and the web page's slider. GitHub runs them after every push, on Python 3.11 and 3.14 (see 3.3).
 
 **Evaluation** measures how *good* the answers are, which tests can't do. In session 7 you built the question set, `eval/questions.jsonl`: **51 questions** about your 8 papers (905 chunks).
 
@@ -220,8 +222,8 @@ Now ask *"What is a good chocolate cake recipe?"*. Step 4 finds nothing close (b
 | Unsupported answers, no guard | answers with no support in the papers, if nothing ever refused | 33.3%: all 17 unanswerable get an answer |
 | Unsupported answers, with guard | the same, with the guard on | 5.9%: only 3 of 51 |
 | False refusals | answerable questions that were refused | 11.8%: 4 of 34 |
-| Citation hit rate | answered questions whose right page is among the citations | 80.0% with hybrid search: 24 of 30 (63.3%, 19, by meaning alone) |
-| Retrieval time | turning the question into numbers and searching | median 10.3 ms, p95 11.2 ms (hybrid) |
+| Citation hit rate | answered questions whose right page is among the citations | 86.7%: 26 of 30 (80.0% with hybrid search alone, 63.3% by meaning alone) |
+| Retrieval time | turning the question into numbers and searching | median 11.6 ms, p95 12.5 ms |
 
 `--sweep` repeats this for every threshold from 0.20 to 0.66. Your real curve:
 
@@ -233,17 +235,20 @@ Now ask *"What is a good chocolate cake recipe?"*. Step 4 finds nothing close (b
 
 - **3 unanswerable questions got an answer**, all just above the threshold (0.507 to 0.549): the size of LAION-5B, T5's training data and XLNet's objective. Your papers don't mention these models, but they do talk about training data and objectives, so a passage on the same topic scores high. A score threshold catches *off-topic* questions; it can't catch an *on-topic* question whose answer is missing. That's the job of mistral mode's second guard.
 - **4 good questions were refused** (0.434 to 0.478). Each asks for one small detail: InfoNCE in CLIP, the fusion methods compared with TMPT, the tokenizer MLLM-SD uses, where ViT puts LayerNorm. Such narrow questions score lower than broad ones.
-- **6 answers cite the wrong page** with hybrid search (11 by meaning alone), usually another page of the right paper. In 5 of them the five citations repeat a page (three chunks of T-MAD's page 15, for one), which leaves fewer slots for other pages. One answer is a sentence split across a page break (Transformer, pages 6 and 7), which chunks that never cross a page can't keep together.
+- **4 answers cite the wrong page** (6 with hybrid search alone, 11 by meaning alone). Each now cites five different pages, but the page with the answer ranks below them: the hardware BERT-Large was trained on, the name of the new multi-turn stance dataset, the model that writes MLLM-SD's captions, and how ViT's classification head changes for fine-tuning.
 
-**Hybrid search against meaning alone** (session 10). `--threshold 0.50` runs both on the same questions. The guard is the same, so the same 30 questions are answered (**real**):
+**Three setups compared** (sessions 10 and 11). `--threshold 0.50` runs every question three times, each setup adding one change. The guard is the same, so the same 30 questions are answered (**real**):
 
-| Of the 30 answered questions | Meaning alone | Hybrid |
-|---|---|---|
-| Right page among the 5 citations | 19 (63%) | **24 (80%)** |
-| Right page cited first | 13 | 12 |
-| Search time, median | 9.2 ms | 10.3 ms |
+| Of the 30 answered questions | Meaning alone | Hybrid | Hybrid, 1 chunk per page |
+|---|---|---|---|
+| Right page among the 5 citations | 19 (63%) | 24 (80%) | **26 (87%)** |
+| Right page cited first | 13 | 12 | 12 |
+| Different pages cited (average) | 4.0 | 4.0 | 5.0 |
 
-Hybrid search found the right page for **6 more questions**, mostly ones with an exact term: the Transformer paper's other name for self-attention ("intra-attention"), the size of BERT's **WordPiece** vocabulary, ViT's position embeddings. It **lost 1**, T-MAD's encoders. The first citation got no better, 13 to 12: keyword search widens what makes the five, while putting the best one first is a reranker's job. One caveat: the questions were drafted from the papers' own passages, so they share words with the right page, which favours keyword search.
+- **Hybrid search: 6 more, 1 lost.** It helped most with an exact term: the Transformer paper's other name for self-attention ("intra-attention"), the size of BERT's **WordPiece** vocabulary, ViT's position embeddings. It lost T-MAD's encoders.
+- **One chunk per page: 2 more, none lost.** In 5 of the 6 misses left after hybrid search, one page had taken two or three of the five slots (three chunks of T-MAD's page 15, for one). Freeing them brought in the right page for T-MAD's encoders, the question hybrid had lost, and for when a self-attention layer is cheaper than a recurrent one.
+- **The first citation got no better**, 13, then 12 and 12: both changes widen what makes the five, while putting the best one first is a reranker's job.
+- One caveat: the questions were drafted from the papers' own passages, so they share words with the right page, which favours keyword search.
 
 ## 1.8 What we changed, and what we tried
 
@@ -261,15 +266,17 @@ Hybrid search found the right page for **6 more questions**, mostly ones with an
 | 7 | The web page's slider starts at the server's threshold | its own 0.35 would have overridden the new default |
 | 10 | Hybrid search: BM25 keywords merged with the embeddings by RRF | the right page is cited for 24 of 30 answered questions instead of 19 |
 | 10 | The evaluation runs both searches on the same questions | the guard is the same in both, so only the cited pages can differ |
+| 11 | Each page is cited at most once (its best chunk) | the right page for 26 of 30 answered questions instead of 24, none lost |
+| 11 | The evaluation compares three setups, one change at a time | each column shows what one change did |
 
 **What we tried for the two-column fix.** The first idea, from your notes, gave every block a single sort key: wide blocks first, then the left column, then the right. A test showed it breaks normal pages: a short line on a one-column page moved to the end, and a wide caption in the middle jumped to the top. The band method passed all three layout tests and read a realistic five-page two-column paper in the right order, while one-column documents came out exactly as before.
 
 **What we tried in session 7.** The first speed measurement gave a median of 9 ms but a p95 of 164 ms. On a Mac the model runs on the GPU ("mps"), which most likely does one-off setup work the first few times it sees a question. Switching to the CPU made both commands crash with a *segmentation fault*, most likely because faiss and PyTorch each bring their own copy of the OpenMP threading library. So the GPU stayed, and questions are timed only after one untimed warm-up pass: p95 10.4 ms.
 
-**What we tried in session 10.** BM25 is about 40 lines in `app/bm25.py`, so it needs no new library and every line is tested. The file was first called `keyword.py`, which would hide Python's own `keyword` module whenever a script inside `app/` was run directly, so it became `bm25.py`. Hybrid search went in switched off and became the default only after your evaluation showed 19 → 24.
+**What we tried in session 10.** BM25 is about 40 lines in `app/bm25.py`, so it needs no new library and every line is tested. The file was first called `keyword.py`, which would hide Python's own `keyword` module whenever a script inside `app/` was run directly, so it became `bm25.py`. Hybrid search went in switched off and became the default only after your evaluation showed 19 → 24. One chunk per page (session 11) went the same way, 24 → 26; a test checks on 200 random rankings that it never drops a page the plain ranking cited.
 
 :::honest Still missing
-The first citation is right only 40% of the time (12 of 30); a reranker would target that. In 5 of the 6 remaining misses the citations repeat a page. 3 of 17 unanswerable questions still get an answer, because a score guard can't spot an on-topic question whose answer is missing. Mistral mode hasn't been run with your key yet: it needs a model your plan allows. Tables and scanned pages are skipped.
+The first citation is right only 40% of the time (12 of 30), and 4 right pages still rank below five others; a reranker would target both. 3 of 17 unanswerable questions still get an answer, because a score guard can't spot an on-topic question whose answer is missing. Mistral mode hasn't been run with your key yet: it needs a model your plan allows. Tables and scanned pages are skipped.
 :::
 
 ## 1.9 Questions and answers
@@ -288,7 +295,7 @@ Q: How is text turned into numbers, and how are they compared?
 MiniLM turns each chunk, and later the question, into 384 numbers scaled to length 1. The dot product of two such vectors is their cosine similarity: close to 1 means similar meaning. FAISS computes it for every chunk and keeps the top 5.
 
 Q: How does hybrid search work?
-Two rankings: FAISS by meaning (cosine similarity) and BM25 by keywords, where rare words count most. Reciprocal rank fusion merges them: each list gives a chunk 1 / (60 + rank), and the shares add up. The 5 chunks with the highest total are cited, and the guard still checks the best cosine score.
+Two rankings: FAISS by meaning (cosine similarity) and BM25 by keywords, where rare words count most. Reciprocal rank fusion merges them: each list gives a chunk 1 / (60 + rank), and the shares add up. Then each page keeps only its best chunk, the top 5 are cited, and the guard still checks the best cosine score.
 
 Q: How do the web page and the server work together?
 The Streamlit page sends the question to the FastAPI server as JSON, with an HTTP POST to `/ask`. The server, which loaded the model and the library once at startup, runs the search, the guard and the answer step, and sends JSON back for the page to display.
@@ -318,6 +325,9 @@ A cosine lies between -1 and 1; a BM25 score can be 0 or 25, depending on the wo
 
 Q: Why does the guard still use the embedding score?
 The threshold, 0.50, was chosen on cosine scores, and BM25 scores have no fixed scale. Keeping the guard as it was means both searches refuse the same questions, so the evaluation measures only what hybrid search changes: the cited pages.
+
+Q: Why cite one chunk per page?
+Several chunks of the same page repeat what the first one shows and take slots from other pages. Keeping each page's best chunk gives five different pages. It can't drop a page that was already cited, so the first citation stays and the right page can only be gained; it took the count from 24 to 26 of 30.
 
 Q: Why write BM25 yourself?
 It's about 40 lines: no new library, and every line is tested. The `rank_bm25` package would work too; for a short formula, owning it was simpler.
@@ -350,13 +360,13 @@ From the sweep. Up to 0.42 nothing good is refused, but 8 of 17 unanswerable que
 Q: "Unsupported answers fell from 33.3% to 5.9%": isn't that inflated?
 A bit: without a guard every unanswerable question gets an answer, so the 33.3% is just their share of the set. I quote counts instead: the guard refused 14 of 17 unanswerable questions and wrongly refused 4 of 34 answerable ones.
 
-Q: How did you raise the right-page rate from 63% to 80%?
-The misses usually found the right paper but the wrong page, often for a question that hinges on an exact term, which meaning search is weak at. I added BM25 keyword search and merged its ranking with the embeddings' by RRF. On the same 51 questions, with the same guard, the right page was cited for 24 of 30 answered questions instead of 19, for about 1 ms more.
+Q: How did you raise the right-page rate from 63% to 87%?
+In two measured steps. The misses usually found the right paper but the wrong page, often for a question that hinges on an exact term, so I added BM25 keyword search and merged its ranking with the embeddings' by RRF: 19 → 24 of 30. Then the misses showed one page taking several of the five slots, so each page is cited once: 24 → 26, with nothing lost. Same 51 questions and the same guard each time.
 
 Q: Did hybrid search make anything worse?
-One question lost its right page, and the first citation was right 12 times instead of 13. Search takes 10.3 ms instead of 9.2. The guard didn't change. On balance it's clearly better, but not on every number, and I report all of them.
+One question lost its right page (one chunk per page later won it back), and the first citation was right 12 times instead of 13. Search takes about a millisecond more. The guard didn't change. On balance it's clearly better, but not on every number, and I report all of them.
 
-Q: Isn't the 80% flattered by how the questions were written?
+Q: Isn't the 87% flattered by how the questions were written?
 Probably a little. The questions were drafted from the papers' passages, so they share words with the right page, which helps keyword search. Questions from real users would be the fairer test.
 
 Q: How were the questions written? Couldn't they be biased?
@@ -368,13 +378,13 @@ On a Mac the model runs on the GPU, which most likely does one-off setup work th
 
 :::qa What more could you add?
 Q: What would you add next?
-1) Cite five different pages: in 5 of the 6 remaining misses the citations repeat a page. 2) A reranker over the top 20, because the first citation is right only 40% of the time. 3) Testing mistral mode's second guard on the 3 unanswerable questions that slip through. 4) Citing only the passages the model actually used. 5) Tables and OCR.
+1) A reranker over the top 20, because the first citation is right only 40% of the time and 4 right pages still rank below five others. 2) Testing mistral mode's second guard on the 3 unanswerable questions that slip through. 3) Citing only the passages the model actually used. 4) A stronger embedding model. 5) Tables and OCR.
 
 Q: How would a reranker help?
 A cross-encoder reads the question and a passage together, so it judges the match better than comparing two separate vectors, but it's too slow to run on every chunk. So you rerank only the top 20 from hybrid search and put the best first, which is exactly the weak number: right page first, 40%.
 
 Q: How would you know that an improvement really helped?
-Run the same 51 questions before and after and compare: that's how hybrid search was judged (right page 19 → 24 of 30, right page first 13 → 12, 1 ms slower). If the numbers don't move, the change isn't worth its extra complexity.
+Run the same 51 questions before and after and compare: that's how hybrid search (right page 19 → 24 of 30, first 13 → 12) and one chunk per page (24 → 26, none lost) were judged. If the numbers don't move, the change isn't worth its extra complexity.
 :::
 
 :::qa Why not something else?
@@ -402,7 +412,7 @@ Q: Why do the tests use a fake embedder?
 Unit tests should be fast, offline and give the same result every time. A word-counting stand-in keeps all three, while the real model's quality is measured separately by the evaluation.
 
 Q: What did adding hybrid search teach you?
-To change one thing at a time: the guard stayed on the embedding score, so the comparison measured only the cited pages. And to read every miss, not just the total: 5 of the 6 left repeat a page in the citations, which points to the next cheap fix.
+To change one thing at a time: the guard stayed on the embedding score, so the comparison measured only the cited pages. And to read every miss, not just the total: 5 of the 6 left repeated a page in the citations, which pointed to the next cheap fix, one chunk per page: 24 → 26.
 
 Q: What did you learn from building it?
 The hard parts of RAG aren't the LLM call: they're reading PDFs correctly, chunking, knowing when to refuse, and measuring. And tests find real bugs: two of the three chunking bugs appeared only because a test was written. Measuring then showed where the real weakness is: finding the right page, not the LLM.

@@ -4,7 +4,7 @@ This guide explains your two main projects, **PaperRAG** and **SchemaMind**, fro
 
 - **Read each part in order:** the big picture first, then the steps, then the questions.
 - **Words in bold** are explained where they first appear and collected in the glossary (3.4).
-- **It describes the code as it is now,** after build sessions 1–10. Your GenAI notes (Ch 17–18) are older and still list some fixed bugs as open; where they differ, trust this guide.
+- **It describes the code as it is now,** after build sessions 1–11. Your GenAI notes (Ch 17–18) are older and still list some fixed bugs as open; where they differ, trust this guide.
 - Outputs marked **real** come from running your code; scores marked **example** are only illustrations.
 
 :::tip How to study with it
