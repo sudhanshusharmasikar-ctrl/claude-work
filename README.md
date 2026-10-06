@@ -12,7 +12,7 @@ Study guides for a student who already knows C++:
 ## 30-Day Placement Sprint tracker
 
 **[tracker/placement-sprint.html](tracker/placement-sprint.html)** is the source of a daily checklist for the 30 days before
-placement (6 Oct – 4 Nov 2026, Sundays off). It is published as a private claude.ai artifact, where ticks, hours and notes
+placement (7 Oct – 5 Nov 2026, Sundays off). It is published as a private claude.ai artifact, where ticks, hours and notes
 are saved to your account (with a Save button and a status line that says whether the last change reached the account).
 Opened as a local file, it saves to that browser instead.
 

@@ -449,7 +449,7 @@ details.settings summary {
         <div class="daytitle">
           <h2 id="dayHeading"><span id="dayNum">Day 1</span> <span class="of">of 30</span></h2>
           <div class="daymeta">
-            <span id="dayDate">Tuesday 6 October</span>
+            <span id="dayDate">Wednesday 7 October</span>
             <span class="phase sd" id="dayPhase">System design phase</span>
           </div>
         </div>
@@ -483,7 +483,7 @@ details.settings summary {
 
     <aside class="rail">
       <section aria-labelledby="calHeading">
-        <h3 id="calHeading">30 days <span class="eyebrow" id="calRange">6 Oct – 4 Nov</span></h3>
+        <h3 id="calHeading">30 days <span class="eyebrow" id="calRange">7 Oct – 5 Nov</span></h3>
         <div class="cal" id="cal"></div>
         <div class="legend">
           <span><i class="sw full"></i>All 5 done</span>
@@ -533,7 +533,8 @@ details.settings summary {
   'use strict';
 
   /* ---------- The fixed plan ---------- */
-  const DEFAULTS = { start: '2026-10-06', placement: '2026-11-05', jsDay1: 1, sqlBefore: 0 };
+  const DEFAULTS = { start: '2026-10-07', placement: '2026-11-06', jsDay1: 1, sqlBefore: 0 };
+  const OLD_DEFAULT = { start: '2026-10-06', placement: '2026-11-05' };
   const PLAN_LEN = 30;
   const SD_DAYS = 15;
   const SQL_TOTAL = 50;
@@ -838,9 +839,10 @@ details.settings summary {
       try { raw = JSON.parse(localStorage.getItem(LS_OLD) || 'null'); old = !!raw; } catch (e) { raw = null; }
     }
     if (!raw || typeof raw !== 'object') return;
-    if (raw.settings) settings = cleanSettings(raw.settings);
+    const oldDefault = !!raw.settings && raw.settings.start === OLD_DEFAULT.start && raw.settings.placement === OLD_DEFAULT.placement;
+    if (raw.settings) settings = oldDefault ? { ...cleanSettings(raw.settings), start: DEFAULTS.start, placement: DEFAULTS.placement } : cleanSettings(raw.settings);
     settingsUpdatedAt = Number(raw.settingsUpdatedAt) || 0;
-    settingsPending = !!raw.settingsPending;
+    settingsPending = !!raw.settingsPending && !oldDefault;
     if (raw.days && typeof raw.days === 'object') {
       for (const [k, v] of Object.entries(raw.days)) if (validIso(k)) days[k] = normalize(v, k);
     }
@@ -848,7 +850,7 @@ details.settings summary {
     // Ticks kept only in this browser by the first version get uploaded now.
     if (old) {
       Object.keys(days).forEach(k => { if (hasProgress(days[k])) { days[k].updatedAt = days[k].updatedAt || 1; pending.add(k); } });
-      if (raw.settings && (raw.settings.start !== DEFAULTS.start || raw.settings.placement !== DEFAULTS.placement)) { settingsPending = true; settingsUpdatedAt = 1; }
+      if (raw.settings && !oldDefault && (raw.settings.start !== DEFAULTS.start || raw.settings.placement !== DEFAULTS.placement)) { settingsPending = true; settingsUpdatedAt = 1; }
     }
   }
 
