@@ -23,7 +23,7 @@ Every date has its own fixed plan:
 | DSA revision | 3 h | one of 26 revision topics, from arrays to a final timed mock |
 | DSA important topic | 4–5 h | Trees (8 days), then Graphs (9), then DP (9), one sub-topic a day |
 | JavaScript | 2 h | challenge day N of your 30-day challenge: code + interview questions |
-| System design (days 1–15) → Projects (days 16–30) | 2 h | 13 system design sessions, then 13 PaperRAG / SchemaMind sessions that follow the projects guide |
+| Projects | 2 h | 26 sessions that follow the projects guide: PaperRAG (12), SchemaMind (9), both projects together (5) |
 | SQL | 1 h | LeetCode SQL 50, two questions a day (questions 1–2, 3–4, …) with a counter |
 | Python | bonus | code + interview questions, not counted in the daily score |
 

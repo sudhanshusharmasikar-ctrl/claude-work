@@ -14,7 +14,9 @@
   --hl: #FFD83D;
   --hl-soft: rgba(255, 216, 61, .72);
   --on-hl: #141A33;
-  --sd: #2F43C4;
+  --trees: #0C8577;
+  --graphs: #2F43C4;
+  --dp: #8A3FB8;
   --proj: #0C8577;
   --miss: #C93A50;
   --rest: #E4E8F2;
@@ -26,14 +28,14 @@
   :root:not([data-theme="light"]) {
     --bg: #0D1020; --surface: #151A2D; --ink: #E8EAF5; --muted: #9AA2C2; --line: #283050;
     --accent: #95A3FF; --hl: #DDBB36; --hl-soft: rgba(229, 195, 58, .34); --on-hl: #141A33;
-    --sd: #95A3FF; --proj: #4CCFBC; --miss: #F07C8E; --rest: #1E2440;
+    --trees: #4CCFBC; --graphs: #95A3FF; --dp: #D19BFF; --proj: #4CCFBC; --miss: #F07C8E; --rest: #1E2440;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0D1020; --surface: #151A2D; --ink: #E8EAF5; --muted: #9AA2C2; --line: #283050;
   --accent: #95A3FF; --hl: #DDBB36; --hl-soft: rgba(229, 195, 58, .34); --on-hl: #141A33;
-  --sd: #95A3FF; --proj: #4CCFBC; --miss: #F07C8E; --rest: #1E2440;
+  --trees: #4CCFBC; --graphs: #95A3FF; --dp: #D19BFF; --proj: #4CCFBC; --miss: #F07C8E; --rest: #1E2440;
   color-scheme: dark;
 }
 
@@ -145,8 +147,7 @@ h1 .hl {
   border-radius: 4px;
   border: 1px solid currentColor;
 }
-.phase.sd { color: var(--sd); }
-.phase.proj { color: var(--proj); }
+.phase.work { color: var(--accent); }
 .phase.rest { color: var(--muted); }
 .nav { display: flex; gap: 8px; }
 .btn {
@@ -208,8 +209,7 @@ input[type="checkbox"] {
 .task > input[type="checkbox"] { width: 22px; height: 22px; margin-top: 18px; }
 .task-main { display: grid; gap: 8px; min-width: 0; }
 .task-head { display: grid; gap: 2px; cursor: pointer; }
-.task.phase-sd .task-head .eyebrow { color: var(--sd); }
-.task.phase-proj .task-head .eyebrow { color: var(--proj); }
+.task.is-project .task-head .eyebrow { color: var(--proj); }
 .task-name {
   font: 600 18px/1.3 var(--f-display);
   letter-spacing: -.005em;
@@ -309,8 +309,9 @@ input:disabled, button:disabled { cursor: default; }
   height: 2px; border-radius: 1px;
   background: var(--phase, transparent);
 }
-.cell.ph-sd { --phase: var(--sd); }
-.cell.ph-proj { --phase: var(--proj); }
+.cell.ar-Trees { --phase: var(--trees); }
+.cell.ar-Graphs { --phase: var(--graphs); }
+.cell.ar-DP { --phase: var(--dp); }
 .cell.fill { background: color-mix(in srgb, var(--hl) var(--p), var(--surface)); }
 .cell.fill.strong { color: var(--on-hl); }
 .cell.future { border-style: dashed; color: var(--muted); }
@@ -332,8 +333,9 @@ input:disabled, button:disabled { cursor: default; }
 .sw.miss { border-color: var(--miss); }
 .sw.off { background: repeating-linear-gradient(135deg, var(--rest) 0 3px, transparent 3px 6px), var(--surface); }
 .sw.line { height: 3px; border: 0; border-radius: 1px; }
-.sw.line.sd { background: var(--sd); }
-.sw.line.proj { background: var(--proj); }
+.sw.line.trees { background: var(--trees); }
+.sw.line.graphs { background: var(--graphs); }
+.sw.line.dp { background: var(--dp); }
 
 .tally { margin: 0; display: grid; gap: 0; }
 .tally .row {
@@ -450,7 +452,7 @@ details.settings summary {
           <h2 id="dayHeading"><span id="dayNum">Day 1</span> <span class="of">of 30</span></h2>
           <div class="daymeta">
             <span id="dayDate">Wednesday 7 October</span>
-            <span class="phase sd" id="dayPhase">System design phase</span>
+            <span class="phase work" id="dayPhase">Working day 1 of 26</span>
           </div>
         </div>
         <div class="nav">
@@ -490,8 +492,9 @@ details.settings summary {
           <span><i class="sw part"></i>Partly done</span>
           <span><i class="sw miss"></i>Missed</span>
           <span><i class="sw off"></i>Sunday off</span>
-          <span><i class="sw line sd"></i>System design</span>
-          <span><i class="sw line proj"></i>Projects</span>
+          <span><i class="sw line trees"></i>DSA Trees</span>
+          <span><i class="sw line graphs"></i>DSA Graphs</span>
+          <span><i class="sw line dp"></i>DSA DP</span>
         </div>
       </section>
 
@@ -521,7 +524,7 @@ details.settings summary {
             <input type="number" id="setSql" min="0" max="50" step="1" required>
           </label>
           <div><button class="btn" type="submit" id="setSave">Save settings</button></div>
-          <p class="msg" id="setMsg">Days 1–15 are system design, days 16–30 are projects. Sundays are off.</p>
+          <p class="msg" id="setMsg">Every working day has a project session. Sundays are off.</p>
         </form>
       </details>
     </aside>
@@ -536,7 +539,6 @@ details.settings summary {
   const DEFAULTS = { start: '2026-10-07', placement: '2026-11-06', jsDay1: 1, sqlBefore: 0 };
   const OLD_DEFAULT = { start: '2026-10-06', placement: '2026-11-05' };
   const PLAN_LEN = 30;
-  const SD_DAYS = 15;
   const SQL_TOTAL = 50;
   const JS_TOTAL = 30;
   const LS_KEY = 'placement-sprint-v2';
@@ -602,36 +604,34 @@ details.settings summary {
     ['DP', 'Partition DP: matrix chain multiplication, burst balloons']
   ];
 
-  const SD = [
-    { title: 'Foundations', learn: 'Client–server, DNS, HTTP, latency vs throughput, vertical vs horizontal scaling', practise: 'Explain out loud what happens when you type a URL and press Enter' },
-    { title: 'Load balancing', learn: 'L4 vs L7 load balancers, round robin and least connections, health checks, consistent hashing', practise: 'Design a URL shortener: requirements, APIs, back-of-envelope numbers' },
-    { title: 'Caching', learn: 'Cache-aside, write-through, write-back, LRU eviction, CDN, cache invalidation', practise: 'URL shortener part 2: add a cache and handle 100× more reads' },
-    { title: 'Databases', learn: 'SQL vs NoSQL, B-tree indexes, ACID vs BASE, when to pick which', practise: 'Pick and defend a database for a chat app, a bank ledger and a product catalog' },
-    { title: 'Scaling data', learn: 'Leader–follower replication, sharding keys, CAP theorem, eventual consistency', practise: 'Design Pastebin with sharded storage' },
-    { title: 'Async processing', learn: 'Message queues, pub/sub, Kafka basics, retries, dead-letter queues', practise: 'Design a notification system for email, SMS and push' },
-    { title: 'APIs and rate limits', learn: 'REST vs GraphQL vs gRPC, pagination, idempotency keys, token bucket and sliding window', practise: 'Design a rate limiter' },
-    { title: 'Files and media', learn: 'Object storage (S3), pre-signed uploads, CDN for media, thumbnails', practise: 'Design Instagram: the photo upload and storage path' },
-    { title: 'Real-time', learn: 'WebSockets vs long polling vs SSE, presence, message ordering', practise: 'Design WhatsApp one-to-one chat' },
-    { title: 'Feeds and services', learn: 'Monolith vs microservices, API gateway, fan-out on write vs fan-out on read', practise: 'Design a news feed' },
-    { title: 'Search', learn: 'Inverted index, Elasticsearch basics, tries for typeahead, ranking', practise: 'Design search autocomplete' },
-    { title: 'Reliability', learn: 'Availability nines, redundancy, failover, monitoring and alerts', practise: 'Design YouTube video upload and streaming' },
-    { title: 'AI systems', learn: 'A RAG service at scale: ingestion, chunking, vector DB, answer cache, cost and latency', practise: 'Full 45-minute mock interview on any design you found hard' }
-  ];
-
+  // Project study, 2 h: 26 sessions that follow the projects guide (section numbers in brackets).
   const PROJ = [
-    { title: 'PaperRAG: the whole pipeline', learn: 'PDF → text blocks → chunks → embeddings → FAISS → answer, in one picture', practise: 'Say your 30-second and 2-minute pitch out loud' },
-    { title: 'PaperRAG: reading PDFs', learn: 'Text blocks, two-column reading order, chunk size and overlap', practise: 'Answer: why overlap? What breaks on two-column papers?' },
-    { title: 'PaperRAG: retrieval', learn: 'Embeddings, the FAISS index, the "I don\'t know" guard and its threshold', practise: 'Draw the retrieval path from memory and defend the threshold' },
-    { title: 'PaperRAG: quality', learn: 'Web page ↔ server, tests, the 51-question evaluation, the threshold sweep', practise: 'Explain what went wrong in the evaluation and how you fixed it' },
-    { title: 'PaperRAG: question drill', learn: 'The 33 PaperRAG questions in the projects guide', practise: 'Answer 15 out loud without notes and mark the weak ones' },
-    { title: 'SchemaMind: the whole pipeline', learn: 'The shop database, table cards, picking the right tables', practise: 'Say your 30-second and 2-minute pitch out loud' },
-    { title: 'SchemaMind: writing SQL', learn: 'Template SQL vs Mistral-generated SQL, the sqlglot validator', practise: 'Answer: why validate generated SQL? What does sqlglot catch?' },
-    { title: 'SchemaMind: safety', learn: 'The three safety layers and the repair loop', practise: 'Walk an attack query through each layer and show where it stops' },
-    { title: 'SchemaMind: question drill', learn: 'Tests, evaluation, then the 30 SchemaMind questions', practise: 'Answer 15 out loud without notes and mark the weak ones' },
-    { title: 'Both projects side by side', learn: 'The comparison, the CI that tests both, the glossary', practise: 'Answer the 11 questions about both projects' },
-    { title: 'Scale your projects', learn: 'PaperRAG with 1 million PDFs; SchemaMind with 500 tables', practise: 'Sketch both on paper the way you would in a system design round' },
+    { title: 'PaperRAG: the problem and the whole pipeline', learn: 'What PaperRAG solves and the pipeline in one picture (guide 1.1–1.2)', practise: 'Say your 30-second and 2-minute pitch out loud' },
+    { title: 'PaperRAG: reading PDFs into text blocks', learn: 'Your PDFs and reading the text in blocks (1.3, A1–A2)', practise: 'Explain why you read blocks instead of raw lines' },
+    { title: 'PaperRAG: two-column reading order', learn: 'Putting blocks in reading order (A3)', practise: 'Explain the two-column bug and how you fixed it' },
+    { title: 'PaperRAG: chunks and overlap', learn: 'Cutting the text into chunks (A4)', practise: 'Defend your chunk size and overlap: what breaks if either is too big or too small?' },
+    { title: 'PaperRAG: embeddings', learn: 'Turning every chunk into numbers (A5)', practise: 'Explain embeddings and cosine similarity to an interviewer who is not from ML' },
+    { title: 'PaperRAG: the FAISS library', learn: 'Saving the library: the FAISS index and the chunk store (A6)', practise: 'Why FAISS? Flat index vs approximate index, and when you would switch' },
+    { title: 'PaperRAG: from question to closest chunks', learn: 'The question arrives, becomes numbers, finds the closest chunks (1.4, B1–B3)', practise: 'Draw the answer path from memory, file by file' },
+    { title: 'PaperRAG: the "I don\'t know" guard', learn: 'The guard and its threshold (B4)', practise: 'Defend the threshold: what happens if it is set too high or too low?' },
+    { title: 'PaperRAG: writing the answer', learn: 'Writing the answer, the reply, and how the parts talk (B5–B6, 1.5)', practise: 'Explain how you stop the model inventing facts' },
+    { title: 'PaperRAG: one question end to end', learn: 'One question, from start to finish (1.6)', practise: 'Walk one real question through every step without notes' },
+    { title: 'PaperRAG: tests and evaluation', learn: 'Tests, the 51-question evaluation, the threshold sweep, what you changed (1.7–1.8)', practise: 'Explain your results, what went wrong and what you would measure next' },
+    { title: 'PaperRAG: question drill', learn: 'The 33 PaperRAG questions in the guide (1.9)', practise: 'Answer all 33 out loud and mark the ones you got wrong' },
+    { title: 'SchemaMind: the problem and the whole pipeline', learn: 'What SchemaMind solves, the shop database, the pipeline (guide 2.1–2.3)', practise: 'Say your 30-second and 2-minute pitch out loud' },
+    { title: 'SchemaMind: table cards', learn: 'Table cards, made once at startup (2.4 A)', practise: 'Explain what goes on a table card and why' },
+    { title: 'SchemaMind: picking the tables', learn: 'Picking the relevant tables (B1–B2)', practise: 'What if it picks the wrong table? How would you notice and fix it?' },
+    { title: 'SchemaMind: writing the SQL', learn: 'Template SQL vs Mistral-generated SQL (B3)', practise: 'When do you use a template and when the model? Defend the split' },
+    { title: 'SchemaMind: the sqlglot validator', learn: 'Checking the SQL before it runs (B4)', practise: 'What does the validator catch, and what can still get through?' },
+    { title: 'SchemaMind: the executor and safety', learn: 'Running the SQL and the three safety layers (B5)', practise: 'Walk an attack query through each layer and show where it stops' },
+    { title: 'SchemaMind: repair loop and real output', learn: 'The repair loop, the reply, one real question end to end (B6–B7, 2.5)', practise: 'Explain the repair loop and when it gives up' },
+    { title: 'SchemaMind: tests and evaluation', learn: 'Tests, evaluation, what you changed and tried (2.6–2.7)', practise: 'Explain silent wrong answers and how you test for them' },
+    { title: 'SchemaMind: question drill', learn: 'The 30 SchemaMind questions in the guide (2.8)', practise: 'Answer all 30 out loud and mark the ones you got wrong' },
+    { title: 'Both projects: the same skeleton', learn: 'How the two projects share one design, and the one-minute explanations (3.1–3.2)', practise: 'Give both one-minute explanations back to back' },
+    { title: 'Both projects: shared questions', learn: 'The questions about both projects, the CI that tests them, the glossary (3.3–3.4)', practise: 'Answer the 11 questions about both projects' },
+    { title: 'Scale your projects', learn: 'PaperRAG with 1 million PDFs; SchemaMind with 500 tables', practise: 'Sketch both on paper as if an interviewer asked you to scale them' },
     { title: 'Mock project round', learn: 'Explain both projects to a friend, or record yourself', practise: 'Handle why / what-if / why-not follow-ups for 20 minutes' },
-    { title: 'Final polish', learn: 'Resume bullets, the numbers to remember, every question you marked weak', practise: 'One last timed run of both pitches' }
+    { title: 'Final polish', learn: 'Resume bullets, the numbers to remember, every question you marked wrong', practise: 'One last timed run of both pitches' }
   ];
 
   const TASK_KEYS = ['dsaRev', 'dsaNew', 'js', 'focus', 'sql', 'py'];
@@ -686,18 +686,16 @@ details.settings summary {
 
   function buildPlan() {
     const start = parse(settings.start);
-    let sd = 0, pj = 0, work = 0;
+    let work = 0;
     const list = [];
     for (let i = 0; i < PLAN_LEN; i++) {
       const date = addDays(start, i);
       const sunday = date.getDay() === 0;
-      const phase = i < SD_DAYS ? 'sd' : 'proj';
-      const session = sunday ? null : (phase === 'sd' ? ++sd : ++pj);
-      list.push({ n: i + 1, iso: isoOf(date), date, sunday, phase, session, work: sunday ? null : ++work });
+      list.push({ n: i + 1, iso: isoOf(date), date, sunday, work: sunday ? null : ++work });
     }
     const byIso = {};
     list.forEach(p => { byIso[p.iso] = p; });
-    return { list, byIso, sdTotal: sd, projTotal: pj, workTotal: work, first: list[0].iso, last: list[list.length - 1].iso };
+    return { list, byIso, workTotal: work, first: list[0].iso, last: list[list.length - 1].iso };
   }
 
   function clampToPlan(iso) {
@@ -772,19 +770,16 @@ details.settings summary {
   }
 
   function focusMeta(pd) {
-    const sd = pd.phase === 'sd';
-    const short = sd ? 'System design' : 'Projects';
+    const short = 'Projects';
     if (pd.sunday) {
-      return { kind: 'subs', group: `${short} · Sunday`, name: 'Catch-up, if you want', short, note: 'What you caught up on',
-        subs: [['Review', 'Go back over one earlier session'], ['Practise', 'One practice question']] };
+      return { kind: 'subs', group: 'Projects · Sunday', name: 'Catch-up, if you want', short, note: 'What you caught up on',
+        subs: [['Review', 'Go back over one earlier session'], ['Practise', 'Answer three questions you marked wrong']] };
     }
-    const list = sd ? SD : PROJ;
-    const total = sd ? plan.sdTotal : plan.projTotal;
-    const s = pick(list, pd.session);
+    const s = pick(PROJ, pd.work);
     return {
-      kind: 'subs', group: `${short} · session ${pd.session} of ${total}`, name: s.title, short,
-      note: sd ? 'Key trade-offs you can now explain' : 'Questions you still find hard',
-      subs: [[sd ? 'Learn' : 'Revise', s.learn], ['Practise', s.practise]]
+      kind: 'subs', group: `Projects · session ${pd.work} of ${plan.workTotal}`, name: s.title, short,
+      note: 'Questions you still find hard',
+      subs: [['Revise', s.learn], ['Practise', s.practise]]
     };
   }
 
@@ -1023,8 +1018,8 @@ details.settings summary {
     $('dayNum').textContent = `Day ${pd.n}`;
     $('dayDate').textContent = fmt(pd.date, { weekday: 'long', day: 'numeric', month: 'long' }) + rel;
     const ph = $('dayPhase');
-    ph.className = 'phase ' + (pd.sunday ? 'rest' : pd.phase);
-    ph.textContent = pd.sunday ? 'Rest day' : (pd.phase === 'sd' ? 'System design phase' : 'Project phase');
+    ph.className = 'phase ' + (pd.sunday ? 'rest' : 'work');
+    ph.textContent = pd.sunday ? 'Rest day' : `Working day ${pd.work} of ${plan.workTotal}`;
     $('prevDay').disabled = selected === plan.first;
     $('nextDay').disabled = selected === plan.last;
     $('goToday').hidden = !plan.byIso[today] || selected === today;
@@ -1062,7 +1057,7 @@ details.settings summary {
           <button type="button" class="btn" id="sql-inc" data-act="inc" data-key="sql" aria-label="One more question"${dis()}>+</button>
           <span class="meta">solved this day · target 2 · <span class="num">${sqlTotal()}</span> of ${SQL_TOTAL} overall</span></div>`;
       }
-      const cls = ['task', m.optional ? 'is-optional' : '', key === 'focus' ? 'phase-' + pd.phase : ''].join(' ');
+      const cls = ['task', m.optional ? 'is-optional' : '', key === 'focus' ? 'is-project' : ''].join(' ');
       return `<li class="${cls}" data-key="${key}">
         <input type="checkbox" id="${key}-main" data-act="main" data-key="${key}"${f >= 1 ? ' checked' : ''}${dis()} aria-label="${esc(m.short)} done">
         <div class="task-main">
@@ -1093,7 +1088,7 @@ details.settings summary {
       const done = day ? requiredDone(day) : 0;
       const p = done / REQUIRED.length;
       const isToday = pd.iso === today;
-      const cls = ['cell', 'ph-' + pd.phase];
+      const cls = ['cell', pd.sunday ? '' : 'ar-' + pick(TOPIC_PLAN, pd.work)[0]];
       let state, style = '';
       if (pd.sunday) { cls.push('rest'); state = 'Sunday off'; }
       else if (done > 0) {
@@ -1142,8 +1137,7 @@ details.settings summary {
     }).join(' · ');
     const pct = reqTotal ? Math.round((reqDone / reqTotal) * 100) : null;
     const st = streak();
-    const sdDone = count('focus', p => p.phase === 'sd' && !p.sunday);
-    const pjDone = count('focus', p => p.phase === 'proj' && !p.sunday);
+    const pjDone = count('focus', p => !p.sunday);
 
     const rows = [
       ['Streak', `${st} ${st === 1 ? 'day' : 'days'}`, '', 'Working days in a row with all 5 tasks done'],
@@ -1152,8 +1146,7 @@ details.settings summary {
       ['LeetCode SQL 50', `${sql} / ${SQL_TOTAL}`, bar(sql / SQL_TOTAL), sql >= SQL_TOTAL ? 'All 50 solved' : (sqlGap > 0 ? `${sqlGap} behind the 2-a-day pace` : 'On pace'), sqlGap > 0 && sql < SQL_TOTAL ? 'behind' : ''],
       ['DSA important topics', areas, '', '', '', 'stack'],
       ['JavaScript days', `${count('js')}`, '', 'Days with both code and interview questions done'],
-      ['System design sessions', `${sdDone} / ${plan.sdTotal}`, bar(sdDone / plan.sdTotal), ''],
-      ['Project sessions', `${pjDone} / ${plan.projTotal}`, bar(pjDone / plan.projTotal), ''],
+      ['Project sessions', `${pjDone} / ${plan.workTotal}`, bar(pjDone / plan.workTotal), ''],
       ['Python bonus days', `${count('py')}`, '', '']
     ];
     $('tally').innerHTML = rows.map(([k, v, b, hint, hintCls, rowCls]) =>
