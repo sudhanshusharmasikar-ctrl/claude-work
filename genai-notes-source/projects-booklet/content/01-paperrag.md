@@ -166,6 +166,8 @@ Two details matter:
 
 In mistral mode there is a **second guard**: if the model replies `INSUFFICIENT_CONTEXT` (the passages were on topic but didn't contain the answer), PaperRAG turns that into a refusal too. The **temperature** is 0, so the same question gives the same answer.
 
+Since session 12 mistral mode works with your free key. The model is **Codestral** (`codestral-2508`), because your plan refused `mistral-small-latest`. Requests are spaced 1.1 seconds apart and retried with growing waits, and every error quotes Mistral's own reason, which the web page shows. Measured on your questions, the second guard refused all 3 unanswerable questions that got past the score guard (1.7).
+
 ### B6 · The reply
 
 ```json title="what /ask sends back (the shape is real, the values are an example)"
@@ -208,7 +210,7 @@ Now ask *"What is a good chocolate cake recipe?"*. Step 4 finds nothing close (b
 
 ## 1.7 How it is measured and tested
 
-**Tests** check that the code does what it promises. There are 70, run with `pytest`, offline, in about three seconds. They don't download MiniLM: a tiny stand-in that counts words replaces it, so the tests are fast and give the same result every time. They cover cleaning, reading order, chunk sizes and overlap, the saved files, the guard, BM25 and hybrid search, one chunk per page, the answer format, the API, the evaluation's arithmetic, the question checker, settings from `.env` and the web page's slider. GitHub runs them after every push, on Python 3.11 and 3.14 (see 3.3).
+**Tests** check that the code does what it promises. There are 88, run with `pytest`, offline, in about three seconds. They don't download MiniLM: a tiny stand-in that counts words replaces it, so the tests are fast and give the same result every time. They cover cleaning, reading order, chunk sizes and overlap, the saved files, the guard, BM25 and hybrid search, one chunk per page, the answer format, the Mistral client (against a fake server and clock), the API, the evaluation's arithmetic, the question checker, settings from `.env` and the web page's slider. GitHub runs them after every push, on Python 3.11 and 3.14 (see 3.3).
 
 **Evaluation** measures how *good* the answers are, which tests can't do. In session 7 you built the question set, `eval/questions.jsonl`: **51 questions** about your 8 papers (905 chunks).
 
@@ -233,7 +235,7 @@ Now ask *"What is a good chocolate cake recipe?"*. Step 4 finds nothing close (b
 
 **What went wrong at 0.50** (`--threshold 0.50` lists every miss):
 
-- **3 unanswerable questions got an answer**, all just above the threshold (0.507 to 0.549): the size of LAION-5B, T5's training data and XLNet's objective. Your papers don't mention these models, but they do talk about training data and objectives, so a passage on the same topic scores high. A score threshold catches *off-topic* questions; it can't catch an *on-topic* question whose answer is missing. That's the job of mistral mode's second guard.
+- **3 unanswerable questions got an answer**, all just above the threshold (0.507 to 0.549): the size of LAION-5B, T5's training data and XLNet's objective. Your papers don't mention these models, but they do talk about training data and objectives, so a passage on the same topic scores high. A score threshold catches *off-topic* questions; it can't catch an *on-topic* question whose answer is missing. That's the job of mistral mode's second guard, measured below.
 - **4 good questions were refused** (0.434 to 0.478). Each asks for one small detail: InfoNCE in CLIP, the fusion methods compared with TMPT, the tokenizer MLLM-SD uses, where ViT puts LayerNorm. Such narrow questions score lower than broad ones.
 - **4 answers cite the wrong page** (6 with hybrid search alone, 11 by meaning alone). Each now cites five different pages, but the page with the answer ranks below them: the hardware BERT-Large was trained on, the name of the new multi-turn stance dataset, the model that writes MLLM-SD's captions, and how ViT's classification head changes for fine-tuning.
 
@@ -249,6 +251,18 @@ Now ask *"What is a good chocolate cake recipe?"*. Step 4 finds nothing close (b
 - **One chunk per page: 2 more, none lost.** In 5 of the 6 misses left after hybrid search, one page had taken two or three of the five slots (three chunks of T-MAD's page 15, for one). Freeing them brought in the right page for T-MAD's encoders, the question hybrid had lost, and for when a self-attention layer is cheaper than a recurrent one.
 - **The first citation got no better**, 13, then 12 and 12: both changes widen what makes the five, while putting the best one first is a reranker's job.
 - One caveat: the questions were drafted from the papers' own passages, so they share words with the right page, which favours keyword search.
+
+**Mistral mode on top** (session 12). `--mistral` sends the 33 questions the score guard lets through to Codestral (**real**):
+
+| | Result |
+|---|---|
+| Unanswerable questions its second guard refused | **3 of 3** |
+| Answerable questions it refused | 2 of 30 |
+| Answers that cite a passage, like [1] | 28 of 28 |
+| Answers whose citations include the right page | 24 of 28 |
+
+- **With both guards, none of the 17 unanswerable questions got an answer.** The price is 6 refused good questions instead of 4, and neither extra one had the right page among its five passages, so refusing was honest.
+- **Of the 4 answers without the right page, 2 are right** but cite another page saying the same thing, and **2 are wrong although the right passage was among the five**: it called self-attention "scaled dot-product attention" instead of "intra-attention", and said self-attention is cheaper for long sequences, when the paper says for sequences shorter than the representation size. Reading the right passage is down to the model.
 
 ## 1.8 What we changed, and what we tried
 
@@ -268,6 +282,7 @@ Now ask *"What is a good chocolate cake recipe?"*. Step 4 finds nothing close (b
 | 10 | The evaluation runs both searches on the same questions | the guard is the same in both, so only the cited pages can differ |
 | 11 | Each page is cited at most once (its best chunk) | the right page for 26 of 30 answered questions instead of 24, none lost |
 | 11 | The evaluation compares three setups, one change at a time | each column shows what one change did |
+| 12 | Mistral mode works on the free plan (Codestral, spaced and retried requests, clear errors), and `--mistral` measures it | it had used a model the plan refuses; the second guard refused all 3 unanswerable questions the score guard missed |
 
 **What we tried for the two-column fix.** The first idea, from your notes, gave every block a single sort key: wide blocks first, then the left column, then the right. A test showed it breaks normal pages: a short line on a one-column page moved to the end, and a wide caption in the middle jumped to the top. The band method passed all three layout tests and read a realistic five-page two-column paper in the right order, while one-column documents came out exactly as before.
 
@@ -276,7 +291,7 @@ Now ask *"What is a good chocolate cake recipe?"*. Step 4 finds nothing close (b
 **What we tried in session 10.** BM25 is about 40 lines in `app/bm25.py`, so it needs no new library and every line is tested. The file was first called `keyword.py`, which would hide Python's own `keyword` module whenever a script inside `app/` was run directly, so it became `bm25.py`. Hybrid search went in switched off and became the default only after your evaluation showed 19 → 24. One chunk per page (session 11) went the same way, 24 → 26; a test checks on 200 random rankings that it never drops a page the plain ranking cited.
 
 :::honest Still missing
-The first citation is right only 40% of the time (12 of 30), and 4 right pages still rank below five others; a reranker would target both. 3 of 17 unanswerable questions still get an answer, because a score guard can't spot an on-topic question whose answer is missing. Mistral mode hasn't been run with your key yet: it needs a model your plan allows. Tables and scanned pages are skipped.
+The first citation is right only 40% of the time (12 of 30), and 4 right pages still rank below five others; a reranker would target both. In extractive mode 3 of 17 unanswerable questions still get an answer, because a score guard can't spot an on-topic question whose answer is missing; mistral mode's second guard catches them. In mistral mode 2 of 28 answers misread the passages although the right one was there. Tables and scanned pages are skipped.
 :::
 
 ## 1.9 Questions and answers
@@ -335,7 +350,7 @@ It's about 40 lines: no new library, and every line is tested. The `rank_bm25` p
 
 :::qa What if…?
 Q: What if the answer isn't in any of the papers?
-The best score is usually low, so the guard refuses and shows the score and the threshold. If a chunk is on topic but doesn't hold the answer, extractive mode will still show it, because it can't tell; mistral mode's second guard catches that case.
+The best score is usually low, so the guard refuses and shows the score and the threshold. If a chunk is on topic but doesn't hold the answer, extractive mode will still show it, because it can't tell; mistral mode's second guard catches that case, as it did for all 3 such questions in your evaluation.
 
 Q: What if a PDF is scanned, a picture of text?
 PyMuPDF finds no text, the PDF produces no chunks, and `build()` lists it as skipped. Fixing that needs OCR (reading text from images), which isn't built yet.
@@ -345,6 +360,9 @@ The noise filter drops blocks that are mostly numbers, so table contents are usu
 
 Q: What if you had 10,000 papers?
 That's roughly 300,000 to 500,000 chunks. Exact search still works but gets slower, so I'd switch to an approximate index (HNSW, or IVF-PQ to save memory), measure its accuracy against exact search, build the index in batches, and keep the text in a database.
+
+Q: What if Mistral is down or slow?
+Each request is retried up to 4 times, waiting 1, 2, 4 and 8 seconds, or as long as Mistral's `Retry-After` asks. If it still fails, the API returns a 502 with Mistral's reason, and the page shows it. Extractive mode needs no API at all, so PaperRAG keeps working without Mistral.
 
 Q: What if two chunks disagree?
 Extractive mode shows both with their pages, so you see the disagreement. Mistral mode is told to use only the passages and may mention both. Nothing resolves conflicts automatically.
@@ -366,6 +384,9 @@ In two measured steps. The misses usually found the right paper but the wrong pa
 Q: Did hybrid search make anything worse?
 One question lost its right page (one chunk per page later won it back), and the first citation was right 12 times instead of 13. Search takes about a millisecond more. The guard didn't change. On balance it's clearly better, but not on every number, and I report all of them.
 
+Q: Did you test mistral mode?
+Yes: `--mistral` sends the 33 questions the score guard lets through to Codestral. Its second guard refused all 3 unanswerable ones, so with both guards none of the 17 got an answer. It also refused 2 good questions, neither with the right page among its passages. All 28 answers cite a passage and 24 the right page; 2 answers were wrong although the right passage was in the prompt.
+
 Q: Isn't the 87% flattered by how the questions were written?
 Probably a little. The questions were drafted from the papers' passages, so they share words with the right page, which helps keyword search. Questions from real users would be the fairer test.
 
@@ -378,7 +399,7 @@ On a Mac the model runs on the GPU, which most likely does one-off setup work th
 
 :::qa What more could you add?
 Q: What would you add next?
-1) A reranker over the top 20, because the first citation is right only 40% of the time and 4 right pages still rank below five others. 2) Testing mistral mode's second guard on the 3 unanswerable questions that slip through. 3) Citing only the passages the model actually used. 4) A stronger embedding model. 5) Tables and OCR.
+1) A reranker over the top 20, because the first citation is right only 40% of the time and 4 right pages still rank below five others. 2) A check that each answer is supported by the passage it cites, since 2 of 28 misread the right passage. 3) Citing only the passages the model actually used. 4) A stronger embedding model. 5) Tables and OCR.
 
 Q: How would a reranker help?
 A cross-encoder reads the question and a passage together, so it judges the match better than comparing two separate vectors, but it's too slow to run on every chunk. So you rerank only the top 20 from hybrid search and put the best first, which is exactly the weak number: right page first, 40%.

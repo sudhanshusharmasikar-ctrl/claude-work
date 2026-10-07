@@ -50,7 +50,7 @@ def pb_paperrag_pipeline():
     s.text(gx + 7, 320, "no", size=9, weight=700, color="#b91c1c", anchor="start")
     s.box(gx - 110, 332, 220, 30, title="\"I don't know\": the papers don't cover it", kind="red", tsize=10)
     for i, t in enumerate(["server: FastAPI  (app/api.py)", "web page: Streamlit  (ui/)",
-                           "checks: 51-question eval + 70 tests"]):
+                           "checks: 51-question eval + 88 tests"]):
         s.box(8 + i * 224, 382, 216, 30, title=t, kind="grey", tsize=10)
     return s.render()
 
