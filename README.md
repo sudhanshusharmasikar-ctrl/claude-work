@@ -31,6 +31,15 @@ The side rail has the 30-day calendar, a streak, total hours, SQL pace, topic an
 tasks from earlier days. "Change plan settings" moves the dates and sets which JavaScript challenge day and how many SQL 50
 questions you start from.
 
+## HTML Fast Track
+
+**[html-practice/html-fast-track.html](html-practice/html-fast-track.html)** is the source of a hands-on HTML course, basic to
+medium, published as a private claude.ai artifact (with `photo.svg` beside it for the image lessons). Ten lessons, about
+3½ hours in all: page skeleton, text and headings, links and images, lists, tables, two lessons on forms, page layout with
+semantic tags, connecting CSS and JavaScript, and a final resume page. Each lesson has a short "must know" example, a
+live editor with a preview, 5–10 tasks that tick themselves as you type (70 in all), interview questions to answer out
+loud, and a model answer. Your code is saved to your account.
+
 ## GenAI, RAG & Agents — Explained Simply
 
 Placement preparation for AI roles, planned as 45 days of about 3 hours a day. It explains the course code from

@@ -1,0 +1,1245 @@
+<title>HTML Fast Track</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Schibsted+Grotesk:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: a practice bench — lessons down the left; each lesson runs must-know → tasks → editor beside a small browser → interview questions */
+:root {
+  --bg: #F0F2F5;
+  --surface: #FFFFFF;
+  --ink: #131722;
+  --muted: #5A6273;
+  --line: #D9DEE6;
+  --accent: #C2410C;
+  --accent-soft: #FBE7DC;
+  --ok: #15803D;
+  --ok-soft: #DCF3E3;
+  --code-bg: #10141D;
+  --code-ink: #E4E8F0;
+  --c-tag: #FF8F5A;
+  --c-attr: #8CC4FF;
+  --c-str: #A6DD7C;
+  --c-com: #7D8799;
+  --f-display: 'Schibsted Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --f-body: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B0E14; --surface: #131823; --ink: #E6E9F0; --muted: #98A0B2; --line: #252C3A;
+    --accent: #FF8F5A; --accent-soft: #3A2116; --ok: #4ADE80; --ok-soft: #12301E;
+    --code-bg: #0A0D13;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B0E14; --surface: #131823; --ink: #E6E9F0; --muted: #98A0B2; --line: #252C3A;
+  --accent: #FF8F5A; --accent-soft: #3A2116; --ok: #4ADE80; --ok-soft: #12301E;
+  --code-bg: #0A0D13;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.55 var(--f-body); -webkit-font-smoothing: antialiased; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code { font: 500 0.88em var(--f-mono); background: var(--accent-soft); color: var(--ink); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+
+.page { max-width: 1280px; margin: 0 auto; padding-inline: clamp(16px, 3.5vw, 36px); padding-block: 24px 64px; }
+.eyebrow { font: 500 11.5px/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+/* Header */
+.top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px 32px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.brand { display: grid; gap: 6px; min-width: 0; }
+h1 { margin: 0; font: 800 clamp(30px, 4.8vw, 48px)/1 var(--f-display); letter-spacing: -.03em; text-wrap: balance; }
+h1 .br { font-family: var(--f-mono); font-weight: 500; color: var(--accent); letter-spacing: -.06em; }
+.overall { display: grid; gap: 8px; min-width: min(100%, 300px); }
+.ov-num { font: 500 14px var(--f-mono); color: var(--muted); }
+.ov-num strong { font-size: 26px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.bar { position: relative; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; background: var(--ok); border-radius: 3px; transition: width .3s ease; }
+.savebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.sync { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--f-mono); color: var(--muted); max-width: 100%; }
+.sync::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync[data-state="synced"]::before { background: var(--ok); }
+.sync[data-state="saving"]::before, .sync[data-state="local"]::before { background: #E3A008; }
+.sync[data-state="error"]::before, .sync[data-state="readonly"]::before { background: #DC2626; }
+
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 14px; cursor: pointer; font-size: 15px; line-height: 1.2; }
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.primary { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 600; }
+.btn.save { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 600; padding: 6px 14px; font-size: 14px; }
+.linkbtn { border: 0; background: none; padding: 0; color: var(--muted); font: 500 12.5px var(--f-mono); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Layout */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 22px; }
+@media (min-width: 1000px) { .layout { grid-template-columns: 230px minmax(0, 1fr); align-items: start; } }
+
+.lessons { min-width: 0; }
+.lessons ol { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+@media (min-width: 1000px) { .lessons ol { flex-direction: column; overflow: visible; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); } }
+.lessons button {
+  width: 100%; display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: center; gap: 8px;
+  text-align: left; border: 1px solid transparent; background: transparent; border-radius: 8px; padding: 8px 10px; cursor: pointer; white-space: nowrap;
+}
+.lessons button:hover { border-color: var(--line); background: var(--surface); }
+.lessons button[aria-current="true"] { background: var(--surface); border-color: var(--ink); }
+.lessons .n { font: 500 12px var(--f-mono); color: var(--muted); }
+.lessons .t { font-size: 15px; overflow: hidden; text-overflow: ellipsis; }
+.lessons .c { font: 500 11.5px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.lessons .done .c { color: var(--ok); }
+.lessons .done .n { color: var(--ok); }
+@media (max-width: 999px) { .lessons button { width: auto; } }
+
+/* Lesson */
+.lesson { display: grid; gap: 26px; min-width: 0; }
+.lesson > *, .lesson section, .editor-wrap > * { min-width: 0; }
+.lesson h2 { margin: 4px 0 0; font: 800 clamp(26px, 3.4vw, 36px)/1.1 var(--f-display); letter-spacing: -.02em; text-wrap: balance; }
+.lesson h3 { margin: 0 0 10px; display: flex; align-items: baseline; gap: 12px; font: 600 18px/1.2 var(--f-display); }
+.lesson-head { display: grid; gap: 2px; }
+.lesson-head p { margin: 6px 0 0; color: var(--muted); max-width: 65ch; }
+
+pre.code {
+  margin: 0; background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 14px 16px;
+  font: 400 13.5px/1.6 var(--f-mono); overflow-x: auto; tab-size: 2;
+}
+.c-tag { color: var(--c-tag); }
+.c-attr { color: var(--c-attr); }
+.c-str { color: var(--c-str); }
+.c-com { color: var(--c-com); font-style: italic; }
+.notes { margin: 12px 0 0; padding-left: 20px; display: grid; gap: 4px; max-width: 72ch; }
+
+.tasks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 8px; }
+.task { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 15px; line-height: 1.4; }
+.task .mark { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font: 700 12px/1 var(--f-mono); color: transparent; margin-top: 1px; }
+.task.pass { background: var(--ok-soft); border-color: transparent; }
+.task.pass .mark { background: var(--ok); border-color: var(--ok); color: var(--surface); }
+.task code { white-space: normal; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.allgood { margin: 10px 0 0; padding: 10px 14px; border-radius: 8px; background: var(--ok-soft); font-weight: 600; }
+
+.bench { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+@media (min-width: 860px) { .bench { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); } }
+.pane-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 12px; font: 500 12.5px var(--f-mono); color: var(--code-ink); background: var(--code-bg); border-radius: 10px 10px 0 0; border-bottom: 1px solid #222a38; }
+.editor-wrap { min-width: 0; display: grid; }
+.editor-wrap .linkbtn { color: #A9B2C3; }
+#editor {
+  width: 100%; min-height: 440px; resize: vertical; border: 0; border-radius: 0 0 10px 10px;
+  background: var(--code-bg); color: var(--code-ink); caret-color: var(--c-tag);
+  font: 400 14px/1.6 var(--f-mono); padding: 12px 14px; tab-size: 2; white-space: pre; overflow: auto;
+}
+#editor:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+.tip { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+.confirm { margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); font-size: 14.5px; }
+
+.browser { min-width: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.browser-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg); border-bottom: 1px solid var(--line); }
+.dots { display: inline-flex; gap: 5px; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.tabname { font: 500 12.5px var(--f-mono); padding: 3px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.preview { min-height: 380px; max-height: 620px; overflow: auto; background: #FFFFFF; color: #000000; }
+.say { margin: 0; padding: 8px 12px; border-top: 1px solid var(--line); font: 500 12.5px/1.45 var(--f-mono); color: var(--muted); min-height: 36px; overflow-wrap: anywhere; }
+.say.hot { color: var(--ink); background: var(--accent-soft); }
+
+.ask details { border-top: 1px solid var(--line); padding: 10px 0; max-width: 80ch; }
+.ask details:last-child { border-bottom: 1px solid var(--line); }
+.ask summary { cursor: pointer; font-weight: 600; }
+.ask details p { margin: 6px 0 0 18px; color: var(--ink); }
+.ask .hint { margin: 0 0 8px; font-size: 14px; color: var(--muted); }
+
+.answer { display: grid; gap: 10px; justify-items: start; }
+.answer > div { width: 100%; display: grid; gap: 10px; justify-items: start; }
+.answer pre.code { width: 100%; }
+.pager { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-top: 8px; border-top: 1px solid var(--line); }
+
+@media (max-width: 560px) {
+  #editor { min-height: 320px; font-size: 13px; }
+  .preview { min-height: 280px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">Practice only · basic to medium · about 3½ hours</span>
+      <h1><span class="br">&lt;</span>HTML Fast Track<span class="br">/&gt;</span></h1>
+    </div>
+    <div class="overall">
+      <div class="ov-num"><strong id="ovDone">0</strong> / <span id="ovTotal">70</span> tasks done</div>
+      <div class="bar" aria-hidden="true"><i id="ovBar" style="width:0%"></i></div>
+      <div class="savebar">
+        <span class="sync" id="sync" data-state="saving" role="status">Connecting to your account…</span>
+        <button class="btn save" id="saveBtn" type="button">Save</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="lessons" aria-label="Lessons"><ol id="lessonList"></ol></nav>
+
+    <main class="lesson" aria-labelledby="lsTitle">
+      <div class="lesson-head">
+        <span class="eyebrow" id="lsMeta">Lesson 1 of 10 · 10 min</span>
+        <h2 id="lsTitle">Page skeleton</h2>
+        <p id="lsIntro"></p>
+      </div>
+
+      <section aria-labelledby="knowHead">
+        <h3 id="knowHead">Must know</h3>
+        <pre class="code" id="lsKnow"></pre>
+        <ul class="notes" id="lsNotes"></ul>
+      </section>
+
+      <section aria-labelledby="taskHead">
+        <h3 id="taskHead">Your tasks <span class="eyebrow" id="lsCount">0 / 7</span></h3>
+        <ol class="tasks" id="lsTasks"></ol>
+        <p class="allgood" id="allGood" hidden></p>
+      </section>
+
+      <section class="bench" aria-label="Editor and preview">
+        <div class="editor-wrap">
+          <div class="pane-head"><span>index.html</span><button class="linkbtn" id="resetBtn" type="button">Start over</button></div>
+          <textarea id="editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Your HTML code"></textarea>
+          <p class="tip">Tasks tick themselves as you type. Tab adds 2 spaces; press Esc, then Tab, to leave the editor.</p>
+          <div class="confirm" id="resetConfirm" hidden>
+            <span>Replace your code with the starting code?</span>
+            <button class="btn" id="resetYes" type="button">Replace</button>
+            <button class="btn" id="resetNo" type="button">Keep mine</button>
+          </div>
+        </div>
+        <div class="browser">
+          <div class="browser-bar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="tabname" id="tabTitle" title="The browser tab shows your title">Untitled</span></div>
+          <div class="preview" id="preview"></div>
+          <p class="say" id="say" aria-live="polite">Click links or submit forms here to see what they do.</p>
+        </div>
+      </section>
+
+      <section class="ask" aria-labelledby="askHead">
+        <h3 id="askHead">Asked in interviews</h3>
+        <p class="hint">Say your answer out loud first, then open it.</p>
+        <div id="lsAsk"></div>
+      </section>
+
+      <section class="answer" aria-label="Answer">
+        <button class="btn" id="showAnswer" type="button">Show the answer</button>
+        <div id="answerBox" hidden>
+          <pre class="code" id="answerCode"></pre>
+          <button class="btn" id="useAnswer" type="button">Put the answer in the editor</button>
+          <div class="confirm" id="useConfirm" hidden>
+            <span>This replaces your code in the editor.</span>
+            <button class="btn" id="useYes" type="button">Replace</button>
+            <button class="btn" id="useNo" type="button">Keep mine</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="pager">
+        <button class="btn" id="prevL" type="button">← Previous lesson</button>
+        <button class="btn primary" id="nextL" type="button">Next lesson →</button>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ---------- Check helpers ---------- */
+  const qa = (d, s) => [...d.querySelectorAll(s)];
+  const q = (d, s) => d.querySelector(s);
+  const at = (el, a) => ((el && el.getAttribute(a)) || '').trim();
+  const atl = (el, a) => at(el, a).toLowerCase();
+  const tx = el => ((el && el.textContent) || '').replace(/\s+/g, ' ').trim();
+  const typeOf = i => atl(i, 'type') || 'text';
+  const inputsOf = (d, type) => qa(d, 'input').filter(i => typeOf(i) === type);
+  const after = (a, b) => !!(a && b && (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING));
+  const labelled = (d, el) => { const id = at(el, 'id'); return !!id && qa(d, 'label').some(l => at(l, 'for') === id); };
+  const sendable = d => qa(d, 'input, select, textarea').filter(i => !['submit', 'button', 'reset', 'image'].includes(typeOf(i)));
+  const submitIn = el => !!el && (qa(el, 'button').some(b => !at(b, 'type') || atl(b, 'type') === 'submit') || qa(el, 'input').some(i => typeOf(i) === 'submit'));
+  const SKEL = (body, title) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+</head>
+<body>
+${body}
+</body>
+</html>
+`;
+
+  /* ---------- The lessons ---------- */
+  const LESSONS = [
+    {
+      id: 'skeleton', title: 'Page skeleton', mins: 10,
+      intro: 'Every HTML file starts the same way. Write it from memory until you can do it in under a minute.',
+      know: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text on the browser tab</title>
+</head>
+<body>
+  <h1>Everything people see goes in body</h1>
+</body>
+</html>`,
+      notes: ['`<head>` holds information about the page. `<body>` holds what people see.', 'Do it on your laptop too: make `index.html` in VS Code, type this, open it in Chrome. Later, `!` then Tab writes it for you.'],
+      starter: '<\!-- Write the whole page skeleton here, from memory.\n     Look at "Must know" only if you get stuck. -->\n',
+      tasks: [
+        ['Start the file with `<!DOCTYPE html>`', (d, r) => /^\s*(<\!--[\s\S]*?-->\s*)*<!doctype\s+html\s*>/i.test(r)],
+        ['Open `<html lang="en">`', (d, r) => /<html[^>]*\blang\s*=\s*["']?en/i.test(r)],
+        ['Add a `<head>` and a `<body>`', (d, r) => /<head[\s>]/i.test(r) && /<body[\s>]/i.test(r)],
+        ['Set the character set: `<meta charset="UTF-8">`', d => qa(d, 'meta[charset]').some(m => atl(m, 'charset') === 'utf-8')],
+        ['Add the viewport meta tag for phones', d => qa(d, 'meta').some(m => atl(m, 'name') === 'viewport' && atl(m, 'content').replace(/\s/g, '').includes('width=device-width'))],
+        ['Make the tab title say `My First Page`', d => d.title.trim() === 'My First Page'],
+        ['Put an `<h1>` inside the body', d => !!q(d, 'body h1') && !!tx(q(d, 'body h1'))]
+      ],
+      ask: [
+        ['What does <!DOCTYPE html> do?', 'It tells the browser this is an HTML5 page, so it renders in standards mode instead of the old "quirks" mode.'],
+        ['What goes in <head> and what goes in <body>?', 'head: information about the page (title, charset, meta tags, links to CSS). body: everything the user sees.'],
+        ['Why add the viewport meta tag?', 'Without it, phones pretend to be a wide desktop screen and shrink the whole page.']
+      ],
+      answer: SKEL('  <h1>Hello, world</h1>', 'My First Page')
+    },
+    {
+      id: 'text', title: 'Text and headings', mins: 15,
+      intro: 'Headings, paragraphs and the few inline tags you will use every day.',
+      know: `<h1>Main title (one per page)</h1>
+<h2>Section title</h2>
+<h3>Smaller heading inside a section</h3>
+<p>A paragraph with an <strong>important</strong> word
+and a <em>stressed</em> word.<br>This starts a new line in the same paragraph.</p>
+<hr>
+<\!-- A comment: the browser ignores it -->`,
+      notes: ['Headings go h1 → h2 → h3 in order. Pick them by meaning, not by size; size is CSS’s job.', 'The browser squashes extra spaces and line breaks in your code into one space. Use `<p>` or `<br>` for real breaks.'],
+      starter: SKEL('  <\!-- your code here -->', 'Text'),
+      tasks: [
+        ['Exactly one `<h1>` with your name', d => qa(d, 'h1').length === 1 && !!tx(q(d, 'h1'))],
+        ['An `<h2>` that comes after the `<h1>`', d => after(q(d, 'h1'), q(d, 'h2'))],
+        ['A paragraph of at least 15 words', d => qa(d, 'p').some(p => tx(p).split(' ').length >= 15)],
+        ['Make a word inside a paragraph `<strong>`', d => !!q(d, 'p strong')],
+        ['Make a word inside a paragraph `<em>`', d => !!q(d, 'p em')],
+        ['Break a line inside a paragraph with `<br>`', d => !!q(d, 'p br')],
+        ['Separate two parts of the page with `<hr>`', d => !!q(d, 'hr')]
+      ],
+      ask: [
+        ['<strong> vs <b>?', 'Both look bold. <strong> means "important", which screen readers and search engines understand; <b> is only a look. Same for <em> vs <i>.'],
+        ['How many <h1> should a page have?', 'Usually one, for the main topic. Then h2 for sections and h3 inside those, without skipping levels.'],
+        ['Is <br> the right way to add space between blocks?', 'No. <br> is a line break inside text, like an address. Space between blocks comes from CSS margin.']
+      ],
+      answer: SKEL(`  <h1>Your Name</h1>
+  <h2>About me</h2>
+  <p>I am a final-year student preparing for placements. I practise <strong>DSA</strong> every day
+  and I am learning <em>web development</em> from scratch.<br>Right now I am learning HTML.</p>
+  <hr>
+  <h2>Goals</h2>
+  <p>Finish this HTML course this week.</p>`, 'Text')
+    },
+    {
+      id: 'links', title: 'Links and images', mins: 20,
+      intro: 'Links take people somewhere; images show a file. Both depend on getting the path right.',
+      know: `<a href="https://github.com">GitHub</a>                     <\!-- another site -->
+<a href="https://github.com" target="_blank" rel="noopener">GitHub</a>  <\!-- new tab -->
+<a href="about.html">About</a>                             <\!-- a file in the same folder -->
+<a href="#contact">Jump to contact</a>                     <\!-- jumps to id="contact" -->
+<a href="mailto:you@example.com">Email me</a>
+
+<img src="photo.svg" alt="My profile photo" width="120">`,
+      notes: ['`<img>` has no closing tag. `src` says where the file is; `alt` describes it.', 'Paths: `photo.svg` = same folder, `images/photo.svg` = inside a folder, `../photo.svg` = one folder up. A file called photo.svg sits next to this page, so you can use it.'],
+      starter: SKEL('  <\!-- your code here -->', 'Links'),
+      tasks: [
+        ['A link to `https://github.com`', d => qa(d, 'a').some(a => at(a, 'href').startsWith('https://github.com'))],
+        ['Make a link open in a new tab with `target="_blank"`', d => qa(d, 'a').some(a => atl(a, 'target') === '_blank')],
+        ['Add `rel="noopener"` to the new-tab link', d => qa(d, 'a').some(a => atl(a, 'target') === '_blank' && atl(a, 'rel').split(/\s+/).includes('noopener'))],
+        ['Show the image `photo.svg` with alt text', d => qa(d, 'img').some(i => /^(\.\/)?photo\.svg$/.test(at(i, 'src')) && !!at(i, 'alt'))],
+        ['Make the image 120 pixels wide', d => qa(d, 'img').some(i => at(i, 'width') === '120')],
+        ['An email link that starts with `mailto:`', d => qa(d, 'a').some(a => atl(a, 'href').startsWith('mailto:'))],
+        ['A link that jumps to an element with an `id` on the same page', d => qa(d, 'a').some(a => { const h = at(a, 'href'); return h.length > 1 && h[0] === '#' && !!d.getElementById(h.slice(1)); })]
+      ],
+      ask: [
+        ['Why is the alt attribute important?', 'It shows when the image fails to load, screen readers read it aloud, and search engines use it.'],
+        ['What does target="_blank" do, and why add rel="noopener"?', 'It opens the link in a new tab. noopener stops the new page from controlling your page through window.opener.'],
+        ['Absolute vs relative path?', 'Absolute is a full address (https://…). Relative starts from the current file: "img/a.png", "../a.png".']
+      ],
+      answer: SKEL(`  <h1 id="top">My links</h1>
+  <img src="photo.svg" alt="My profile photo" width="120">
+  <p>
+    <a href="https://github.com" target="_blank" rel="noopener">My GitHub</a><br>
+    <a href="mailto:you@example.com">Email me</a>
+  </p>
+  <p><a href="#top">Back to top</a></p>`, 'Links')
+    },
+    {
+      id: 'lists', title: 'Lists', mins: 15,
+      intro: 'Bullets, numbered steps, and the list of links that every menu is made of.',
+      know: `<ul>                 <\!-- bullets: order doesn't matter -->
+  <li>HTML</li>
+  <li>CSS</li>
+</ul>
+
+<ol>                 <\!-- numbers: order matters -->
+  <li>Wake up</li>
+  <li>Code</li>
+</ol>
+
+<ul>
+  <li>Frontend
+    <ul>             <\!-- a list inside a list item -->
+      <li>React</li>
+    </ul>
+  </li>
+</ul>`,
+      notes: ['Only `<li>` goes directly inside `<ul>` or `<ol>`. Anything else goes inside an `<li>`.', 'Navigation menus are a `<ul>` of `<li>`s, each holding an `<a>`.'],
+      starter: SKEL('  <\!-- your code here -->', 'Lists'),
+      tasks: [
+        ['A `<ul>` with at least 3 skills', d => qa(d, 'ul').some(u => qa(u, ':scope > li').length >= 3)],
+        ['An `<ol>` with at least 3 steps', d => qa(d, 'ol').some(o => qa(o, ':scope > li').length >= 3)],
+        ['A list nested inside a list item', d => !!q(d, 'li > ul, li > ol')],
+        ['A list of at least 3 links, like a menu', d => qa(d, 'ul, ol').some(l => qa(l, ':scope > li').filter(li => q(li, 'a')).length >= 3)],
+        ['Only `<li>` directly inside every list', d => { const ls = qa(d, 'ul, ol'); return ls.length > 0 && ls.every(l => [...l.children].every(c => c.tagName === 'LI')); }]
+      ],
+      ask: [
+        ['<ul> vs <ol>?', 'ul when order does not matter (bullets); ol when it does (steps, rankings).'],
+        ['Can a <div> go directly inside a <ul>?', 'No. Only <li> can. Put the div inside an li.'],
+        ['How are navigation menus usually built?', 'As a <ul> of <li>s, each holding an <a>, then laid out in a row with CSS.']
+      ],
+      answer: SKEL(`  <h2>Skills</h2>
+  <ul>
+    <li>HTML</li>
+    <li>JavaScript</li>
+    <li>Python
+      <ul>
+        <li>NumPy</li>
+        <li>Pandas</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>Morning routine</h2>
+  <ol>
+    <li>Revise DSA</li>
+    <li>Solve two SQL questions</li>
+    <li>Practise HTML</li>
+  </ol>
+
+  <h2>Menu</h2>
+  <ul>
+    <li><a href="#home">Home</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>`, 'Lists')
+    },
+    {
+      id: 'tables', title: 'Tables', mins: 20,
+      intro: 'Rows and columns of data: marks, prices, timetables.',
+      know: `<table border="1">
+  <caption>Semester marks</caption>
+  <thead>
+    <tr><th>Subject</th><th>Marks</th><th>Grade</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>DSA</td><td>92</td><td rowspan="2">A</td></tr>
+    <tr><td>DBMS</td><td>88</td></tr>
+    <tr><td colspan="2">Overall</td><td>A</td></tr>
+  </tbody>
+</table>`,
+      notes: ['`tr` = row, `th` = heading cell, `td` = data cell. `colspan` joins columns, `rowspan` joins rows.', '`border="1"` is only so you can see the lines while practising. Real projects draw borders with CSS.'],
+      starter: SKEL('  <\!-- your code here -->', 'Tables'),
+      tasks: [
+        ['A `<table>` with a `<thead>` and a `<tbody>`', d => !!q(d, 'table thead') && !!q(d, 'table tbody')],
+        ['A header row with at least 3 `<th>` cells', d => qa(d, 'thead tr').some(r => qa(r, 'th').length >= 3)],
+        ['At least 3 rows in the `<tbody>`', d => qa(d, 'tbody').some(b => qa(b, ':scope > tr').length >= 3)],
+        ['One cell that spans 2 columns', d => qa(d, 'td, th').some(c => at(c, 'colspan') === '2')],
+        ['One cell that spans 2 rows', d => qa(d, 'td, th').some(c => at(c, 'rowspan') === '2')],
+        ['A `<caption>` for the table', d => !!tx(q(d, 'table > caption'))]
+      ],
+      ask: [
+        ['When should you use a table?', 'Only for data in rows and columns. Never for page layout; that is CSS’s job.'],
+        ['<th> vs <td>?', 'th is a heading cell (bold and centred by default, and announced as a header by screen readers); td is a data cell.'],
+        ['What do colspan and rowspan do?', 'They make one cell stretch across several columns or down several rows.']
+      ],
+      answer: SKEL(`  <table border="1">
+    <caption>Semester marks</caption>
+    <thead>
+      <tr><th>Subject</th><th>Marks</th><th>Grade</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>DSA</td><td>92</td><td rowspan="2">A</td></tr>
+      <tr><td>DBMS</td><td>88</td></tr>
+      <tr><td>Networks</td><td>79</td><td>B</td></tr>
+      <tr><td colspan="2">Overall</td><td>A</td></tr>
+    </tbody>
+  </table>`, 'Tables')
+    },
+    {
+      id: 'forms1', title: 'Forms: inputs and labels', mins: 25,
+      intro: 'The most asked-about part of HTML, and the part your JavaScript will work with most. Submit your form in the preview to see exactly what it sends.',
+      know: `<form action="/signup" method="post">
+  <label for="name">Name</label>
+  <input type="text" id="name" name="name" placeholder="Your name" required>
+
+  <label for="email">Email</label>
+  <input type="email" id="email" name="email" required>
+
+  <label for="pass">Password</label>
+  <input type="password" id="pass" name="password" minlength="8" required>
+
+  <button type="submit">Sign up</button>
+</form>`,
+      notes: ['`for` on the label must match the `id` on the input. Then clicking the label puts the cursor in the box.', '`name` is the key that gets sent: `name=Riya&email=riya@mail.com`. An input without a name is not sent at all.'],
+      starter: SKEL('  <\!-- your code here -->', 'Sign up'),
+      tasks: [
+        ['A text input with a `<label>` linked by `for` and `id`', d => qa(d, 'input').some(i => typeOf(i) === 'text' && labelled(d, i))],
+        ['An email input that is `required`', d => inputsOf(d, 'email').some(i => i.hasAttribute('required'))],
+        ['A password input with `minlength="8"`', d => inputsOf(d, 'password').some(i => at(i, 'minlength') === '8')],
+        ['A `placeholder` on at least one input', d => qa(d, 'input').some(i => !!at(i, 'placeholder'))],
+        ['At least 3 inputs, and every one has a `name`', d => { const s = sendable(d); return s.length >= 3 && s.every(i => !!at(i, 'name')); }],
+        ['A submit button inside the form', d => qa(d, 'form').some(submitIn)],
+        ['Set `method="post"` on the form', d => qa(d, 'form').some(f => atl(f, 'method') === 'post')]
+      ],
+      ask: [
+        ['Why use <label>?', 'Clicking the label focuses the input, and screen readers announce what the field is for.'],
+        ['What is the name attribute for?', 'It is the key sent with the value, like email=a@b.com. An input without a name is not sent.'],
+        ['GET vs POST?', 'GET puts the data in the URL (fine for searches). POST sends it in the request body (logins, sign-ups, anything private or large).'],
+        ['What does required do?', 'The browser refuses to submit the form until that field is filled, and shows a message.']
+      ],
+      answer: SKEL(`  <h1>Sign up</h1>
+  <form action="/signup" method="post">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" placeholder="Your name" required>
+    <br>
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" placeholder="you@example.com" required>
+    <br>
+    <label for="pass">Password</label>
+    <input type="password" id="pass" name="password" minlength="8" required>
+    <br>
+    <button type="submit">Create account</button>
+  </form>`, 'Sign up')
+    },
+    {
+      id: 'forms2', title: 'Forms: choices', mins: 25,
+      intro: 'Radio buttons, checkboxes, dropdowns and the other inputs every form needs.',
+      know: `<p>Gender</p>
+<input type="radio" id="m" name="gender" value="male">   <label for="m">Male</label>
+<input type="radio" id="f" name="gender" value="female"> <label for="f">Female</label>
+
+<input type="checkbox" id="agree" name="agree" required> <label for="agree">I agree</label>
+
+<label for="city">City</label>
+<select id="city" name="city">
+  <option value="">Choose…</option>
+  <option value="indore">Indore</option>
+</select>
+
+<label for="about">About you</label>
+<textarea id="about" name="about" rows="4"></textarea>
+
+<input type="number" name="age" min="18" max="60">
+<input type="date" name="dob">`,
+      notes: ['Radios that share a `name` form one group: you can pick only one. `value` is what gets sent.', '`<textarea>` and `<select>` have closing tags; `<input>` does not.'],
+      starter: SKEL(`  <form>
+    <\!-- add the fields here -->
+
+    <button type="submit">Send</button>
+  </form>`, 'Choices'),
+      tasks: [
+        ['Two radio buttons that share one `name`', d => { const c = {}; inputsOf(d, 'radio').forEach(r => { const n = at(r, 'name'); if (n) c[n] = (c[n] || 0) + 1; }); return Object.values(c).some(v => v >= 2); }],
+        ['Every radio button has a `value`', d => { const r = inputsOf(d, 'radio'); return r.length >= 2 && r.every(x => !!at(x, 'value')); }],
+        ['A checkbox that is `required`', d => inputsOf(d, 'checkbox').some(i => i.hasAttribute('required'))],
+        ['A `<select>` with at least 3 options', d => qa(d, 'select').some(s => qa(s, 'option').length >= 3)],
+        ['A `<textarea>` with `rows` set', d => qa(d, 'textarea').some(t => !!at(t, 'rows'))],
+        ['A number input with `min` and `max`', d => inputsOf(d, 'number').some(i => i.hasAttribute('min') && i.hasAttribute('max'))],
+        ['A date input', d => inputsOf(d, 'date').length > 0]
+      ],
+      ask: [
+        ['Radio vs checkbox?', 'Radios in one group (same name) allow one choice. Checkboxes allow any number.'],
+        ['What does value do on a radio or an option?', 'It is what gets sent. The text people see can be different.'],
+        ['id vs name on an input?', 'id links the label and lets CSS and JavaScript find the element. name is the key the server receives.']
+      ],
+      answer: SKEL(`  <form>
+    <p>Gender</p>
+    <input type="radio" id="male" name="gender" value="male">
+    <label for="male">Male</label>
+    <input type="radio" id="female" name="gender" value="female">
+    <label for="female">Female</label>
+
+    <p>
+      <label for="city">City</label>
+      <select id="city" name="city">
+        <option value="">Choose…</option>
+        <option value="indore">Indore</option>
+        <option value="pune">Pune</option>
+        <option value="bengaluru">Bengaluru</option>
+      </select>
+    </p>
+
+    <p>
+      <label for="age">Age</label>
+      <input type="number" id="age" name="age" min="18" max="60">
+    </p>
+
+    <p>
+      <label for="dob">Date of birth</label>
+      <input type="date" id="dob" name="dob">
+    </p>
+
+    <p>
+      <label for="about">About you</label><br>
+      <textarea id="about" name="about" rows="4"></textarea>
+    </p>
+
+    <input type="checkbox" id="agree" name="agree" required>
+    <label for="agree">I agree to the terms</label>
+
+    <button type="submit">Send</button>
+  </form>`, 'Choices')
+    },
+    {
+      id: 'layout', title: 'Page layout and semantic tags', mins: 25,
+      intro: 'How a real page is split into parts, and the id, class, div and span you will use with CSS and JavaScript.',
+      know: `<header>
+  <h1>Site name</h1>
+  <nav>
+    <a href="#about">About</a>
+    <a href="#work">Work</a>
+  </nav>
+</header>
+<main>
+  <section id="work">
+    <h2>Work</h2>
+    <article class="card">
+      <h3>Project</h3>
+      <p>Built with <span class="tag">Python</span></p>
+    </article>
+  </section>
+  <aside>A side note</aside>
+</main>
+<footer>© 2026 Your Name</footer>`,
+      notes: ['Block elements start on a new line and take the full width: `div`, `p`, `h1`, `section`. Inline elements sit inside a line: `span`, `a`, `strong`, `img`.', 'An `id` belongs to one element only. A `class` can be shared by many.'],
+      starter: SKEL('  <\!-- your code here -->', 'Layout'),
+      tasks: [
+        ['A `<header>` that contains a `<nav>`', d => !!q(d, 'header nav')],
+        ['At least 3 links in the nav', d => qa(d, 'nav').some(n => qa(n, 'a').length >= 3)],
+        ['A `<main>` with at least 2 `<section>`s', d => qa(d, 'main').some(m => qa(m, 'section').length >= 2)],
+        ['Every section has a heading', d => { const s = qa(d, 'section'); return s.length > 0 && s.every(x => !!q(x, 'h2, h3')); }],
+        ['An `<article>` inside a section', d => !!q(d, 'section article')],
+        ['A `<span>` inside a paragraph', d => !!q(d, 'p span')],
+        ['A `<footer>`', d => !!q(d, 'footer')],
+        ['One class name used on 2 or more elements', d => { const c = {}; qa(d, '[class]').forEach(e => e.classList.forEach(k => { c[k] = (c[k] || 0) + 1; })); return Object.values(c).some(v => v >= 2); }],
+        ['At least one `id`, and no id used twice', d => { const ids = qa(d, '[id]').map(e => at(e, 'id')).filter(Boolean); return ids.length > 0 && new Set(ids).size === ids.length; }]
+      ],
+      ask: [
+        ['Why use semantic tags instead of <div> everywhere?', 'They tell browsers, screen readers and search engines what each part is: header, navigation, main content, footer.'],
+        ['<div> vs <span>?', 'div is a block (new line, full width); span is inline (sits inside a line). Neither has meaning; they are hooks for CSS and JavaScript.'],
+        ['id vs class?', 'An id is unique on the page; a class can be shared. In CSS you write #id and .class.'],
+        ['<section> vs <article>?', 'An article stands on its own (a blog post, a project card). A section groups related content under a heading.']
+      ],
+      answer: SKEL(`  <header>
+    <h1>Your Name</h1>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#work">Work</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+  <main>
+    <section id="about">
+      <h2>About</h2>
+      <p>I build <span class="highlight">small, fast</span> web pages.</p>
+    </section>
+    <section id="work">
+      <h2>Work</h2>
+      <article class="card">
+        <h3>PaperRAG</h3>
+        <p>Answers questions about research papers.</p>
+      </article>
+      <article class="card">
+        <h3>SchemaMind</h3>
+        <p>Answers database questions asked in plain English.</p>
+      </article>
+    </section>
+    <aside>Open to internships.</aside>
+  </main>
+  <footer id="contact">© 2026 Your Name</footer>`, 'Layout')
+    },
+    {
+      id: 'connect', title: 'Connecting CSS and JavaScript', mins: 20,
+      intro: 'How the HTML file pulls in CSS and JavaScript, and how it hands values to your JavaScript.',
+      know: `<head>
+  <link rel="stylesheet" href="style.css">     <\!-- CSS from a file (best) -->
+  <style>
+    h1 { color: teal; }                           /* CSS inside the page */
+  </style>
+  <\script src="app.js" defer><\/script>           <\!-- runs after the page is read -->
+</head>
+<body>
+  <h1 style="font-size: 40px">Hi</h1>             <\!-- inline style: avoid -->
+  <button id="buy" class="btn" data-product-id="42">Buy</button>
+  <div id="output"></div>
+</body>`,
+      notes: ['Put `<\script>` in the head with `defer`, or just before `</body>`. Without either, it can run before your elements exist.', 'In app.js, `document.querySelector("#buy").dataset.productId` gives `"42"`. The preview here does not run JavaScript or load style.css; try that part on your laptop.'],
+      starter: SKEL('  <\!-- your code here -->', 'Shop'),
+      tasks: [
+        ['Link `style.css` with a `<link>` tag', d => qa(d, 'link').some(l => atl(l, 'rel') === 'stylesheet' && at(l, 'href') === 'style.css')],
+        ['Load `app.js` with `defer`', d => qa(d, 'script').some(s => at(s, 'src') === 'app.js' && s.hasAttribute('defer'))],
+        ['A `<style>` block that colours the h1', d => qa(d, 'style').some(s => /h1[^{]*\{[^}]*\bcolor\s*:/i.test(s.textContent))],
+        ['A button with an `id`, a `class` and a `data-` attribute', d => qa(d, 'button').some(b => !!at(b, 'id') && !!at(b, 'class') && [...b.attributes].some(a => a.name.startsWith('data-')))],
+        ['An empty `<div id="output">` for JavaScript to fill', d => !!q(d, 'div#output')]
+      ],
+      ask: [
+        ['defer vs async?', 'Both download the script without stopping the page. defer runs scripts in order after the HTML is read; async runs each one as soon as it arrives, in any order.'],
+        ['Where do you put the <\script> tag, and why?', 'In the head with defer, or just before </body>, so the elements exist when the code runs.'],
+        ['What are data attributes?', 'Your own attributes, like data-product-id="42", that hold values for JavaScript to read with element.dataset.productId.'],
+        ['Three ways to add CSS?', 'A file with <link> (best), a <style> block, or a style attribute on one element (avoid).']
+      ],
+      answer: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    h1 { color: teal; }
+    .btn { padding: 8px 16px; }
+  </style>
+  <\script src="app.js" defer><\/script>
+</head>
+<body>
+  <h1>Mini shop</h1>
+  <button id="buy" class="btn" data-product-id="42">Buy</button>
+  <div id="output"></div>
+</body>
+</html>
+`
+    },
+    {
+      id: 'resume', title: 'Final project: your resume page', mins: 40,
+      intro: 'Put everything together in one page about you. Use your real details; you can show this page in interviews.',
+      know: `<header>   name, photo, nav
+<main>
+  <section id="about">     paragraph
+  <section id="skills">    list
+  <section id="projects">  articles with links
+  <section id="contact">   form
+</main>
+<footer>`,
+      notes: ['No new tags here. If you get stuck on a part, go back to that lesson.', 'When it passes, copy it into `index.html` on your laptop and open it in Chrome.'],
+      starter: SKEL('  <\!-- Build your resume here -->', 'Resume'),
+      tasks: [
+        ['A full skeleton with a `<title>`', (d, r) => /<!doctype\s+html/i.test(r) && !!d.title.trim()],
+        ['A `<header>` with your name in an `<h1>`', d => !!tx(q(d, 'header h1'))],
+        ['A nav with links to `#about`, `#skills`, `#projects` and `#contact`', d => ['about', 'skills', 'projects', 'contact'].every(k => qa(d, 'nav a').some(a => at(a, 'href') === '#' + k))],
+        ['Each of those links lands on a `<section>` with that id', d => ['about', 'skills', 'projects', 'contact'].every(k => !!q(d, 'section#' + k))],
+        ['About: a paragraph in `#about`', d => !!tx(q(d, 'section#about p'))],
+        ['Skills: a list of at least 5 skills in `#skills`', d => qa(d, 'section#skills li').length >= 5],
+        ['Projects: 2 `<article>`s, each with an `<h3>` and a link', d => qa(d, 'section#projects article').filter(a => q(a, 'h3') && q(a, 'a[href]')).length >= 2],
+        ['Your photo with alt text', d => qa(d, 'img').some(i => !!at(i, 'src') && !!at(i, 'alt'))],
+        ['Contact: a form with an email input, a `<textarea>` and a submit button', d => qa(d, 'section#contact form').some(f => inputsOf(f, 'email').length > 0 && !!q(f, 'textarea') && submitIn(f))],
+        ['A `<footer>`', d => !!q(d, 'footer')]
+      ],
+      ask: [
+        ['Walk me through the structure of your page.', 'Practise saying it: a header with my name and navigation, main with four sections, a contact form, and a footer. Then say why you chose each tag.'],
+        ['How would you make this page better for people using screen readers?', 'Headings in order, alt text on images, a label on every input, semantic tags, and enough colour contrast.'],
+        ['How do you check your HTML is valid?', 'Run it through the W3C validator (validator.w3.org) and look at the browser console.']
+      ],
+      answer: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Name · Resume</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 760px; margin: auto; padding: 16px; }
+    nav a { margin-right: 12px; }
+    article { border: 1px solid #ccc; padding: 8px 12px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="photo.svg" alt="Photo of Your Name" width="96">
+    <h1>Your Name</h1>
+    <p>Final-year student · Python, JavaScript, SQL</p>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#skills">Skills</a>
+      <a href="#projects">Projects</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+  <main>
+    <section id="about">
+      <h2>About</h2>
+      <p>I build retrieval and text-to-SQL systems, and I am preparing for software roles.</p>
+    </section>
+    <section id="skills">
+      <h2>Skills</h2>
+      <ul>
+        <li>Python</li>
+        <li>JavaScript</li>
+        <li>SQL</li>
+        <li>HTML</li>
+        <li>Data structures and algorithms</li>
+      </ul>
+    </section>
+    <section id="projects">
+      <h2>Projects</h2>
+      <article>
+        <h3>PaperRAG</h3>
+        <p>Answers questions about research papers, and says "I don't know" when the papers don't cover it.</p>
+        <a href="https://github.com/sudhanshusharmasikar-ctrl/paperrag" target="_blank" rel="noopener">Code on GitHub</a>
+      </article>
+      <article>
+        <h3>SchemaMind</h3>
+        <p>Turns plain-English questions into checked, safe SQL.</p>
+        <a href="https://github.com/sudhanshusharmasikar-ctrl/schemamind" target="_blank" rel="noopener">Code on GitHub</a>
+      </article>
+    </section>
+    <section id="contact">
+      <h2>Contact</h2>
+      <form action="/contact" method="post">
+        <label for="email">Your email</label>
+        <input type="email" id="email" name="email" required>
+        <label for="msg">Message</label>
+        <textarea id="msg" name="message" rows="4" required></textarea>
+        <button type="submit">Send</button>
+      </form>
+    </section>
+  </main>
+  <footer>© 2026 Your Name</footer>
+</body>
+</html>
+`
+    }
+  ];
+
+  const TOTAL = LESSONS.reduce((a, l) => a + l.tasks.length, 0);
+  const LS_KEY = 'html-fast-track-v1';
+  const MAX_CODE = 30000;
+  const BLOCKED = ['not_granted', 'capability_disabled', 'capability_removed', 'revoked'];
+
+  /* ---------- State ---------- */
+  let store = { code: {}, updatedAt: 0 };   // your code for each lesson
+  let current = 0;
+  let db = null, mode = 'connecting', ready = false, readOnly = false;
+  let pending = false, inflight = false, again = false, editSeq = 0;
+  let lastSaved = null, lastError = null, retryTimer = null, flushTimer = null, flash = null;
+  const results = {};                       // lesson id -> array of passed booleans
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const md = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>');
+  const clock = d => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+  function cleanStore(s) {
+    const out = { code: {}, updatedAt: 0 };
+    if (s && typeof s === 'object') {
+      out.updatedAt = typeof s.updatedAt === 'number' ? s.updatedAt : 0;
+      const c = s.code && typeof s.code === 'object' ? s.code : {};
+      LESSONS.forEach(l => { if (typeof c[l.id] === 'string') out.code[l.id] = c[l.id].slice(0, MAX_CODE); });
+    }
+    return out;
+  }
+  const codeFor = l => (typeof store.code[l.id] === 'string' ? store.code[l.id] : l.starter);
+
+  /* ---------- Highlighting for the read-only code blocks ---------- */
+  function hlAttrs(s) {
+    const re = /([^\s=\/]+)(?:(\s*=\s*)("[^"]*"|'[^']*'|[^\s>]+))?/g;
+    let out = '', last = 0, m;
+    while ((m = re.exec(s))) {
+      out += esc(s.slice(last, m.index)) + `<span class="c-attr">${esc(m[1])}</span>`;
+      if (m[2]) out += esc(m[2]) + `<span class="c-str">${esc(m[3] || '')}</span>`;
+      last = re.lastIndex;
+    }
+    return out + esc(s.slice(last));
+  }
+  function hl(src) {
+    const re = /(<\!--[\s\S]*?-->)|(<!DOCTYPE[^>]*>)|(<\/?)([a-zA-Z][a-zA-Z0-9-]*)([^>]*?)(\/?>)|(\/\*[\s\S]*?\*\/)/gi;
+    let out = '', last = 0, m;
+    while ((m = re.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      if (m[1] || m[7]) out += `<span class="c-com">${esc(m[1] || m[7])}</span>`;
+      else if (m[2]) out += `<span class="c-tag">${esc(m[2])}</span>`;
+      else out += `<span class="c-tag">${esc(m[3] + m[4])}</span>${hlAttrs(m[5])}<span class="c-tag">${esc(m[6])}</span>`;
+      last = re.lastIndex;
+    }
+    return out + esc(src.slice(last));
+  }
+
+  /* ---------- Checking ---------- */
+  function check(lesson, code) {
+    const doc = new DOMParser().parseFromString(code, 'text/html');
+    return lesson.tasks.map(([, fn]) => { try { return !!fn(doc, code); } catch (e) { return false; } });
+  }
+  function checkAll() { LESSONS.forEach(l => { results[l.id] = check(l, codeFor(l)); }); }
+  const passed = l => (results[l.id] || []).filter(Boolean).length;
+
+  /* ---------- Preview ---------- */
+  const previewHost = $('preview');
+  const shadow = previewHost.attachShadow({ mode: 'open' });
+  const BASE_CSS = `:host { all: initial; display: block; }
+.pv-body { display: block; margin: 8px; font: 16px/1.4 "Times New Roman", Times, serif; color: #000; background: #fff; min-height: calc(100% - 16px); }
+img { max-width: 100%; }`;
+  function renderPreview(code) {
+    const d = new DOMParser().parseFromString(code, 'text/html');
+    d.querySelectorAll('script, iframe, object, embed, base, link, meta, title, noscript').forEach(e => e.remove());
+    d.querySelectorAll('*').forEach(el => [...el.attributes].forEach(a => {
+      if (/^on/i.test(a.name)) el.removeAttribute(a.name);
+      else if (/^(href|src|action|formaction|srcset)$/i.test(a.name) && /^\s*javascript:/i.test(a.value)) el.removeAttribute(a.name);
+    }));
+    const css = qa(d, 'style').map(s => s.textContent).join('\n').replace(/(^|[\s,}>~+(])(html|body)(?=[\s,{.:#\[>~+)]|$)/g, '$1.pv-body');
+    d.querySelectorAll('style').forEach(s => s.remove());
+    const bodyStyle = at(d.body, 'style');
+    shadow.innerHTML = `<style>${BASE_CSS}</style><style>${css.replace(/<\/style/gi, '')}</style><div class="pv-body"${bodyStyle ? ` style="${esc(bodyStyle)}"` : ''}>${d.body.innerHTML}</div>`;
+    const t = new DOMParser().parseFromString(code, 'text/html').title.trim();
+    $('tabTitle').textContent = t || 'Untitled';
+  }
+  function say(text, hot) {
+    const el = $('say');
+    el.textContent = text;
+    el.classList.toggle('hot', !!hot);
+  }
+  shadow.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('a');
+    if (!a) return;
+    e.preventDefault();
+    const href = a.getAttribute('href');
+    if (!href) { say('This link has no href, so it goes nowhere.', true); return; }
+    if (href.startsWith('#')) {
+      const target = href.length > 1 && shadow.getElementById(href.slice(1));
+      if (target) { target.scrollIntoView({ block: 'start' }); say(`Jumped to the element with id="${href.slice(1)}".`, true); }
+      else say(`No element has id="${href.slice(1)}", so this jump goes nowhere.`, true);
+      return;
+    }
+    const tab = (a.getAttribute('target') || '').toLowerCase() === '_blank' ? ' in a new tab' : ' in this tab';
+    say(`In a real browser this opens ${href}${tab}.`, true);
+  });
+  shadow.addEventListener('submit', e => {
+    e.preventDefault();
+    const form = e.target;
+    let fd;
+    try { fd = e.submitter ? new FormData(form, e.submitter) : new FormData(form); } catch (err) { fd = new FormData(form); }
+    const parts = [...fd.entries()].map(([k, v]) => {
+      const field = form.querySelector(`[name="${CSS.escape(k)}"]`);
+      const secret = field && (field.getAttribute('type') || '').toLowerCase() === 'password';
+      const val = typeof v === 'string' ? v : (v && v.name) || '';
+      return `${k}=${secret ? '•'.repeat(val.length) : val}`;
+    });
+    const method = (form.getAttribute('method') || 'get').toUpperCase();
+    const action = form.getAttribute('action') || 'this page';
+    say(parts.length ? `${method} ${action} → ${parts.join('&')}` : 'The form sent nothing. Give your inputs a name.', true);
+  });
+
+  /* ---------- Saving ---------- */
+  function cacheLocal() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ store, pending, current })); } catch (e) { /* storage blocked */ }
+  }
+  function loadLocal() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+      if (!raw) return;
+      store = cleanStore(raw.store);
+      pending = !!raw.pending;
+      if (Number.isInteger(raw.current) && raw.current >= 0 && raw.current < LESSONS.length) current = raw.current;
+    } catch (e) { /* ignore */ }
+  }
+  function withTimeout(p, ms) {
+    return new Promise((res, rej) => {
+      const t = setTimeout(() => rej({ code: 'timeout' }), ms);
+      p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); });
+    });
+  }
+  async function saveDoc(body) {
+    const once = () => withTimeout(db.doc('progress/main').set(body), 15000);
+    try { await once(); }
+    catch (e) {
+      if (e && ['unavailable', 'resource_exhausted', 'timeout'].includes(e.code)) {
+        await new Promise(r => setTimeout(r, 700 + Math.random() * 900));
+        await once();
+      } else throw e;
+    }
+  }
+  function noteError(e) {
+    lastError = (e && e.code) || 'unknown';
+    if (BLOCKED.includes(lastError)) mode = 'blocked';
+    else if (!['invalid_argument', 'quota_exceeded'].includes(lastError) && !retryTimer) {
+      retryTimer = setTimeout(() => { retryTimer = null; flush(); }, 15000);
+    }
+  }
+  async function flush() {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+    if (!(mode === 'db' && db && ready && !readOnly) || !pending) { updateSync(); return; }
+    if (inflight) { again = true; return; }
+    inflight = true;
+    updateSync();
+    const seq = editSeq;
+    const body = JSON.parse(JSON.stringify(store));
+    let ok = false;
+    try { await saveDoc(body); ok = true; } catch (e) { noteError(e); }
+    inflight = false;
+    if (ok) { lastSaved = new Date(); lastError = null; if (editSeq === seq) pending = false; cacheLocal(); }
+    if (again || (ok && pending)) { again = false; flush(); return; }
+    updateSync();
+  }
+  function syncInfo() {
+    if (flash && Date.now() < flash.until) return [flash.state, flash.text];
+    if (readOnly) return ['readonly', 'View only. Your code here is not saved.'];
+    if (mode === 'connecting') return ['saving', pending ? 'Connecting to your account… your code is kept until then' : 'Connecting to your account…'];
+    if (mode === 'local') return ['local', 'Saved on this device only'];
+    if (mode === 'blocked') return ['error', 'Saving to your account is switched off for this page. Press Allow saving.'];
+    if (!ready) return ['saving', 'Loading your saved code…'];
+    if (pending && lastError === 'invalid_argument') return ['error', 'Not saved: this account cannot change this page.'];
+    if (pending && lastError) return ['error', `Not saved yet (${lastError}). Retrying soon, or press Save.`];
+    if (pending || inflight) return ['saving', 'Saving…'];
+    return ['synced', lastSaved ? `All code saved to your account · ${clock(lastSaved)}` : 'Your code is saved to your account'];
+  }
+  function updateSync() {
+    const [state, text] = syncInfo();
+    const el = $('sync');
+    el.dataset.state = state;
+    el.textContent = text;
+    const b = $('saveBtn');
+    b.textContent = mode === 'blocked' ? 'Allow saving' : 'Save';
+    b.hidden = readOnly;
+  }
+  function showFlash(state, text) {
+    flash = { state, text, until: Date.now() + 4000 };
+    updateSync();
+    setTimeout(updateSync, 4100);
+  }
+  async function onSave() {
+    cacheLocal();
+    if (mode === 'blocked') {
+      let perms = null;
+      try { perms = await window.claude.use('permissions'); } catch (e) { perms = null; }
+      try { if (perms) await perms.manage(); } catch (e) { /* fall through */ }
+      let st = 'denied';
+      try { if (perms) st = await perms.state('db'); } catch (e) { st = 'denied'; }
+      if (st === 'granted') { mode = 'db'; lastError = null; subscribe(); }
+      else showFlash('error', 'Turn saving on in the page’s Permissions menu, then reload.');
+      return;
+    }
+    if (mode === 'db') {
+      if (!ready) { showFlash('saving', 'Still loading your saved code. Yours will upload in a moment.'); return; }
+      if (!pending) { showFlash('synced', `All code saved to your account · ${clock(lastSaved || new Date())}`); return; }
+      lastError = null;
+      flush();
+      return;
+    }
+    if (mode === 'local') { showFlash('local', `Saved on this device · ${clock(new Date())}`); return; }
+    showFlash('saving', 'Still connecting. Your code is kept and will upload when it connects.');
+  }
+
+  /* ---------- Rendering ---------- */
+  function renderList() {
+    $('lessonList').innerHTML = LESSONS.map((l, i) => {
+      const p = passed(l), n = l.tasks.length;
+      return `<li><button type="button" id="ls-${i}" data-i="${i}" aria-current="${i === current}" class="${p === n ? 'done' : ''}">
+        <span class="n">${p === n ? '✓' : String(i + 1).padStart(2, '0')}</span><span class="t">${esc(l.title)}</span><span class="c">${p}/${n}</span></button></li>`;
+    }).join('');
+    const done = LESSONS.reduce((a, l) => a + passed(l), 0);
+    $('ovDone').textContent = done;
+    $('ovTotal').textContent = TOTAL;
+    $('ovBar').style.width = (done / TOTAL * 100) + '%';
+  }
+
+  function renderTasks() {
+    const l = LESSONS[current];
+    const r = results[l.id] || [];
+    $('lsTasks').innerHTML = l.tasks.map(([t], i) =>
+      `<li class="task ${r[i] ? 'pass' : ''}"><span class="mark" aria-hidden="true">✓</span><span>${md(t)}<span class="sr">${r[i] ? ' (done)' : ''}</span></span></li>`).join('');
+    const p = r.filter(Boolean).length;
+    $('lsCount').textContent = `${p} / ${l.tasks.length}`;
+    const all = p === l.tasks.length;
+    $('allGood').hidden = !all;
+    if (all) {
+      const next = LESSONS[current + 1];
+      $('allGood').textContent = next ? `Lesson done. Answer the interview questions below, then go to lesson ${current + 2}: ${next.title}.` : 'All 10 lessons done. Put your resume page on your laptop and open it in Chrome.';
+    }
+  }
+
+  function renderLesson() {
+    const l = LESSONS[current];
+    $('lsMeta').textContent = `Lesson ${current + 1} of ${LESSONS.length} · about ${l.mins} min`;
+    $('lsTitle').textContent = l.title;
+    $('lsIntro').textContent = l.intro;
+    $('lsKnow').innerHTML = hl(l.know);
+    $('lsNotes').innerHTML = l.notes.map(n => `<li>${md(n)}</li>`).join('');
+    $('lsAsk').innerHTML = l.ask.map(([qq, aa], i) => `<details id="ask-${i}"><summary>${esc(qq)}</summary><p>${esc(aa)}</p></details>`).join('');
+    $('answerCode').innerHTML = hl(l.answer);
+    $('answerBox').hidden = true;
+    $('showAnswer').textContent = 'Show the answer';
+    $('useConfirm').hidden = true;
+    $('resetConfirm').hidden = true;
+    $('editor').value = codeFor(l);
+    $('editor').readOnly = readOnly;
+    $('prevL').disabled = current === 0;
+    $('nextL').disabled = current === LESSONS.length - 1;
+    say('Click links or submit forms here to see what they do.');
+    renderPreview(codeFor(l));
+    renderTasks();
+    renderList();
+  }
+
+  /* ---------- Editing ---------- */
+  let typeTimer = null;
+  function onCode(code) {
+    const l = LESSONS[current];
+    if (readOnly) return;
+    store.code[l.id] = code.slice(0, MAX_CODE);
+    store.updatedAt = Date.now();
+    editSeq++;
+    pending = true;
+    cacheLocal();
+    clearTimeout(flushTimer);
+    flushTimer = setTimeout(flush, 1500);
+    clearTimeout(typeTimer);
+    typeTimer = setTimeout(() => {
+      results[l.id] = check(l, codeFor(l));
+      renderPreview(codeFor(l));
+      renderTasks();
+      renderList();
+    }, 250);
+    updateSync();
+  }
+
+  const editor = $('editor');
+  let escaped = false;
+  editor.addEventListener('input', () => onCode(editor.value));
+  editor.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { escaped = true; return; }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); onSave(); return; }
+    if (e.key === 'Tab' && !escaped && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      document.execCommand ? document.execCommand('insertText', false, '  ') || insertAt('  ') : insertAt('  ');
+      return;
+    }
+    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      const v = editor.value, s = editor.selectionStart;
+      const lineStart = v.lastIndexOf('\n', s - 1) + 1;
+      const indent = (v.slice(lineStart, s).match(/^[ \t]*/) || [''])[0];
+      if (indent) {
+        e.preventDefault();
+        const ins = '\n' + indent;
+        if (!(document.execCommand && document.execCommand('insertText', false, ins))) insertAt(ins);
+      }
+    }
+    escaped = false;
+  });
+  function insertAt(text) {
+    const s = editor.selectionStart, en = editor.selectionEnd;
+    editor.value = editor.value.slice(0, s) + text + editor.value.slice(en);
+    editor.selectionStart = editor.selectionEnd = s + text.length;
+    onCode(editor.value);
+  }
+
+  function goTo(i) {
+    if (i < 0 || i >= LESSONS.length) return;
+    current = i;
+    cacheLocal();
+    renderLesson();
+  }
+  $('lessonList').addEventListener('click', e => {
+    const b = e.target.closest('[data-i]');
+    if (!b) return;
+    goTo(Number(b.dataset.i));
+    if (window.matchMedia('(max-width: 999px)').matches) $('lsTitle').scrollIntoView({ block: 'start' });
+  });
+  $('prevL').addEventListener('click', () => { goTo(current - 1); $('lsTitle').scrollIntoView({ block: 'start' }); });
+  $('nextL').addEventListener('click', () => { goTo(current + 1); $('lsTitle').scrollIntoView({ block: 'start' }); });
+  $('saveBtn').addEventListener('click', onSave);
+
+  $('resetBtn').addEventListener('click', () => { if (!readOnly) $('resetConfirm').hidden = false; });
+  $('resetNo').addEventListener('click', () => { $('resetConfirm').hidden = true; });
+  $('resetYes').addEventListener('click', () => {
+    $('resetConfirm').hidden = true;
+    editor.value = LESSONS[current].starter;
+    onCode(editor.value);
+  });
+  $('showAnswer').addEventListener('click', () => {
+    const box = $('answerBox');
+    box.hidden = !box.hidden;
+    $('showAnswer').textContent = box.hidden ? 'Show the answer' : 'Hide the answer';
+  });
+  $('useAnswer').addEventListener('click', () => { if (!readOnly) $('useConfirm').hidden = false; });
+  $('useNo').addEventListener('click', () => { $('useConfirm').hidden = true; });
+  $('useYes').addEventListener('click', () => {
+    $('useConfirm').hidden = true;
+    editor.value = LESSONS[current].answer;
+    onCode(editor.value);
+    editor.focus();
+  });
+
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { cacheLocal(); flush(); } });
+  window.addEventListener('pagehide', () => { cacheLocal(); flush(); });
+
+  /* ---------- Connecting to the account ---------- */
+  function onProgress(s) {
+    const fromCache = !!(s.metadata && s.metadata.fromCache);
+    if (!ready && fromCache && !s.exists) return;   // wait for the account's real answer
+    const srv = s.exists ? cleanStore(s.data()) : null;
+    let changed = false;
+    if (srv && (!pending || srv.updatedAt > store.updatedAt) && !inflight) {
+      if (JSON.stringify(srv.code) !== JSON.stringify(store.code)) changed = true;
+      store = srv;
+      pending = false;
+    }
+    const first = !ready && !fromCache;
+    if (first) ready = true;
+    cacheLocal();
+    if (changed) {
+      checkAll();
+      const l = LESSONS[current];
+      if (document.activeElement !== editor || editor.value !== codeFor(l)) {
+        const pos = editor.selectionStart;
+        editor.value = codeFor(l);
+        if (document.activeElement === editor) editor.selectionStart = editor.selectionEnd = Math.min(pos, editor.value.length);
+        renderPreview(codeFor(l));
+      }
+      renderTasks();
+      renderList();
+    }
+    if (first) flush();
+    updateSync();
+  }
+  let subTries = 0;
+  function subscribe() {
+    db.doc('progress/main').onSnapshot(onProgress, e => {
+      const code = (e && e.code) || 'unknown';
+      lastError = code;
+      if (BLOCKED.includes(code)) mode = 'blocked';
+      else { ready = true; if (subTries++ < 3) setTimeout(subscribe, 4000); flush(); }
+      updateSync();
+    });
+    setTimeout(() => { if (mode === 'db' && !ready) { ready = true; flush(); } }, 12000);
+  }
+  async function connect() {
+    if (!window.claude || typeof window.claude.use !== 'function') { mode = 'local'; updateSync(); return; }
+    let ns = null;
+    try { ns = await window.claude.use('db'); } catch (e) { ns = null; }
+    if (!ns) { mode = 'local'; updateSync(); return; }
+    db = ns;
+    mode = 'db';
+    subscribe();
+    updateSync();
+    try {
+      const user = await window.claude.use('user');
+      if (user && (await user.can('data.write')) === false) { readOnly = true; renderLesson(); updateSync(); }
+    } catch (e) { /* a refused save will say so */ }
+  }
+
+  /* ---------- Start ---------- */
+  loadLocal();
+  checkAll();
+  renderLesson();
+  updateSync();
+  connect();
+})();
+</script>
