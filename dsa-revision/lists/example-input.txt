@@ -1,0 +1,50 @@
+# leetcode bookmarked
+https://leetcode.com/problems/trapping-rain-water/ | hard | two-pointers, stack
+Median of Two Sorted Arrays | hard | binary-search
+Longest Substring Without Repeating Characters | medium | sliding-window, hashing
+https://leetcode.com/problems/word-break/ | medium | dp
+Course Schedule | medium | graph, topological-sort
+Serialize and Deserialize Binary Tree | hard | tree, design
+LRU Cache | medium | design, linked-list
+Minimum Window Substring | hard | sliding-window
+Kth Largest Element in an Array | medium | heap
+Coin Change | medium | dp
+Number of Islands | medium | graph, dfs
+Merge Intervals | medium | sorting, intervals
+
+# leetcode solved
+Two Sum | easy | hashing
+Best Time to Buy and Sell Stock | easy | dp
+Valid Parentheses | easy | stack
+Maximum Subarray | medium | dp
+Climbing Stairs | easy | dp
+Product of Array Except Self | medium | prefix-sum
+Container With Most Water | medium | two-pointers
+3Sum | medium | two-pointers, sorting
+Group Anagrams | medium | hashing
+Binary Tree Level Order Traversal | medium | tree, bfs
+Validate Binary Search Tree | medium | tree
+Lowest Common Ancestor of a Binary Tree | medium | tree
+Rotate Image | medium | matrix
+Spiral Matrix | medium | matrix
+Search in Rotated Sorted Array | medium | binary-search
+Longest Palindromic Substring | medium | dp, strings
+House Robber | medium | dp
+Subsets | medium | backtracking
+Permutations | medium | backtracking
+Implement Trie | medium | trie, design
+
+# gfg bookmarked
+https://www.geeksforgeeks.org/problems/kadanes-algorithm-1587115620/1 | medium | dp
+Minimum Platforms | medium | greedy, sorting
+Rat in a Maze Problem | hard | backtracking
+Detect Cycle in a Directed Graph | medium | graph
+
+# gfg solved
+Reverse a Linked List | easy | linked-list
+Kth Smallest Element | medium | heap
+Sort an Array of 0s 1s and 2s | easy | two-pointers
+Subarray with Given Sum | easy | sliding-window
+Longest Common Subsequence | medium | dp
+Job Sequencing Problem | medium | greedy
+Egg Dropping Puzzle | hard | dp

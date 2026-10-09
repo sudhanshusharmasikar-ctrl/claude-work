@@ -9,6 +9,12 @@ Study guides for a student who already knows C++:
 | **[Lecture-QA-Interview-Practice.pdf](Lecture-QA-Interview-Practice.pdf)** | 52 interview questions with answers for the STRIKE GenAI lectures finished so far: Lectures 8–16 (embeddings, vector search, RAG, advanced RAG, graph databases) and 20–21 (LangGraph) | 12 |
 | **[JavaScript-Explained-Simply.pdf](JavaScript-Explained-Simply.pdf)** | JavaScript Lectures 12 and 17–22 of the MERN course, plus the Day 17–22 code | 166 |
 
+## Daily DSA revision
+
+[`dsa-revision/`](dsa-revision/) picks 12 problems a day out of ones already solved — 9 LeetCode + 3 GFG, 7 of them
+bookmarked — seeded by the date and spaced so a problem does not return until the pool has cycled. See
+[dsa-revision/README.md](dsa-revision/README.md) for the paste format and usage.
+
 ## GenAI, RAG & Agents — Explained Simply
 
 Placement preparation for AI roles, planned as 45 days of about 3 hours a day. It explains the course code from
