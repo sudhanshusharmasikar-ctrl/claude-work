@@ -1,4 +1,4 @@
-<title>DSA Master Sheet</title>
+<title>DSA Problem Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=JetBrains+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
@@ -75,11 +75,11 @@ h1 { margin: 6px 0 0; font: 800 clamp(32px, 5.4vw, 54px)/0.98 var(--f-display); 
 .frow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
 .search { flex: 1 1 220px; min-width: 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
 select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); max-width: 100%; }
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
-.seg button { border: 0; background: transparent; padding: 6px 11px; cursor: pointer; font-size: 13.5px; border-right: 1px solid var(--line); }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: transparent; padding: 6px 11px; cursor: pointer; font-size: 13.5px; border-right: 1px solid var(--line); white-space: nowrap; }
 .seg button:last-child { border-right: 0; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
-.fgroup { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; }
+.fgroup { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 100%; }
 .flabel { font: 500 11px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .shown { font-size: 13px; color: var(--muted); }
 
@@ -117,16 +117,22 @@ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; b
 .note { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
 .diff { font: 500 12px var(--f-mono); padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; margin-top: 2px; }
 .diff.E { color: var(--easy); } .diff.M { color: var(--med); } .diff.H { color: var(--hard); }
-.star { border: 0; background: none; padding: 0 2px; font-size: 19px; line-height: 1; color: var(--line); cursor: pointer; }
-.star[aria-pressed="true"] { color: var(--star); }
-.star:hover { color: var(--star); }
+.fav { color: var(--star); margin-right: 5px; }
+.fl { color: var(--hard); }
+.flag { border: 0; background: none; padding: 0 2px; font-size: 18px; line-height: 1.1; color: var(--line); cursor: pointer; }
+.flag[aria-pressed="true"] { color: var(--hard); }
+.flag:hover:not(:disabled) { color: var(--hard); }
+.when { font: 500 11.5px var(--f-mono); color: var(--easy); }
+.today-line { margin: 0; font: 500 14px var(--f-mono); }
+.today-line b { font-size: 18px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .empty { padding: 18px 6px; color: var(--muted); }
 .excluded { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); max-width: 90ch; }
 
 @media (max-width: 560px) {
   .row { grid-template-columns: 22px minmax(0, 1fr) auto; }
   .row .diff { grid-column: 2; grid-row: 2; justify-self: start; }
-  .row .star { grid-column: 3; grid-row: 1; }
+  .row .flag { grid-column: 3; grid-row: 1; }
   .topic-head .bar { width: 80px; }
 }
 @media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
@@ -137,7 +143,7 @@ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; b
     <div class="title-row">
       <div>
         <span class="eyebrow">Striver SDE · Top Interview 150 · NeetCode 150 · Fraz · GFG Must-Do · your favourites</span>
-        <h1>DSA Master Sheet</h1>
+        <h1>DSA Problem Tracker</h1>
       </div>
       <div class="savebar">
         <span class="sync" id="sync" data-state="saving" role="status">Connecting to your account…</span>
@@ -145,7 +151,8 @@ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; b
       </div>
     </div>
     <div class="stats" id="stats"></div>
-    <p class="legend"><b>Must do</b> = in 3 or more of the lists. <b>Important</b> = in 2 lists, or one of your favourites. <b>Extra</b> = in 1 list. GFG problems are replaced by the closest LeetCode problem. Trie and segment tree problems are left out. ★ marks a problem to revise.</p>
+    <p class="today-line" id="todayLine"></p>
+    <p class="legend">Every problem from your lists appears once. <span class="fav">★</span> = your LeetCode favourite. <span class="fl">⚑</span> = marked to revise. Ticking a problem records the date you solved it. <b>Must do</b> = in 3 or more lists. <b>Important</b> = in 2 lists, or one of your favourites. <b>Extra</b> = in 1 list. GFG problems are replaced by the closest LeetCode problem. Trie and segment tree problems are left out.</p>
   </header>
 
   <section class="filters" aria-label="Filters">
@@ -208,6 +215,10 @@ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; b
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const clock = d => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   const slugId = s => 'c-' + s;
+  const pad2 = n => String(n).padStart(2, '0');
+  const isoDay = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  const shortDate = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); };
+  ALL.forEach(p => { p.fav = p.src.includes('Favourite'); });
 
   function cleanStore(s) {
     const out = { solved: {}, revise: {}, updatedAt: 0 };
@@ -215,7 +226,7 @@ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; b
       out.updatedAt = typeof s.updatedAt === 'number' ? s.updatedAt : 0;
       for (const k of ['solved', 'revise']) {
         const src = s[k] && typeof s[k] === 'object' ? s[k] : {};
-        for (const [slug, v] of Object.entries(src)) if (v && BY[slug]) out[k][slug] = 1;
+        for (const [slug, v] of Object.entries(src)) if (v && BY[slug]) out[k][slug] = (k === 'solved' && typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) ? v : 1;
       }
     }
     return out;
@@ -314,6 +325,8 @@ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; b
       if (ui.status === 'todo' && store.solved[p.s]) return false;
       if (ui.status === 'solved' && !store.solved[p.s]) return false;
       if (ui.status === 'revise' && !store.revise[p.s]) return false;
+      if (ui.status === 'today' && store.solved[p.s] !== isoDay(new Date())) return false;
+      if (ui.status === 'fav' && !p.fav) return false;
     }
     const q = ui.q.trim().toLowerCase();
     if (q && !(p.t.toLowerCase().includes(q) || String(p.n) === q || String(p.n).startsWith(q) && /^\d+$/.test(q))) return false;
@@ -331,12 +344,12 @@ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; b
     return `<li class="row${solved ? ' solved' : ''}" data-s="${p.s}">
       <input type="checkbox" id="${id}" data-act="solve" data-s="${p.s}"${solved ? ' checked' : ''}${readOnly ? ' disabled' : ''} aria-label="Solved: ${esc(p.t)}">
       <div class="pmain">
-        <a class="plink" href="https://leetcode.com/problems/${p.s}/" target="_blank" rel="noopener"><span class="num">${p.n}.</span>${esc(p.t)}</a>
-        <div class="pmeta"><span class="tier ${p.tier}">${TIER_LABEL[p.tier]}</span><span>${lists}</span>${p.p ? '<span class="prem">Premium</span>' : ''}</div>
+        <a class="plink" href="https://leetcode.com/problems/${p.s}/" target="_blank" rel="noopener">${p.fav ? '<span class="fav" aria-hidden="true">★</span><span class="sr">Favourite: </span>' : ''}<span class="num">${p.n}.</span>${esc(p.t)}</a>
+        <div class="pmeta"><span class="tier ${p.tier}">${TIER_LABEL[p.tier]}</span><span>${lists}</span>${p.p ? '<span class="prem">Premium</span>' : ''}<span class="when">${typeof store.solved[p.s] === 'string' ? 'Solved ' + shortDate(store.solved[p.s]) : ''}</span></div>
         ${notes.length ? `<p class="note">${notes.join('<br>')}</p>` : ''}
       </div>
       <span class="diff ${p.d}">${DIFF[p.d]}</span>
-      <button type="button" class="star" data-act="revise" data-s="${p.s}" aria-pressed="${rev}" aria-label="Revise later: ${esc(p.t)}" title="Mark to revise"${readOnly ? ' disabled' : ''}>★</button>
+      <button type="button" class="flag" data-act="revise" data-s="${p.s}" aria-pressed="${rev}" aria-label="Revise later: ${esc(p.t)}" title="Mark to revise"${readOnly ? ' disabled' : ''}>⚑</button>
     </li>`;
   }
 
@@ -348,7 +361,11 @@ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; b
       + cell('e', 'Easy', ALL.filter(p => p.d === 'E')) + cell('m', 'Medium', ALL.filter(p => p.d === 'M')) + cell('h', 'Hard', ALL.filter(p => p.d === 'H'))
       ;
     const rb = document.querySelector('#fStatus button[data-v="revise"]');
-    if (rb) rb.textContent = `★ Revise (${revN})`;
+    if (rb) rb.textContent = `⚑ Revise (${revN})`;
+    const t = isoDay(new Date()), wk = isoDay(new Date(Date.now() - 6 * 86400000));
+    const vals = Object.values(store.solved).filter(v => typeof v === 'string');
+    const nToday = vals.filter(v => v === t).length, nWeek = vals.filter(v => v >= wk && v <= t).length;
+    $('todayLine').innerHTML = `Solved today: <b>${nToday}</b> · last 7 days: <b>${nWeek}</b>`;
   }
 
   function renderJump() {
@@ -391,7 +408,8 @@ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; b
       const solved = !!store.solved[slug];
       row.classList.toggle('solved', solved);
       const box = row.querySelector('input[type="checkbox"]'); if (box) box.checked = solved;
-      const star = row.querySelector('.star'); if (star) star.setAttribute('aria-pressed', String(!!store.revise[slug]));
+      const fl = row.querySelector('.flag'); if (fl) fl.setAttribute('aria-pressed', String(!!store.revise[slug]));
+      const w = row.querySelector('.when'); if (w) w.textContent = typeof store.solved[slug] === 'string' ? 'Solved ' + shortDate(store.solved[slug]) : '';
     });
     const t = BY[slug].topic;
     document.querySelectorAll('.prog[data-topic]').forEach(el => {
@@ -444,7 +462,7 @@ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; b
     $('q').value = ui.q || '';
     seg('fDiff', [['all', 'All'], ['E', 'Easy'], ['M', 'Medium'], ['H', 'Hard']], 'diff');
     seg('fTier', [['all', 'All'], ['must', 'Must do'], ['imp', 'Important'], ['extra', 'Extra']], 'tier');
-    seg('fStatus', [['all', 'All'], ['todo', 'To do'], ['solved', 'Solved'], ['revise', '★ Revise']], 'status');
+    seg('fStatus', [['all', 'All'], ['todo', 'To do'], ['solved', 'Solved'], ['today', 'Today'], ['fav', '★ Favourites'], ['revise', '⚑ Revise']], 'status');
     $('fTopic').addEventListener('change', () => { ui.topic = $('fTopic').value; saveUi(); renderSheet(); });
     $('fList').addEventListener('change', () => { ui.list = $('fList').value; saveUi(); renderSheet(); });
     let qt = null;
@@ -461,7 +479,7 @@ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; b
     const el = e.target;
     if (el.dataset.act !== 'solve') return;
     const slug = el.dataset.s;
-    edit(() => { if (el.checked) store.solved[slug] = 1; else delete store.solved[slug]; });
+    edit(() => { if (el.checked) store.solved[slug] = isoDay(new Date()); else delete store.solved[slug]; });
     refreshAfterToggle(slug);
   });
   document.addEventListener('click', e => {

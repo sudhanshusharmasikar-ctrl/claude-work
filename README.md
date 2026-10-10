@@ -40,15 +40,16 @@ semantic tags, connecting CSS and JavaScript, and a final resume page. Each less
 live editor with a preview, 5–10 tasks that tick themselves as you type (70 in all), interview questions to answer out
 loud, and a model answer. Your code is saved to your account.
 
-## DSA Master Sheet
+## DSA Problem Tracker
 
-**[dsa-sheet/SHEET.md](dsa-sheet/SHEET.md)** (and the interactive page `dsa-sheet/dsa-master-sheet.html`, published as a
+**[dsa-sheet/SHEET.md](dsa-sheet/SHEET.md)** (and the interactive tracker `dsa-sheet/dsa-master-sheet.html`, published as a
 private claude.ai artifact) merges six lists into one LeetCode-only sheet of 473 problems, grouped into 18 topics:
 Striver SDE (LeetCode list, 117), Top Interview 150, NeetCode 150, the Fraz sheet (from its PDF), GFG Must-Do (each
 problem converted to the closest LeetCode problem, with the GFG name kept as a note) and the favourites list (72).
 Duplicates are merged, and every problem shows which lists include it. **Must do** = in 3+ lists (133), **Important** =
-in 2 lists or a favourite (122), **Extra** = the rest (218). Trie and segment tree problems are left out. The page has
-filters, a "Pick 10 for me" button, solved ticks and revise stars saved to your account. To rebuild after changing a
+in 2 lists or a favourite (122), **Extra** = the rest (218). Trie and segment tree problems are left out. Favourites carry ★. The tracker
+has filters (including Today and Favourites), a "Pick 10 for me" button, solved ticks that record the date, and ⚑
+revise flags, all saved to your account. Days are planned by hand: the tracker only records what was solved when. To rebuild after changing a
 list: `cd dsa-sheet/build && python3 build.py . && python3 make_page.py && python3 make_markdown.py`.
 
 ## GenAI, RAG & Agents — Explained Simply
