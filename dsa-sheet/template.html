@@ -1,0 +1,524 @@
+<title>DSA Master Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=JetBrains+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one long problem sheet, grouped by topic; summary and filters on top, a random-pick panel that opens above the list */
+:root {
+  --bg: #F3F4F1;
+  --surface: #FFFFFF;
+  --ink: #15191E;
+  --muted: #5E6670;
+  --line: #DCE0D8;
+  --accent: #1E6B57;
+  --accent-soft: #DDEFE8;
+  --easy: #17845A;
+  --med: #A86400;
+  --hard: #C23B2B;
+  --star: #C98F00;
+  --solved: #EEF6F1;
+  --f-display: 'Archivo', 'Segoe UI', system-ui, sans-serif;
+  --f-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1113; --surface: #161B1E; --ink: #E7EAEC; --muted: #99A2AA; --line: #283036;
+    --accent: #5FD1AE; --accent-soft: #16332B; --easy: #4ADE9A; --med: #F2B042; --hard: #FF7A66; --star: #F5C443; --solved: #12241E;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1113; --surface: #161B1E; --ink: #E7EAEC; --muted: #99A2AA; --line: #283036;
+  --accent: #5FD1AE; --accent-soft: #16332B; --easy: #4ADE9A; --med: #F2B042; --hard: #FF7A66; --star: #F5C443; --solved: #12241E;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 15px/1.5 var(--f-body); -webkit-font-smoothing: antialiased; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: inherit; }
+
+.page { max-width: 1100px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 40px); padding-block: 26px 72px; }
+.eyebrow { font: 500 11.5px/1.4 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* Header */
+.top { display: grid; gap: 18px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.title-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+h1 { margin: 6px 0 0; font: 800 clamp(32px, 5.4vw, 54px)/0.98 var(--f-display); letter-spacing: -.03em; font-stretch: 90%; }
+.savebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.sync { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--f-mono); color: var(--muted); max-width: 100%; }
+.sync::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync[data-state="synced"]::before { background: var(--easy); }
+.sync[data-state="saving"]::before, .sync[data-state="local"]::before { background: var(--med); }
+.sync[data-state="error"]::before, .sync[data-state="readonly"]::before { background: var(--hard); }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 14px; cursor: pointer; font-size: 14.5px; line-height: 1.2; }
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn.dark { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.stat { display: grid; gap: 6px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.stat .k { font-size: 13px; color: var(--muted); }
+.stat .v { font: 500 22px var(--f-mono); font-variant-numeric: tabular-nums; }
+.stat .v small { font-size: 13px; color: var(--muted); }
+.bar { position: relative; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--accent); transition: width .3s ease; }
+.stat.e .bar i { background: var(--easy); } .stat.m .bar i { background: var(--med); } .stat.h .bar i { background: var(--hard); }
+
+.legend { margin: 0; font-size: 13px; color: var(--muted); max-width: 90ch; }
+.legend b { color: var(--ink); font-weight: 600; }
+
+/* Filters */
+.filters { display: grid; gap: 10px; margin-top: 18px; }
+.frow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.search { flex: 1 1 220px; min-width: 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); max-width: 100%; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: transparent; padding: 6px 11px; cursor: pointer; font-size: 13.5px; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.fgroup { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; }
+.flabel { font: 500 11px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.shown { font-size: 13px; color: var(--muted); }
+
+/* Topic jump */
+.jump { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 6px; margin-top: 14px; }
+.jump a { flex: none; text-decoration: none; font-size: 13px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); white-space: nowrap; }
+.jump a span { font-family: var(--f-mono); color: var(--muted); margin-left: 4px; font-size: 12px; }
+
+/* Random pick */
+.pick { margin-top: 16px; padding: 16px; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); display: grid; gap: 10px; }
+.pick-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.pick-head h2 { margin: 0; font: 800 20px var(--f-display); }
+.pick ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; }
+
+/* Sheet */
+.topic { margin-top: 30px; scroll-margin-top: 12px; }
+.topic-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); }
+.topic-head h2 { margin: 0; font: 800 24px/1.15 var(--f-display); letter-spacing: -.01em; }
+.topic-head .prog { display: flex; align-items: center; gap: 10px; font: 500 13px var(--f-mono); color: var(--muted); }
+.topic-head .bar { width: 120px; }
+.rows { list-style: none; margin: 0; padding: 0; }
+.row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto auto; align-items: start; gap: 4px 12px; padding: 10px 6px; border-bottom: 1px solid var(--line); }
+.row.solved { background: var(--solved); }
+.row input[type="checkbox"] { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--accent); cursor: pointer; }
+.pmain { min-width: 0; display: grid; gap: 3px; }
+.plink { font-weight: 500; text-decoration: none; overflow-wrap: anywhere; }
+.plink:hover { text-decoration: underline; text-underline-offset: 3px; }
+.plink .num { color: var(--muted); font-size: 13px; margin-right: 4px; }
+.row.solved .plink { color: var(--muted); }
+.pmeta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12.5px; color: var(--muted); }
+.tier { font: 500 11px var(--f-mono); letter-spacing: .04em; text-transform: uppercase; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line); }
+.tier.must { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.tier.imp { border-color: var(--ink); color: var(--ink); }
+.prem { font: 500 11px var(--f-mono); text-transform: uppercase; color: var(--med); }
+.note { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.diff { font: 500 12px var(--f-mono); padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; margin-top: 2px; }
+.diff.E { color: var(--easy); } .diff.M { color: var(--med); } .diff.H { color: var(--hard); }
+.star { border: 0; background: none; padding: 0 2px; font-size: 19px; line-height: 1; color: var(--line); cursor: pointer; }
+.star[aria-pressed="true"] { color: var(--star); }
+.star:hover { color: var(--star); }
+.empty { padding: 18px 6px; color: var(--muted); }
+.excluded { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); max-width: 90ch; }
+
+@media (max-width: 560px) {
+  .row { grid-template-columns: 22px minmax(0, 1fr) auto; }
+  .row .diff { grid-column: 2; grid-row: 2; justify-self: start; }
+  .row .star { grid-column: 3; grid-row: 1; }
+  .topic-head .bar { width: 80px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="title-row">
+      <div>
+        <span class="eyebrow">Striver SDE · Top Interview 150 · NeetCode 150 · Fraz · GFG Must-Do · your favourites</span>
+        <h1>DSA Master Sheet</h1>
+      </div>
+      <div class="savebar">
+        <span class="sync" id="sync" data-state="saving" role="status">Connecting to your account…</span>
+        <button class="btn dark" id="saveBtn" type="button">Save</button>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <p class="legend"><b>Must do</b> = in 3 or more of the lists. <b>Important</b> = in 2 lists, or one of your favourites. <b>Extra</b> = in 1 list. GFG problems are replaced by the closest LeetCode problem. Trie and segment tree problems are left out. ★ marks a problem to revise.</p>
+  </header>
+
+  <section class="filters" aria-label="Filters">
+    <div class="frow">
+      <input class="search" id="q" type="search" placeholder="Search by name or number" aria-label="Search problems">
+      <select id="fTopic" aria-label="Topic"></select>
+      <select id="fList" aria-label="List"></select>
+      <button class="btn dark" id="pickBtn" type="button">Pick 10 for me</button>
+    </div>
+    <div class="frow">
+      <span class="fgroup"><span class="flabel">Level</span><span class="seg" id="fDiff" role="group" aria-label="Difficulty"></span></span>
+      <span class="fgroup"><span class="flabel">Priority</span><span class="seg" id="fTier" role="group" aria-label="Priority"></span></span>
+      <span class="fgroup"><span class="flabel">Show</span><span class="seg" id="fStatus" role="group" aria-label="Status"></span></span>
+      <span class="shown" id="shown"></span>
+    </div>
+  </section>
+
+  <nav class="jump" id="jump" aria-label="Jump to topic"></nav>
+
+  <section class="pick" id="pick" hidden aria-labelledby="pickTitle">
+    <div class="pick-head">
+      <h2 id="pickTitle">Your 10 for now</h2>
+      <div class="frow"><button class="btn" id="pickAgain" type="button">Pick again</button><button class="btn" id="pickClose" type="button">Close</button></div>
+    </div>
+    <p class="note" id="pickNote"></p>
+    <ol class="rows" id="pickList"></ol>
+  </section>
+
+  <main id="sheet"></main>
+
+  <p class="excluded" id="excluded"></p>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const DATA = /*DATA*/;
+  const TOPICS = DATA.topics;
+  const ALL = DATA.problems;
+  const LISTS = [['Striver', 'Striver SDE'], ['Top 150', 'Top Interview 150'], ['NeetCode', 'NeetCode 150'], ['Fraz', 'Fraz sheet'], ['GFG', 'GFG Must-Do (as LeetCode)'], ['Favourite', 'Your favourites']];
+  const SHORT = { 'Striver': 'Striver', 'Top 150': 'Top150', 'NeetCode': 'NC150', 'Fraz': 'Fraz', 'GFG': 'GFG', 'Favourite': 'Fav' };
+  const DIFF = { E: 'Easy', M: 'Medium', H: 'Hard' };
+  const LS_UI = 'dsa-master-ui-v1';
+  const LS_DATA = 'dsa-master-data-v1';
+  const BLOCKED = ['not_granted', 'capability_disabled', 'capability_removed', 'revoked'];
+
+  const tierOf = p => p.src.length >= 3 ? 'must' : (p.src.length === 2 || p.src.includes('Favourite') ? 'imp' : 'extra');
+  ALL.forEach(p => { p.tier = tierOf(p); p.key = p.s; });
+  const BY = Object.fromEntries(ALL.map(p => [p.s, p]));
+  const TIER_LABEL = { must: 'Must do', imp: 'Important', extra: 'Extra' };
+
+  /* ---------- State ---------- */
+  let store = { solved: {}, revise: {}, updatedAt: 0 };
+  let ui = { q: '', topic: 'all', list: 'all', diff: 'all', tier: 'all', status: 'all' };
+  let db = null, mode = 'connecting', ready = false, readOnly = false;
+  let pending = false, inflight = false, again = false, editSeq = 0;
+  let lastSaved = null, lastError = null, retryTimer = null, flushTimer = null, flash = null;
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const clock = d => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const slugId = s => 'c-' + s;
+
+  function cleanStore(s) {
+    const out = { solved: {}, revise: {}, updatedAt: 0 };
+    if (s && typeof s === 'object') {
+      out.updatedAt = typeof s.updatedAt === 'number' ? s.updatedAt : 0;
+      for (const k of ['solved', 'revise']) {
+        const src = s[k] && typeof s[k] === 'object' ? s[k] : {};
+        for (const [slug, v] of Object.entries(src)) if (v && BY[slug]) out[k][slug] = 1;
+      }
+    }
+    return out;
+  }
+
+  /* ---------- Saving (same approach as your tracker) ---------- */
+  function cacheLocal() { try { localStorage.setItem(LS_DATA, JSON.stringify({ store, pending })); } catch (e) { /* blocked */ } }
+  function loadLocal() {
+    try { const raw = JSON.parse(localStorage.getItem(LS_DATA) || 'null'); if (raw) { store = cleanStore(raw.store); pending = !!raw.pending; } } catch (e) { /* ignore */ }
+    try { const u = JSON.parse(localStorage.getItem(LS_UI) || 'null'); if (u && typeof u === 'object') ui = { ...ui, ...u }; } catch (e) { /* ignore */ }
+  }
+  function saveUi() { try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch (e) { /* ignore */ } }
+  function withTimeout(p, ms) {
+    return new Promise((res, rej) => { const t = setTimeout(() => rej({ code: 'timeout' }), ms); p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); });
+  }
+  async function saveDoc(body) {
+    const once = () => withTimeout(db.doc('progress/main').set(body), 15000);
+    try { await once(); }
+    catch (e) {
+      if (e && ['unavailable', 'resource_exhausted', 'timeout'].includes(e.code)) { await new Promise(r => setTimeout(r, 700 + Math.random() * 900)); await once(); }
+      else throw e;
+    }
+  }
+  function noteError(e) {
+    lastError = (e && e.code) || 'unknown';
+    if (BLOCKED.includes(lastError)) mode = 'blocked';
+    else if (!['invalid_argument', 'quota_exceeded'].includes(lastError) && !retryTimer) retryTimer = setTimeout(() => { retryTimer = null; flush(); }, 15000);
+  }
+  async function flush() {
+    clearTimeout(flushTimer); flushTimer = null;
+    if (!(mode === 'db' && db && ready && !readOnly) || !pending) { updateSync(); return; }
+    if (inflight) { again = true; return; }
+    inflight = true; updateSync();
+    const seq = editSeq;
+    const body = JSON.parse(JSON.stringify(store));
+    let ok = false;
+    try { await saveDoc(body); ok = true; } catch (e) { noteError(e); }
+    inflight = false;
+    if (ok) { lastSaved = new Date(); lastError = null; if (editSeq === seq) pending = false; cacheLocal(); }
+    if (again || (ok && pending)) { again = false; flush(); return; }
+    updateSync();
+  }
+  function syncInfo() {
+    if (flash && Date.now() < flash.until) return [flash.state, flash.text];
+    if (readOnly) return ['readonly', 'View only. Ticks here are not saved.'];
+    if (mode === 'connecting') return ['saving', pending ? 'Connecting to your account… your ticks are kept until then' : 'Connecting to your account…'];
+    if (mode === 'local') return ['local', 'Saved on this device only'];
+    if (mode === 'blocked') return ['error', 'Saving to your account is switched off for this page. Press Allow saving.'];
+    if (!ready) return ['saving', 'Loading your saved progress…'];
+    if (pending && lastError === 'invalid_argument') return ['error', 'Not saved: this account cannot change this page.'];
+    if (pending && lastError) return ['error', `Not saved yet (${lastError}). Retrying soon, or press Save.`];
+    if (pending || inflight) return ['saving', 'Saving…'];
+    return ['synced', lastSaved ? `All progress saved to your account · ${clock(lastSaved)}` : 'Your progress is saved to your account'];
+  }
+  function updateSync() {
+    const [state, text] = syncInfo();
+    const el = $('sync'); el.dataset.state = state; el.textContent = text;
+    const b = $('saveBtn'); b.textContent = mode === 'blocked' ? 'Allow saving' : 'Save'; b.hidden = readOnly;
+  }
+  function showFlash(state, text) { flash = { state, text, until: Date.now() + 4000 }; updateSync(); setTimeout(updateSync, 4100); }
+  async function onSave() {
+    cacheLocal();
+    if (mode === 'blocked') {
+      let perms = null;
+      try { perms = await window.claude.use('permissions'); } catch (e) { perms = null; }
+      try { if (perms) await perms.manage(); } catch (e) { /* fall through */ }
+      let st = 'denied';
+      try { if (perms) st = await perms.state('db'); } catch (e) { st = 'denied'; }
+      if (st === 'granted') { mode = 'db'; lastError = null; subscribe(); } else showFlash('error', 'Turn saving on in the page’s Permissions menu, then reload.');
+      return;
+    }
+    if (mode === 'db') {
+      if (!ready) { showFlash('saving', 'Still loading your saved progress. Your ticks will upload in a moment.'); return; }
+      if (!pending) { showFlash('synced', `All progress saved to your account · ${clock(lastSaved || new Date())}`); return; }
+      lastError = null; flush(); return;
+    }
+    if (mode === 'local') { showFlash('local', `Saved on this device · ${clock(new Date())}`); return; }
+    showFlash('saving', 'Still connecting. Your ticks are kept and will upload when it connects.');
+  }
+  function edit(fn) {
+    if (readOnly) return;
+    fn();
+    store.updatedAt = Date.now(); editSeq++; pending = true;
+    cacheLocal();
+    clearTimeout(flushTimer); flushTimer = setTimeout(flush, 900);
+    updateSync();
+  }
+
+  /* ---------- Filtering ---------- */
+  function matches(p, ignoreStatus) {
+    if (ui.topic !== 'all' && p.topic !== ui.topic) return false;
+    if (ui.list !== 'all' && !p.src.includes(ui.list)) return false;
+    if (ui.diff !== 'all' && p.d !== ui.diff) return false;
+    if (ui.tier !== 'all' && p.tier !== ui.tier) return false;
+    if (!ignoreStatus) {
+      if (ui.status === 'todo' && store.solved[p.s]) return false;
+      if (ui.status === 'solved' && !store.solved[p.s]) return false;
+      if (ui.status === 'revise' && !store.revise[p.s]) return false;
+    }
+    const q = ui.q.trim().toLowerCase();
+    if (q && !(p.t.toLowerCase().includes(q) || String(p.n) === q || String(p.n).startsWith(q) && /^\d+$/.test(q))) return false;
+    return true;
+  }
+
+  /* ---------- Rendering ---------- */
+  function rowHtml(p, prefix) {
+    const solved = !!store.solved[p.s], rev = !!store.revise[p.s];
+    const notes = [];
+    if (p.g) notes.push(`Replaces GFG: ${esc(p.g)}`);
+    if (p.alt) notes.push(esc(p.alt));
+    const lists = p.src.map(s => SHORT[s]).join(' · ');
+    const id = (prefix || '') + slugId(p.s);
+    return `<li class="row${solved ? ' solved' : ''}" data-s="${p.s}">
+      <input type="checkbox" id="${id}" data-act="solve" data-s="${p.s}"${solved ? ' checked' : ''}${readOnly ? ' disabled' : ''} aria-label="Solved: ${esc(p.t)}">
+      <div class="pmain">
+        <a class="plink" href="https://leetcode.com/problems/${p.s}/" target="_blank" rel="noopener"><span class="num">${p.n}.</span>${esc(p.t)}</a>
+        <div class="pmeta"><span class="tier ${p.tier}">${TIER_LABEL[p.tier]}</span><span>${lists}</span>${p.p ? '<span class="prem">Premium</span>' : ''}</div>
+        ${notes.length ? `<p class="note">${notes.join('<br>')}</p>` : ''}
+      </div>
+      <span class="diff ${p.d}">${DIFF[p.d]}</span>
+      <button type="button" class="star" data-act="revise" data-s="${p.s}" aria-pressed="${rev}" aria-label="Revise later: ${esc(p.t)}" title="Mark to revise"${readOnly ? ' disabled' : ''}>★</button>
+    </li>`;
+  }
+
+  function renderStats() {
+    const solvedN = ps => ps.filter(p => store.solved[p.s]).length;
+    const cell = (cls, k, ps) => { const s = solvedN(ps); return `<div class="stat ${cls}"><span class="k">${k}</span><span class="v">${s}<small> / ${ps.length}</small></span><div class="bar"><i style="width:${ps.length ? s / ps.length * 100 : 0}%"></i></div></div>`; };
+    const revN = Object.keys(store.revise).length;
+    $('stats').innerHTML = cell('', 'All problems', ALL) + cell('', 'Must do', ALL.filter(p => p.tier === 'must')) + cell('', 'Important', ALL.filter(p => p.tier === 'imp'))
+      + cell('e', 'Easy', ALL.filter(p => p.d === 'E')) + cell('m', 'Medium', ALL.filter(p => p.d === 'M')) + cell('h', 'Hard', ALL.filter(p => p.d === 'H'))
+      ;
+    const rb = document.querySelector('#fStatus button[data-v="revise"]');
+    if (rb) rb.textContent = `★ Revise (${revN})`;
+  }
+
+  function renderJump() {
+    $('jump').innerHTML = TOPICS.map(t => {
+      const ps = ALL.filter(p => p.topic === t);
+      return `<a href="#t-${t.replace(/[^a-z]+/gi, '-').toLowerCase()}">${esc(t)}<span>${ps.filter(p => store.solved[p.s]).length}/${ps.length}</span></a>`;
+    }).join('');
+  }
+
+  function renderSheet() {
+    let shown = 0;
+    const html = TOPICS.map(t => {
+      if (ui.topic !== 'all' && ui.topic !== t) return '';
+      const inTopic = ALL.filter(p => p.topic === t);
+      const ps = inTopic.filter(p => matches(p));
+      shown += ps.length;
+      if (!ps.length) return '';
+      const s = inTopic.filter(p => store.solved[p.s]).length;
+      return `<section class="topic" id="t-${t.replace(/[^a-z]+/gi, '-').toLowerCase()}" aria-label="${esc(t)}">
+        <div class="topic-head"><h2>${esc(t)}</h2><span class="prog" data-topic="${esc(t)}">${s} / ${inTopic.length} solved<span class="bar"><i style="width:${s / inTopic.length * 100}%"></i></span></span></div>
+        <ul class="rows">${ps.map(p => rowHtml(p)).join('')}</ul></section>`;
+    }).join('');
+    $('sheet').innerHTML = html || '<p class="empty">No problems match these filters. Clear the search or pick "All".</p>';
+    $('shown').textContent = `${shown} shown`;
+  }
+
+  function renderAll() {
+    renderStats();
+    renderJump();
+    renderSheet();
+    if (!$('pick').hidden) renderPick(false);
+    updateSync();
+  }
+
+  // After a tick, update counts and that row in place so the list does not jump.
+  function refreshAfterToggle(slug) {
+    renderStats();
+    renderJump();
+    document.querySelectorAll(`.row[data-s="${CSS.escape(slug)}"]`).forEach(row => {
+      const solved = !!store.solved[slug];
+      row.classList.toggle('solved', solved);
+      const box = row.querySelector('input[type="checkbox"]'); if (box) box.checked = solved;
+      const star = row.querySelector('.star'); if (star) star.setAttribute('aria-pressed', String(!!store.revise[slug]));
+    });
+    const t = BY[slug].topic;
+    document.querySelectorAll('.prog[data-topic]').forEach(el => {
+      if (el.dataset.topic !== t) return;
+      const inTopic = ALL.filter(p => p.topic === t), s = inTopic.filter(p => store.solved[p.s]).length;
+      el.firstChild.textContent = `${s} / ${inTopic.length} solved`;
+      el.querySelector('i').style.width = (s / inTopic.length * 100) + '%';
+    });
+  }
+
+  /* ---------- Random pick ---------- */
+  let picked = [];
+  function rand(n) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
+  function sample(arr, k) { const a = arr.slice(), out = []; while (a.length && out.length < k) out.push(a.splice(rand(a.length), 1)[0]); return out; }
+  function makePick() {
+    const pool = ALL.filter(p => matches(p, true) && !store.solved[p.s] && !p.p);   // skip Premium problems
+    let out = [];
+    if (ui.diff === 'all') {
+      const want = { E: 2, M: 6, H: 2 };
+      for (const d of ['E', 'M', 'H']) out = out.concat(sample(pool.filter(p => p.d === d), want[d]));
+      out = out.concat(sample(pool.filter(p => !out.includes(p)), 10 - out.length));
+    } else out = sample(pool, 10);
+    const order = { E: 0, M: 1, H: 2 };
+    picked = sample(out, out.length).sort((a, b) => order[a.d] - order[b.d]);
+    const scope = [ui.topic !== 'all' ? ui.topic : null, ui.list !== 'all' ? LISTS.find(l => l[0] === ui.list)[1] : null, ui.tier !== 'all' ? TIER_LABEL[ui.tier] : null, ui.diff !== 'all' ? DIFF[ui.diff] : null].filter(Boolean);
+    $('pickNote').textContent = `${picked.length} unsolved problem${picked.length === 1 ? '' : 's'} picked at random from ${scope.length ? scope.join(' · ') : 'the whole sheet'}${ui.diff === 'all' ? ', mixed: about 2 Easy, 6 Medium and 2 Hard' : ''}. ${pool.length} unsolved match your filters.`;
+  }
+  function renderPick(fresh) {
+    if (fresh) makePick();
+    $('pickList').innerHTML = picked.length ? picked.map(p => rowHtml(p, 'pk-')).join('') : '<li class="empty">Nothing left to pick here. Change the filters.</li>';
+  }
+
+  /* ---------- Controls ---------- */
+  function seg(id, options, key) {
+    const el = $(id);
+    el.innerHTML = options.map(([v, l]) => `<button type="button" data-v="${v}" aria-pressed="${ui[key] === v}">${l}</button>`).join('');
+    el.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      ui[key] = b.dataset.v; saveUi();
+      el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.v === ui[key])));
+      renderSheet();
+    });
+  }
+  function initControls() {
+    $('fTopic').innerHTML = `<option value="all">All topics</option>` + TOPICS.map(t => `<option value="${esc(t)}">${esc(t)} (${ALL.filter(p => p.topic === t).length})</option>`).join('');
+    $('fList').innerHTML = `<option value="all">All lists</option>` + LISTS.map(([v, l]) => `<option value="${esc(v)}">${esc(l)} (${ALL.filter(p => p.src.includes(v)).length})</option>`).join('');
+    $('fTopic').value = TOPICS.includes(ui.topic) ? ui.topic : 'all';
+    $('fList').value = LISTS.some(l => l[0] === ui.list) ? ui.list : 'all';
+    ui.topic = $('fTopic').value; ui.list = $('fList').value;
+    $('q').value = ui.q || '';
+    seg('fDiff', [['all', 'All'], ['E', 'Easy'], ['M', 'Medium'], ['H', 'Hard']], 'diff');
+    seg('fTier', [['all', 'All'], ['must', 'Must do'], ['imp', 'Important'], ['extra', 'Extra']], 'tier');
+    seg('fStatus', [['all', 'All'], ['todo', 'To do'], ['solved', 'Solved'], ['revise', '★ Revise']], 'status');
+    $('fTopic').addEventListener('change', () => { ui.topic = $('fTopic').value; saveUi(); renderSheet(); });
+    $('fList').addEventListener('change', () => { ui.list = $('fList').value; saveUi(); renderSheet(); });
+    let qt = null;
+    $('q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(() => { ui.q = $('q').value; saveUi(); renderSheet(); }, 150); });
+    $('pickBtn').addEventListener('click', () => { $('pick').hidden = false; renderPick(true); $('pick').scrollIntoView({ block: 'nearest' }); });
+    $('pickAgain').addEventListener('click', () => renderPick(true));
+    $('pickClose').addEventListener('click', () => { $('pick').hidden = true; });
+    $('saveBtn').addEventListener('click', onSave);
+    const ex = DATA.excluded || [];
+    $('excluded').textContent = ex.length ? `Left out on purpose (${ex.length}): ${ex.map(e => `${e.n}. ${e.t} (${e.why})`).join(', ')}.` : '';
+  }
+
+  document.addEventListener('change', e => {
+    const el = e.target;
+    if (el.dataset.act !== 'solve') return;
+    const slug = el.dataset.s;
+    edit(() => { if (el.checked) store.solved[slug] = 1; else delete store.solved[slug]; });
+    refreshAfterToggle(slug);
+  });
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-act="revise"]');
+    if (!b) return;
+    const slug = b.dataset.s;
+    edit(() => { if (store.revise[slug]) delete store.revise[slug]; else store.revise[slug] = 1; });
+    refreshAfterToggle(slug);
+  });
+  document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); onSave(); } });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { cacheLocal(); flush(); } });
+  window.addEventListener('pagehide', () => { cacheLocal(); flush(); });
+
+  /* ---------- Connecting to the account ---------- */
+  function onProgress(s) {
+    const fromCache = !!(s.metadata && s.metadata.fromCache);
+    if (!ready && fromCache && !s.exists) return;
+    const srv = s.exists ? cleanStore(s.data()) : null;
+    let changed = false;
+    if (srv && (!pending || srv.updatedAt > store.updatedAt) && !inflight) {
+      changed = JSON.stringify([srv.solved, srv.revise]) !== JSON.stringify([store.solved, store.revise]);
+      store = srv; pending = false;
+    }
+    const first = !ready && !fromCache;
+    if (first) ready = true;
+    cacheLocal();
+    if (changed) renderAll();
+    if (first) flush();
+    updateSync();
+  }
+  let subTries = 0;
+  function subscribe() {
+    db.doc('progress/main').onSnapshot(onProgress, e => {
+      const code = (e && e.code) || 'unknown'; lastError = code;
+      if (BLOCKED.includes(code)) mode = 'blocked';
+      else { ready = true; if (subTries++ < 3) setTimeout(subscribe, 4000); flush(); }
+      updateSync();
+    });
+    setTimeout(() => { if (mode === 'db' && !ready) { ready = true; flush(); } }, 12000);
+  }
+  async function connect() {
+    if (!window.claude || typeof window.claude.use !== 'function') { mode = 'local'; updateSync(); return; }
+    let ns = null;
+    try { ns = await window.claude.use('db'); } catch (e) { ns = null; }
+    if (!ns) { mode = 'local'; updateSync(); return; }
+    db = ns; mode = 'db';
+    subscribe(); updateSync();
+    try {
+      const user = await window.claude.use('user');
+      if (user && (await user.can('data.write')) === false) { readOnly = true; renderAll(); }
+    } catch (e) { /* a refused save will say so */ }
+  }
+
+  /* ---------- Start ---------- */
+  loadLocal();
+  initControls();
+  renderAll();
+  connect();
+})();
+</script>
