@@ -11,25 +11,24 @@ Study guides for a student who already knows C++:
 
 ## 30-Day Placement Sprint tracker
 
-**[tracker/placement-sprint.html](tracker/placement-sprint.html)** is the source of a daily checklist for the 30 days before
-placement (7 Oct – 5 Nov 2026, Sundays off). It is published as a private claude.ai artifact, where ticks, hours and notes
-are saved to your account (with a Save button and a status line that says whether the last change reached the account).
-Opened as a local file, it saves to that browser instead.
+**[tracker/placement-sprint.html](tracker/placement-sprint.html)** is one tracker for the 30 days before placement
+(7 Oct – 5 Nov 2026, Sundays off), published as a private claude.ai artifact. Ticks, hours, notes, solved problems and
+revise flags are saved to your account, with a Save button and a status line that says whether the last change reached it.
 
-Every date has its own fixed plan:
+It has two views:
 
-| Block | Time | Plan for each working day |
-|---|---|---|
-| DSA revision | 3 h | one of 26 revision topics, from arrays to a final timed mock |
-| DSA important topic | 4–5 h | Trees (8 days), then Graphs (9), then DP (9), one sub-topic a day |
-| JavaScript | 2 h | challenge day N of your 30-day challenge: code + interview questions |
-| Projects | 2 h | 26 sessions that follow the projects guide: PaperRAG (12), SchemaMind (9), both projects together (5) |
-| SQL | 1 h | LeetCode SQL 50, two questions a day (questions 1–2, 3–4, …) with a counter |
-| Python | bonus | code + interview questions, not counted in the daily score |
+- **Day plan**: the fixed routine for each date. The two DSA blocks list real LeetCode problems from the DSA Master
+  Sheet. The 4–5 h topic block has every tree, graph and DP problem (161), placed on the matching sub-topic day; the 3 h
+  revision block has the Must do and Important problems of every other topic (165), spread over 24 days, then a day
+  to re-solve everything flagged ⚑ and a timed mock. A block ticks itself when its Must do and Important problems are
+  solved. Sundays list unsolved problems from earlier days. JavaScript, project study (PaperRAG / SchemaMind),
+  LeetCode SQL 50 and optional Python complete the day.
+- **All problems**: the whole DSA Master Sheet (473 problems, each listed once) with filters, "Pick 10 for me", and
+  ★ in front of your 72 LeetCode favourites.
 
-The side rail has the 30-day calendar, a streak, total hours, SQL pace, topic and session counts, and a list of unfinished
-tasks from earlier days. "Change plan settings" moves the dates and sets which JavaScript challenge day and how many SQL 50
-questions you start from.
+The page is built from `tracker/template.html` and the sheet data:
+`cd dsa-sheet/build && python3 build.py .` (after changing a list), then
+`cd tracker/build && python3 make_tracker_data.py && python3 make_page.py`.
 
 ## HTML Fast Track
 
