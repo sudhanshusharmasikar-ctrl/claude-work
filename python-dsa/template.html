@@ -1,0 +1,685 @@
+<title>Python DSA Bridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header with progress, a strip of 13 day buttons plus the cheat sheet, then one day's lesson at a time */
+:root {
+  --bg: #F5F4EF;
+  --surface: #FFFFFF;
+  --ink: #17191C;
+  --muted: #5F6670;
+  --line: #DDDBD2;
+  --accent: #2B5F95;
+  --accent-soft: #E3ECF6;
+  --yellow: #E9B949;
+  --good: #1F7A4D;
+  --good-soft: #E4F3EA;
+  --bad: #B93A2B;
+  --bad-soft: #F8E5E1;
+  --med: #A86400;
+  --code-bg: #15191F;
+  --code-ink: #E4E8EE;
+  --out-bg: #1E242C;
+  --f-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --f-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1114; --surface: #171A1F; --ink: #E8EAED; --muted: #9AA1AA; --line: #2A2F36;
+    --accent: #7FB0E6; --accent-soft: #1B2A3B; --yellow: #F2CC60; --good: #5BD394; --good-soft: #13261C;
+    --bad: #FF8270; --bad-soft: #2D1714; --med: #F2B042; --code-bg: #0B0D10; --code-ink: #E4E8EE; --out-bg: #13171C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1114; --surface: #171A1F; --ink: #E8EAED; --muted: #9AA1AA; --line: #2A2F36;
+  --accent: #7FB0E6; --accent-soft: #1B2A3B; --yellow: #F2CC60; --good: #5BD394; --good-soft: #13261C;
+  --bad: #FF8270; --bad-soft: #2D1714; --med: #F2B042; --code-bg: #0B0D10; --code-ink: #E4E8EE; --out-bg: #13171C;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; font-variant-ligatures: none !important; }   /* the font shorthand would turn them back on */
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.55 var(--f-body); -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: inherit; }
+code { font-family: var(--f-mono); font-size: .88em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { margin: 0; }
+pre code { background: none; padding: 0; border-radius: 0; font-size: inherit; overflow-wrap: normal; }
+
+.page { max-width: 1000px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 40px); padding-block: 26px 80px; }
+.eyebrow { font: 500 11.5px/1.4 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+
+/* Header */
+.top { display: grid; gap: 16px; padding-bottom: 20px; }
+.title-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+h1 { margin: 6px 0 0; font: 800 clamp(34px, 5.6vw, 58px)/0.98 var(--f-display); letter-spacing: -.035em; }
+h1 em { font-style: normal; color: var(--accent); }
+.lede { margin: 0; max-width: 68ch; color: var(--muted); }
+.lede b { color: var(--ink); font-weight: 600; }
+.savebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.sync { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--f-mono); color: var(--muted); max-width: 100%; }
+.sync::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync[data-state="synced"]::before { background: var(--good); }
+.sync[data-state="saving"]::before, .sync[data-state="local"]::before { background: var(--med); }
+.sync[data-state="error"]::before, .sync[data-state="readonly"]::before { background: var(--bad); }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 14.5px; line-height: 1.2; text-decoration: none; display: inline-block; }
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn.dark { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 600; }
+.btn.good { background: var(--good); color: #fff; border-color: var(--good); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.stat { display: grid; gap: 6px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.stat .k { font-size: 13px; color: var(--muted); }
+.stat .v { font: 500 22px var(--f-mono); font-variant-numeric: tabular-nums; }
+.stat .v small { font-size: 13px; color: var(--muted); }
+.bar { position: relative; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--accent); transition: width .3s ease; }
+.today-line { margin: 0; font: 500 13.5px var(--f-mono); color: var(--muted); }
+.today-line b { color: var(--ink); }
+
+/* Day strip */
+.days { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 8px; padding: 14px 0 18px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.day { position: relative; display: grid; gap: 1px; text-align: left; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); cursor: pointer; min-width: 0; }
+.day .dn { font: 500 11px var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.day .dt { font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day.done { background: var(--good-soft); border-color: transparent; }
+.day.done .dn::after { content: " ✓"; color: var(--good); }
+.day[aria-current="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.day.sheet { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.day.sheet .dn { color: inherit; opacity: .7; }
+.day.sheet[aria-current="true"] { box-shadow: 0 0 0 2px var(--yellow); }
+
+/* Lesson */
+#view { scroll-margin-top: 10px; }
+.lesson { display: grid; gap: 30px; padding-top: 26px; }
+.lesson > * { min-width: 0; }
+.lhead { display: grid; gap: 8px; }
+.lhead h2 { margin: 0; font: 800 clamp(28px, 4.2vw, 40px)/1.05 var(--f-display); letter-spacing: -.025em; }
+.intro { margin: 0; font-size: 17px; max-width: 70ch; }
+.plan { list-style: none; margin: 4px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+.plan li { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: start; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; font-size: 14px; }
+.plan .mins { grid-row: span 2; font: 500 12px var(--f-mono); color: var(--muted); padding-top: 2px; }
+.plan b { font-weight: 600; }
+.plan span:last-child { color: var(--muted); font-size: 13px; }
+
+section.part { display: grid; gap: 14px; }
+section.part > * { min-width: 0; }
+.part-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); }
+h3 { display: flex; align-items: center; gap: 10px; margin: 0; font: 800 22px/1.2 var(--f-display); letter-spacing: -.01em; }
+.step { display: inline-grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--yellow); color: #17191C; font: 500 14px var(--f-mono); }
+h4 { margin: 6px 0 0; font: 600 15px var(--f-body); }
+.hint { margin: 0; font-size: 14px; color: var(--muted); max-width: 72ch; }
+.score { font: 500 13px var(--f-mono); color: var(--muted); }
+
+/* C++ to Python table */
+.map { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font: 400 13.5px/1.5 var(--f-mono); }
+.map th { text-align: left; font: 500 11px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.map td { padding: 7px 12px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+.map tr:last-child td { border-bottom: 0; }
+.map td:first-child { color: var(--muted); width: 42%; }
+.map td:last-child { color: var(--ink); font-weight: 500; }
+.map .cm { color: var(--muted); font-weight: 400; }
+
+/* Code cards */
+.codes { display: grid; gap: 18px; }
+.codecard { margin: 0; border-radius: 12px; overflow: hidden; background: var(--code-bg); color: var(--code-ink); min-width: 0; }
+.codecard figcaption { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 12px 9px 16px; border-bottom: 1px solid #2B323C; font: 500 13.5px var(--f-body); color: #F3F5F8; }
+.copy { flex: none; border: 1px solid #3A424D; background: transparent; color: #C9D1DB; border-radius: 6px; padding: 3px 10px; font: 500 12px var(--f-mono); cursor: pointer; }
+.copy:hover { border-color: #8A95A3; color: #fff; }
+.codecard pre { padding: 14px 16px; overflow-x: auto; font: 400 13.5px/1.6 var(--f-mono); tab-size: 4; }
+.io { background: var(--out-bg); border-top: 1px solid #2B323C; }
+.io .lab { display: block; padding: 8px 16px 0; font: 500 10.5px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: #F2CC60; }
+.io.in .lab { color: #8FB8E8; }
+.io pre { padding: 6px 16px 12px; color: #D6DCE4; }
+.cnote { margin: 0; padding: 10px 16px 12px; border-top: 1px solid #2B323C; font-size: 13.5px; color: #B9C2CD; }
+.tk-kw { color: #C792EA; } .tk-c { color: #F78C6C; } .tk-s { color: #C3E88D; } .tk-n { color: #F78C6C; }
+.tk-cm { color: #7D8896; font-style: italic; } .tk-b { color: #82AAFF; } .tk-f { color: #FFCB6B; } .tk-d { color: #FFCB6B; }
+
+.watch { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.watch li { position: relative; padding: 10px 12px 10px 38px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--yellow); border-radius: 8px; font-size: 15px; }
+.watch li::before { content: "!"; position: absolute; left: 13px; top: 10px; font: 600 14px var(--f-mono); color: var(--med); }
+
+/* Quiz */
+.quiz { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 14px; }
+.q { display: grid; gap: 10px; align-content: start; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.qn { margin: 0; font: 500 12px var(--f-mono); color: var(--muted); }
+.q pre { padding: 12px 14px; border-radius: 8px; background: var(--code-bg); color: var(--code-ink); font: 400 13.5px/1.55 var(--f-mono); overflow-x: auto; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.opt { text-align: left; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font: 400 13.5px/1.4 var(--f-mono); cursor: pointer; overflow-wrap: anywhere; min-width: 0; }
+.opt:hover:not(:disabled) { border-color: var(--ink); }
+.opt:disabled { cursor: default; opacity: .65; }
+.opt.right { background: var(--good-soft); border-color: var(--good); color: var(--ink); opacity: 1; }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--ink); opacity: 1; }
+.why { margin: 0; font-size: 14px; }
+.why b { font-weight: 600; }
+.why.ok b { color: var(--good); } .why.no b { color: var(--bad); }
+.linkbtn { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: 13px; }
+
+/* Practice */
+.rows { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.solved { background: var(--good-soft); }
+.row input, .check input { width: 18px; height: 18px; margin: 0; accent-color: var(--good); cursor: pointer; }
+.pmain { min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.plink { font-weight: 500; text-decoration: none; overflow-wrap: anywhere; }
+.plink:hover { text-decoration: underline; text-underline-offset: 3px; }
+.plink .num { font-family: var(--f-mono); color: var(--muted); font-size: 13px; margin-right: 4px; }
+.when { font: 500 11.5px var(--f-mono); color: var(--good); }
+.diff { font: 500 12px var(--f-mono); padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.diff.E { color: var(--good); } .diff.M { color: var(--med); } .diff.H { color: var(--bad); }
+.pnote { margin: 0; padding: 10px 14px; border-radius: 8px; background: var(--accent-soft); font-size: 14.5px; }
+
+/* Drill */
+.drill { display: grid; gap: 12px; padding: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.drill > * { min-width: 0; }
+.task { margin: 0; font-size: 16.5px; font-weight: 500; }
+.drill .codecard { border-radius: 10px; }
+details summary { cursor: pointer; font-weight: 600; color: var(--accent); width: fit-content; }
+details[open] summary { margin-bottom: 10px; }
+.check { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; cursor: pointer; }
+.check input { margin-top: 3px; }
+
+/* Finish */
+.finish { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 18px; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); }
+.finish p { margin: 0; font-size: 14.5px; color: var(--muted); }
+.finish .nav { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Cheat sheet */
+.sheet-head { display: grid; gap: 10px; }
+.search { width: 100%; max-width: 420px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.sheet-block { display: grid; gap: 10px; }
+.sheet-block h3 { font-size: 19px; }
+.sheet-block h3 .dn { font: 500 12px var(--f-mono); color: var(--muted); }
+.traps { margin: 0; padding-left: 20px; font-size: 14px; color: var(--muted); display: grid; gap: 4px; }
+.empty { color: var(--muted); }
+.foot { margin-top: 40px; font-size: 13px; color: var(--muted); }
+
+@media (max-width: 640px) {
+  .days { display: flex; overflow-x: auto; padding-bottom: 14px; }
+  .day { flex: none; width: 112px; }
+  .map, .map tbody, .map tr, .map td { display: block; width: 100%; }
+  .map thead { display: none; }
+  .map tr { padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  .map tr:last-child { border-bottom: 0; }
+  .map td { padding: 0; border: 0; }
+  .map td:first-child { width: 100%; font-size: 12.5px; }
+  .map td:first-child::before { content: "C++  "; color: var(--accent); font-weight: 500; }
+  .map td:last-child::before { content: "Py   "; color: var(--accent); }
+  .opts { grid-template-columns: 1fr; }
+  .row { grid-template-columns: 22px minmax(0, 1fr); }
+  .row .diff { grid-column: 2; justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="title-row">
+      <div>
+        <span class="eyebrow">Accenture prep · from C++ to Python · 2 hours a day</span>
+        <h1>Python <em>DSA</em> Bridge</h1>
+      </div>
+      <div class="savebar">
+        <span class="sync" id="sync" data-state="saving" role="status">Connecting to your account…</span>
+        <button class="btn dark" id="saveBtn" type="button">Save</button>
+      </div>
+    </div>
+    <p class="lede">You already think in DSA; you only need the Python way to write it. <b>13 days, about 2 hours each.</b> Every day: learn the C++ → Python mapping, answer a short quiz, then solve problems you know again, this time in Python.</p>
+    <div class="stats" id="stats"></div>
+    <p class="today-line" id="todayLine"></p>
+  </header>
+
+  <nav class="days" id="days" aria-label="Days"></nav>
+
+  <main id="view"></main>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const DATA = /*DATA*/;
+  const LESSONS = DATA.lessons;
+  const SHORT = { basics: 'Basics', lists: 'Lists', matrix: '2D arrays', strings: 'Strings', chars: 'ASCII & chars', hashing: 'Hashing', stackqueue: 'Stack & queue', heapsort: 'Heap & sort', recursion: 'Recursion', linkedlist: 'Linked list', trees: 'Trees', dp: 'DP', gotchas: 'Traps & mock' };
+  const DIFF = { E: 'Easy', M: 'Medium', H: 'Hard' };
+  const LS_UI = 'py-bridge-ui-v1';
+  const LS_DATA = 'py-bridge-data-v1';
+  const BLOCKED = ['not_granted', 'capability_disabled', 'capability_removed', 'revoked'];
+  const BYID = Object.fromEntries(LESSONS.map((L, i) => { L.i = i; return [L.id, L]; }));
+  const PRACTICE = {};
+  LESSONS.forEach(L => L.practice.forEach(p => { PRACTICE[p.s] = p; }));
+  const TOTAL = { days: LESSONS.length, solved: Object.keys(PRACTICE).length, quiz: LESSONS.reduce((n, L) => n + L.quiz.length, 0), drills: LESSONS.length };
+
+  /* ---------- State ---------- */
+  let store = { quiz: {}, solved: {}, drill: {}, done: {}, updatedAt: 0 };
+  let ui = { view: null };
+  const openSet = new Set();
+  let sheetQuery = '';
+  let db = null, mode = 'connecting', ready = false, readOnly = false;
+  let pending = false, inflight = false, again = false, editSeq = 0;
+  let lastSaved = null, lastError = null, retryTimer = null, flushTimer = null, flash = null;
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>');
+  const clock = d => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const pad2 = n => String(n).padStart(2, '0');
+  const isoDay = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  const shortDate = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); };
+  const quizRight = L => L.quiz.filter((q, qi) => { const o = (store.quiz[L.id] || {})['q' + qi]; return o !== undefined && q.options[o] === q.answer; }).length;
+
+  /* ---------- Python highlighting ---------- */
+  const KW = new Set('def class return if elif else for while in not and or is import from as lambda nonlocal global pass break continue try except finally raise with yield del assert'.split(' '));
+  const CONST = new Set(['None', 'True', 'False', 'self']);
+  const BUILTIN = new Set('print len range int str list dict set tuple sorted sum max min abs enumerate zip map filter ord chr bin hex input float bool any all reversed iter next setattr isinstance round divmod format super'.split(' '));
+  const TOK = /(#[^\n]*)|([rbfRBF]{0,2}(?:'''[\s\S]*?'''|"""[\s\S]*?"""|'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"))|(@[A-Za-z_]\w*)|(\b\d[\d_]*(?:\.\d+)?(?:e[+-]?\d+)?\b)|([A-Za-z_]\w*)/g;
+  function hl(src) {
+    let out = '', last = 0, prev = '', m;
+    TOK.lastIndex = 0;
+    while ((m = TOK.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      const t = m[0];
+      let cls = '';
+      if (m[1]) cls = 'cm';
+      else if (m[2]) cls = 's';
+      else if (m[3]) cls = 'd';
+      else if (m[4]) cls = 'n';
+      else if (KW.has(t)) cls = 'kw';
+      else if (CONST.has(t)) cls = 'c';
+      else if (prev === 'def' || prev === 'class') cls = 'f';
+      else if (BUILTIN.has(t) && src[TOK.lastIndex] === '(') cls = 'b';
+      out += cls ? `<span class="tk-${cls}">${esc(t)}</span>` : esc(t);
+      if (m[5]) prev = t;
+      last = TOK.lastIndex;
+    }
+    return out + esc(src.slice(last));
+  }
+  function pyCell(s) {
+    const k = s.indexOf('  #');
+    return k < 0 ? esc(s) : `${esc(s.slice(0, k))}<span class="cm">${esc(s.slice(k))}</span>`;
+  }
+
+  function cleanStore(s) {
+    const out = { quiz: {}, solved: {}, drill: {}, done: {}, updatedAt: 0 };
+    if (!s || typeof s !== 'object') return out;
+    out.updatedAt = typeof s.updatedAt === 'number' ? s.updatedAt : 0;
+    const obj = x => (x && typeof x === 'object') ? x : {};
+    const day = v => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) ? v : 1;
+    for (const [slug, v] of Object.entries(obj(s.solved))) if (v && PRACTICE[slug]) out.solved[slug] = day(v);
+    for (const k of ['drill', 'done']) for (const [id, v] of Object.entries(obj(s[k]))) if (v && BYID[id]) out[k][id] = day(v);
+    for (const [id, qs] of Object.entries(obj(s.quiz))) {
+      const L = BYID[id]; if (!L) continue;
+      for (const [qk, o] of Object.entries(obj(qs))) {
+        const q = /^q\d+$/.test(qk) && L.quiz[Number(qk.slice(1))];
+        if (q && Number.isInteger(o) && o >= 0 && o < q.options.length) (out.quiz[id] = out.quiz[id] || {})[qk] = o;
+      }
+    }
+    return out;
+  }
+
+  /* ---------- Saving (same approach as your other trackers) ---------- */
+  function cacheLocal() { try { localStorage.setItem(LS_DATA, JSON.stringify({ store, pending })); } catch (e) { /* blocked */ } }
+  function loadLocal() {
+    try { const raw = JSON.parse(localStorage.getItem(LS_DATA) || 'null'); if (raw) { store = cleanStore(raw.store); pending = !!raw.pending; } } catch (e) { /* ignore */ }
+    try { const u = JSON.parse(localStorage.getItem(LS_UI) || 'null'); if (u && typeof u === 'object') ui = { ...ui, ...u }; } catch (e) { /* ignore */ }
+  }
+  function saveUi() { try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch (e) { /* ignore */ } }
+  function withTimeout(p, ms) {
+    return new Promise((res, rej) => { const t = setTimeout(() => rej({ code: 'timeout' }), ms); p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); });
+  }
+  async function saveDoc(body) {
+    const once = () => withTimeout(db.doc('progress/main').set(body), 15000);
+    try { await once(); }
+    catch (e) {
+      if (e && ['unavailable', 'resource_exhausted', 'timeout'].includes(e.code)) { await new Promise(r => setTimeout(r, 700 + Math.random() * 900)); await once(); }
+      else throw e;
+    }
+  }
+  function noteError(e) {
+    lastError = (e && e.code) || 'unknown';
+    if (BLOCKED.includes(lastError)) mode = 'blocked';
+    else if (!['invalid_argument', 'quota_exceeded'].includes(lastError) && !retryTimer) retryTimer = setTimeout(() => { retryTimer = null; flush(); }, 15000);
+  }
+  async function flush() {
+    clearTimeout(flushTimer); flushTimer = null;
+    if (!(mode === 'db' && db && ready && !readOnly) || !pending) { updateSync(); return; }
+    if (inflight) { again = true; return; }
+    inflight = true; updateSync();
+    const seq = editSeq;
+    const body = JSON.parse(JSON.stringify(store));
+    let ok = false;
+    try { await saveDoc(body); ok = true; } catch (e) { noteError(e); }
+    inflight = false;
+    if (ok) { lastSaved = new Date(); lastError = null; if (editSeq === seq) pending = false; cacheLocal(); }
+    if (again || (ok && pending)) { again = false; flush(); return; }
+    updateSync();
+  }
+  function syncInfo() {
+    if (flash && Date.now() < flash.until) return [flash.state, flash.text];
+    if (readOnly) return ['readonly', 'View only. Progress here is not saved.'];
+    if (mode === 'connecting') return ['saving', pending ? 'Connecting to your account… your progress is kept until then' : 'Connecting to your account…'];
+    if (mode === 'local') return ['local', 'Saved on this device only'];
+    if (mode === 'blocked') return ['error', 'Saving to your account is switched off for this page. Press Allow saving.'];
+    if (!ready) return ['saving', 'Loading your saved progress…'];
+    if (pending && lastError === 'invalid_argument') return ['error', 'Not saved: this account cannot change this page.'];
+    if (pending && lastError) return ['error', `Not saved yet (${lastError}). Retrying soon, or press Save.`];
+    if (pending || inflight) return ['saving', 'Saving…'];
+    return ['synced', lastSaved ? `All progress saved to your account · ${clock(lastSaved)}` : 'Your progress is saved to your account'];
+  }
+  function updateSync() {
+    const [state, text] = syncInfo();
+    const el = $('sync'); el.dataset.state = state; el.textContent = text;
+    const b = $('saveBtn'); b.textContent = mode === 'blocked' ? 'Allow saving' : 'Save'; b.hidden = readOnly;
+  }
+  function showFlash(state, text) { flash = { state, text, until: Date.now() + 4000 }; updateSync(); setTimeout(updateSync, 4100); }
+  async function onSave() {
+    cacheLocal();
+    if (mode === 'blocked') {
+      let perms = null;
+      try { perms = await window.claude.use('permissions'); } catch (e) { perms = null; }
+      try { if (perms) await perms.manage(); } catch (e) { /* fall through */ }
+      let st = 'denied';
+      try { if (perms) st = await perms.state('db'); } catch (e) { st = 'denied'; }
+      if (st === 'granted') { mode = 'db'; lastError = null; subscribe(); } else showFlash('error', 'Turn saving on in the page’s Permissions menu, then reload.');
+      return;
+    }
+    if (mode === 'db') {
+      if (!ready) { showFlash('saving', 'Still loading your saved progress. Your changes will upload in a moment.'); return; }
+      if (!pending) { showFlash('synced', `All progress saved to your account · ${clock(lastSaved || new Date())}`); return; }
+      lastError = null; flush(); return;
+    }
+    if (mode === 'local') { showFlash('local', `Saved on this device · ${clock(new Date())}`); return; }
+    showFlash('saving', 'Still connecting. Your progress is kept and will upload when it connects.');
+  }
+  function edit(fn, focusId) {
+    if (readOnly) return;
+    fn();
+    store.updatedAt = Date.now(); editSeq++; pending = true;
+    cacheLocal();
+    clearTimeout(flushTimer); flushTimer = setTimeout(flush, 900);
+    renderAll(focusId);
+  }
+
+  /* ---------- Rendering ---------- */
+  function renderStats() {
+    const cell = (k, n, total) => `<div class="stat"><span class="k">${k}</span><span class="v">${n}<small> / ${total}</small></span><div class="bar"><i style="width:${total ? n / total * 100 : 0}%"></i></div></div>`;
+    const quizN = LESSONS.reduce((n, L) => n + quizRight(L), 0);
+    $('stats').innerHTML = cell('Days complete', Object.keys(store.done).length, TOTAL.days)
+      + cell('Solved in Python', Object.keys(store.solved).length, TOTAL.solved)
+      + cell('Quiz answers right', quizN, TOTAL.quiz)
+      + cell('Written from memory', Object.keys(store.drill).length, TOTAL.drills);
+    const t = isoDay(new Date()), wk = isoDay(new Date(Date.now() - 6 * 86400000));
+    const vals = Object.values(store.solved).filter(v => typeof v === 'string');
+    $('todayLine').innerHTML = `Solved in Python today: <b>${vals.filter(v => v === t).length}</b> · last 7 days: <b>${vals.filter(v => v >= wk && v <= t).length}</b>`;
+  }
+
+  function renderDays() {
+    $('days').innerHTML = LESSONS.map((L, i) => `<button type="button" class="day${store.done[L.id] ? ' done' : ''}" data-day="${L.id}" aria-current="${ui.view === L.id}" title="${esc(L.title)}"><span class="dn">Day ${i + 1}</span><span class="dt">${esc(SHORT[L.id] || L.title)}</span></button>`).join('')
+      + `<button type="button" class="day sheet" data-day="sheet" aria-current="${ui.view === 'sheet'}"><span class="dn">All days</span><span class="dt">Cheat sheet</span></button>`;
+  }
+
+  function codeCard(c, key) {
+    const io = [];
+    if (c.stdin) io.push(`<div class="io in"><span class="lab">Input (stdin)</span><pre>${esc(c.stdin.replace(/\n$/, ''))}</pre></div>`);
+    if (c.out !== null && c.out !== undefined) io.push(`<div class="io"><span class="lab">Output</span><pre>${esc(c.out)}</pre></div>`);
+    return `<figure class="codecard">
+      <figcaption><span>${esc(c.title)}</span><button type="button" class="copy" data-act="copy" data-key="${key}">Copy</button></figcaption>
+      <pre><code>${hl(c.src.replace(/\n$/, ''))}</code></pre>${io.join('')}
+      ${c.note ? `<p class="cnote">${fmt(c.note)}</p>` : ''}
+    </figure>`;
+  }
+
+  function quizHtml(L) {
+    const ans = store.quiz[L.id] || {};
+    return L.quiz.map((q, qi) => {
+      const chosen = ans['q' + qi];
+      const done = chosen !== undefined;
+      const right = done && q.options[chosen] === q.answer;
+      const opts = q.options.map((o, oi) => {
+        let cls = '';
+        if (done && o === q.answer) cls = ' right';
+        else if (done && oi === chosen) cls = ' wrong';
+        return `<button type="button" class="opt${cls}" data-act="quiz" data-l="${L.id}" data-q="${qi}" data-o="${oi}"${done || readOnly ? ' disabled' : ''}>${esc(o)}</button>`;
+      }).join('');
+      const why = done ? `<p class="why ${right ? 'ok' : 'no'}" id="why-${L.id}-${qi}" tabindex="-1"><b>${right ? 'Right.' : `Not quite: the answer is ${esc(q.answer)}.`}</b> ${fmt(q.why)}</p>` : '';
+      return `<div class="q"><p class="qn">Question ${qi + 1} · what does this print?</p><pre><code>${hl(q.code)}</code></pre>
+        <div class="opts" role="group" aria-label="Answers for question ${qi + 1}">${opts}</div>${why}</div>`;
+    }).join('');
+  }
+
+  function practiceHtml(L) {
+    return L.practice.map(p => {
+      const v = store.solved[p.s];
+      return `<li class="row${v ? ' solved' : ''}">
+        <input type="checkbox" id="p-${p.s}" data-act="solve" data-s="${p.s}"${v ? ' checked' : ''}${readOnly ? ' disabled' : ''} aria-label="Solved in Python: ${esc(p.t)}">
+        <div class="pmain"><a class="plink" href="https://leetcode.com/problems/${p.s}/" target="_blank" rel="noopener"><span class="num">${p.n}.</span>${esc(p.t)}</a><span class="when">${typeof v === 'string' ? 'Solved ' + shortDate(v) : ''}</span></div>
+        <span class="diff ${p.d}">${DIFF[p.d]}</span>
+      </li>`;
+    }).join('');
+  }
+
+  function lessonHtml(L) {
+    const n = L.i + 1;
+    const d = L.drill;
+    const solvedHere = L.practice.filter(p => store.solved[p.s]).length;
+    const right = quizRight(L), answered = Object.keys(store.quiz[L.id] || {}).length;
+    const drillInput = d.test
+      ? `<p class="hint">Write the function without looking, then add this line at the bottom and run it:</p><figure class="codecard"><pre><code>${hl(d.test)}</code></pre><div class="io"><span class="lab">It should print</span><pre>${esc(d.expect)}</pre></div></figure>`
+      : `<p class="hint">Write the program without looking, run it with this input, and compare:</p><figure class="codecard"><div class="io in"><span class="lab">Input (stdin)</span><pre>${esc(d.stdin.replace(/\n$/, ''))}</pre></div><div class="io"><span class="lab">It should print</span><pre>${esc(d.expect)}</pre></div></figure>`;
+    const next = LESSONS[L.i + 1], prev = LESSONS[L.i - 1];
+    return `<article class="lesson" aria-labelledby="lt">
+      <div class="lhead">
+        <span class="eyebrow">Day ${n} of ${LESSONS.length}${store.done[L.id] ? ` · completed ${typeof store.done[L.id] === 'string' ? shortDate(store.done[L.id]) : ''}` : ''}</span>
+        <h2 id="lt">${esc(L.title)}</h2>
+        <p class="intro">${fmt(L.intro)}</p>
+        <ol class="plan">
+          <li><span class="mins">25m</span><b>1 · Learn</b><span>Type each example and run it</span></li>
+          <li><span class="mins">10m</span><b>2 · Quiz</b><span>Guess the output first</span></li>
+          <li><span class="mins">75m</span><b>3 · Solve</b><span>LeetCode problems, in Python</span></li>
+          <li><span class="mins">10m</span><b>4 · From memory</b><span>One function, no notes</span></li>
+        </ol>
+      </div>
+
+      <section class="part" aria-labelledby="h-learn">
+        <div class="part-head"><h3 id="h-learn"><span class="step">1</span>Learn: C++ → Python</h3></div>
+        <table class="map"><thead><tr><th scope="col">You write in C++</th><th scope="col">In Python</th></tr></thead>
+          <tbody>${L.map.map(([c, p]) => `<tr><td>${esc(c)}</td><td>${pyCell(p)}</td></tr>`).join('')}</tbody></table>
+        <p class="hint">Run the examples by typing them into LeetCode’s Playground or <code>python3</code> on your laptop. Typing beats reading. Each output below came from running the code.</p>
+        <div class="codes">${L.code.map((c, ci) => codeCard(c, `${L.id}:${ci}`)).join('')}</div>
+        <h4>Watch out</h4>
+        <ul class="watch">${L.watch.map(w => `<li>${fmt(w)}</li>`).join('')}</ul>
+      </section>
+
+      <section class="part" aria-labelledby="h-quiz">
+        <div class="part-head"><h3 id="h-quiz" tabindex="-1"><span class="step">2</span>Quiz</h3><span class="score">${right} / ${L.quiz.length} right${answered && !readOnly ? ` · <button type="button" class="linkbtn" data-act="quizreset" data-l="${L.id}">try again</button>` : ''}</span></div>
+        <div class="quiz">${quizHtml(L)}</div>
+      </section>
+
+      <section class="part" aria-labelledby="h-solve">
+        <div class="part-head"><h3 id="h-solve"><span class="step">3</span>Solve these in Python</h3><span class="score">${solvedHere} / ${L.practice.length} solved</span></div>
+        <p class="hint">You have likely solved many of these in C++. Do them again in Python without opening your old code, and tick each one when LeetCode accepts it.</p>
+        ${L.practiceNote ? `<p class="pnote">${fmt(L.practiceNote)}</p>` : ''}
+        <ul class="rows">${practiceHtml(L)}</ul>
+      </section>
+
+      <section class="part" aria-labelledby="h-drill">
+        <div class="part-head"><h3 id="h-drill"><span class="step">4</span>Write it from memory</h3></div>
+        <div class="drill">
+          <p class="task">${fmt(d.task)}</p>
+          ${drillInput}
+          <details id="sol-${L.id}"${openSet.has('sol-' + L.id) ? ' open' : ''}><summary>Show a solution</summary>${codeCard({ title: 'Solution', src: d.src, out: null }, `${L.id}:drill`)}</details>
+          <label class="check"><input type="checkbox" id="dr-${L.id}" data-act="drill" data-l="${L.id}"${store.drill[L.id] ? ' checked' : ''}${readOnly ? ' disabled' : ''}> I wrote it myself and it printed the expected output</label>
+        </div>
+      </section>
+
+      <div class="finish">
+        <p>${store.done[L.id] ? `Day ${n} is complete.` : `When you have done the four steps, mark day ${n} complete.`}</p>
+        <div class="nav">
+          ${prev ? `<button type="button" class="btn" data-day="${prev.id}">← Day ${n - 1}</button>` : ''}
+          ${readOnly ? '' : `<button type="button" class="btn ${store.done[L.id] ? '' : 'good'}" id="doneBtn" data-act="done" data-l="${L.id}">${store.done[L.id] ? 'Mark not complete' : `Mark day ${n} complete`}</button>`}
+          ${next ? `<button type="button" class="btn dark" data-day="${next.id}">Day ${n + 1} →</button>` : `<button type="button" class="btn dark" data-day="sheet">Cheat sheet →</button>`}
+        </div>
+      </div>
+    </article>`;
+  }
+
+  function sheetBody() {
+    const q = sheetQuery.trim().toLowerCase();
+    const has = s => !q || s.toLowerCase().includes(q);
+    const blocks = LESSONS.map((L, i) => {
+      const rows = L.map.filter(([c, p]) => has(c) || has(p) || has(L.title));
+      const traps = L.watch.filter(w => has(w) || has(L.title));
+      if (!rows.length && !traps.length) return '';
+      return `<div class="sheet-block"><h3><span class="dn">Day ${i + 1}</span>${esc(L.title)}</h3>
+        ${rows.length ? `<table class="map"><thead><tr><th scope="col">C++</th><th scope="col">Python</th></tr></thead><tbody>${rows.map(([c, p]) => `<tr><td>${esc(c)}</td><td>${pyCell(p)}</td></tr>`).join('')}</tbody></table>` : ''}
+        ${traps.length ? `<ul class="traps">${traps.map(w => `<li>${fmt(w)}</li>`).join('')}</ul>` : ''}</div>`;
+    }).join('');
+    return blocks || '<p class="empty">Nothing matches. Try another word, such as <code>sort</code> or <code>ord</code>.</p>';
+  }
+  function sheetHtml() {
+    return `<article class="lesson" aria-labelledby="lt">
+      <div class="sheet-head"><span class="eyebrow">All 13 days on one page</span><h2 id="lt" style="margin:0;font:800 clamp(28px,4.2vw,40px)/1.05 var(--f-display);letter-spacing:-.025em">Cheat sheet</h2>
+        <p class="hint">Read this the night before your test. Search for anything you want to find quickly.</p>
+        <input class="search" id="sheetQ" type="search" placeholder="Search, e.g. heap, ord, split" aria-label="Search the cheat sheet" value="${esc(sheetQuery)}"></div>
+      <div id="sheetBody" style="display:grid;gap:26px">${sheetBody()}</div>
+    </article>`;
+  }
+
+  function renderView() {
+    $('view').innerHTML = ui.view === 'sheet' ? sheetHtml() : lessonHtml(BYID[ui.view]);
+  }
+
+  function renderAll(focusId) {
+    renderStats();
+    renderDays();
+    renderView();
+    updateSync();
+    if (focusId) { const el = $(focusId); if (el) el.focus({ preventScroll: true }); }
+  }
+
+  function pickStart() {
+    if (ui.view === 'sheet' || BYID[ui.view]) return;
+    const firstOpen = LESSONS.find(L => !store.done[L.id]);
+    ui.view = (firstOpen || LESSONS[0]).id;
+  }
+
+  function go(view) {
+    ui.view = view; saveUi();
+    renderDays(); renderView();
+    const top = $('view').getBoundingClientRect().top;
+    if (top < 0) $('view').scrollIntoView({ block: 'start' });
+  }
+
+  /* ---------- Copy ---------- */
+  function srcFor(key) {
+    const [id, ci] = key.split(':');
+    const L = BYID[id];
+    return ci === 'drill' ? L.drill.src : L.code[Number(ci)].src;
+  }
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* try the old way */ }
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand('copy'); ta.remove(); return ok;
+    } catch (e) { return false; }
+  }
+
+  /* ---------- Events ---------- */
+  document.addEventListener('click', async e => {
+    const nav = e.target.closest('[data-day]');
+    if (nav) { go(nav.dataset.day); return; }
+    const b = e.target.closest('[data-act]');
+    if (!b || b.tagName === 'INPUT') return;
+    const act = b.dataset.act, id = b.dataset.l;
+    if (act === 'quiz') {
+      const qi = Number(b.dataset.q), o = Number(b.dataset.o);
+      edit(() => { (store.quiz[id] = store.quiz[id] || {})['q' + qi] = o; }, `why-${id}-${qi}`);
+    } else if (act === 'quizreset') {
+      edit(() => { delete store.quiz[id]; }, 'h-quiz');
+    } else if (act === 'done') {
+      edit(() => { if (store.done[id]) delete store.done[id]; else store.done[id] = isoDay(new Date()); }, 'doneBtn');
+    } else if (act === 'copy') {
+      const ok = await copyText(srcFor(b.dataset.key));
+      b.textContent = ok ? 'Copied' : 'Select and copy';
+      setTimeout(() => { b.textContent = 'Copy'; }, 1600);
+    }
+  });
+  document.addEventListener('change', e => {
+    const el = e.target, act = el.dataset.act;
+    if (act === 'solve') { const s = el.dataset.s; edit(() => { if (el.checked) store.solved[s] = isoDay(new Date()); else delete store.solved[s]; }, el.id); }
+    else if (act === 'drill') { const id = el.dataset.l; edit(() => { if (el.checked) store.drill[id] = isoDay(new Date()); else delete store.drill[id]; }, el.id); }
+  });
+  document.addEventListener('toggle', e => {
+    const d = e.target;
+    if (d.tagName !== 'DETAILS' || !d.id) return;
+    if (d.open) openSet.add(d.id); else openSet.delete(d.id);
+  }, true);
+  let sq = null;
+  document.addEventListener('input', e => {
+    if (e.target.id !== 'sheetQ') return;
+    clearTimeout(sq); sq = setTimeout(() => { sheetQuery = e.target.value; $('sheetBody').innerHTML = sheetBody(); }, 120);
+  });
+  document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); onSave(); } });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { cacheLocal(); flush(); } });
+  window.addEventListener('pagehide', () => { cacheLocal(); flush(); });
+  $('saveBtn').addEventListener('click', onSave);
+
+  /* ---------- Connecting to the account ---------- */
+  function onProgress(s) {
+    const fromCache = !!(s.metadata && s.metadata.fromCache);
+    if (!ready && fromCache && !s.exists) return;
+    const srv = s.exists ? cleanStore(s.data()) : null;
+    let changed = false;
+    if (srv && (!pending || srv.updatedAt > store.updatedAt) && !inflight) {
+      const pick = x => JSON.stringify([x.quiz, x.solved, x.drill, x.done]);
+      changed = pick(srv) !== pick(store);
+      store = srv; pending = false;
+    }
+    const first = !ready && !fromCache;
+    if (first) ready = true;
+    cacheLocal();
+    if (changed) {
+      const f = document.activeElement && document.activeElement.id;
+      renderAll(f);
+    }
+    if (first) flush();
+    updateSync();
+  }
+  let subTries = 0;
+  function subscribe() {
+    db.doc('progress/main').onSnapshot(onProgress, e => {
+      const code = (e && e.code) || 'unknown'; lastError = code;
+      if (BLOCKED.includes(code)) mode = 'blocked';
+      else { ready = true; if (subTries++ < 3) setTimeout(subscribe, 4000); flush(); }
+      updateSync();
+    });
+    setTimeout(() => { if (mode === 'db' && !ready) { ready = true; flush(); } }, 12000);
+  }
+  async function connect() {
+    if (!window.claude || typeof window.claude.use !== 'function') { mode = 'local'; updateSync(); return; }
+    let ns = null;
+    try { ns = await window.claude.use('db'); } catch (e) { ns = null; }
+    if (!ns) { mode = 'local'; updateSync(); return; }
+    db = ns; mode = 'db';
+    subscribe(); updateSync();
+    try {
+      const user = await window.claude.use('user');
+      if (user && (await user.can('data.write')) === false) { readOnly = true; renderAll(); }
+    } catch (e) { /* a refused save will say so */ }
+  }
+
+  /* ---------- Start ---------- */
+  loadLocal();
+  pickStart();
+  $('foot').textContent = `Every output and quiz answer on this page was checked by running the code with Python ${DATA.python}. LeetCode problems open in a new tab.`;
+  renderAll();
+  connect();
+})();
+</script>

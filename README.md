@@ -52,6 +52,18 @@ has filters (including Today and Favourites), a "Pick 10 for me" button, solved 
 revise flags, all saved to your account. Days are planned by hand: the tracker only records what was solved when. To rebuild after changing a
 list: `cd dsa-sheet/build && python3 build.py . && python3 make_page.py && python3 make_markdown.py`.
 
+## Python DSA Bridge (Accenture prep)
+
+**`python-dsa/python-dsa-bridge.html`** (published as a private claude.ai artifact) is a 13-day course, about 2 hours a
+day, for writing DSA in Python when you already solve it in C++. The days are: basics, lists (the dynamic array, with a
+hand-built one), 2D arrays, strings, characters and ASCII (`ord`/`chr`, char to int), hashing, stack and queue, heap
+with sorting and binary search, recursion, linked lists, trees, DP, and C++ habits that break in Python plus a timed
+mock. Each day has a C++ → Python table, runnable examples with their real output, a 4-question quiz, 4–8 LeetCode
+problems to solve again in Python, and one function to write from memory. A cheat-sheet tab collects every table.
+Progress is saved to your account. The content lives in `python-dsa/build/lessons.py`. `build.py` runs every example,
+quiz and drill with Python and stops if any answer is wrong. To rebuild:
+`cd python-dsa/build && python3 build.py && python3 make_page.py`.
+
 ## GenAI, RAG & Agents — Explained Simply
 
 Placement preparation for AI roles, planned as 45 days of about 3 hours a day. It explains the course code from
