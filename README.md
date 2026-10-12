@@ -66,15 +66,27 @@ quiz and drill with Python and stops if any answer is wrong. To rebuild:
 
 ## Web Round Drills (HTML, CSS, JavaScript)
 
-**`web-round/web-round-drills.html`** (published as a private claude.ai artifact) has 38 small tasks of the kind asked
-in online rounds, for someone starting from zero. There are 6 stages: HTML basics, CSS colours and boxes, CSS placement
-(text-align, margin auto, flexbox, absolute positioning), JavaScript with buttons and functions (`getElementById`,
-`textContent`, `style`, `addEventListener`, `onclick`, `classList`), dates and times (`Date`, `padStart`, `setInterval`),
-and forms, fix-the-bug tasks and a short mock. Each task has a short note with an example, an editor with index.html,
-style.css and script.js tabs, a live preview with a console, a Check button that tests the result, a hint and a
-solution. The preview runs your code inside a shadow root with its own `document`, `window`, `alert` and `console`,
-stops endless loops, and fakes the clock so the date tasks are checked on fixed dates. Progress and code are saved to
-your account. A Notes tab collects every note for revision.
+**`web-round/web-round-drills.html`** (published as a private claude.ai artifact) has 61 small tasks of the kind asked
+in online rounds, for someone starting from zero. There are 9 stages:
+
+1. HTML basics
+2. CSS colours and boxes
+3. CSS placement: text-align, margin auto, flexbox, absolute positioning
+4. JavaScript with buttons and functions: `getElementById`, `textContent`, `style`, `addEventListener`, `onclick`, `classList`
+5. Dates and times: `Date`, `padStart`, `setInterval`
+6. Forms, fix-the-bug tasks and a short mock
+7. Functions to write and test: reverse, vowels, palindrome, sum, max, filter, capitalise, duplicates, character count
+8. Lists, data and layouts: render an array, fill a table, live search, cart total, numeric sort, Enter key, localStorage, a nav bar, a validated feedback form
+9. Five multiple-choice quizzes on HTML, CSS and JavaScript output
+
+Each coding task has a short note with an example, an editor with index.html, style.css and script.js tabs, a live
+preview with a console, a Check button that tests the result, a hint and a solution. A **Must-know JS** tab lists the
+DOM, event, string, array, number, object, date and storage functions used most often. The string, array, number and
+object results shown there were produced by running each line.
+
+The preview runs your code inside a shadow root with its own `document`, `window`, `alert`, `console` and an in-memory
+`localStorage`. It stops endless loops and fakes the clock, so the date tasks are checked on fixed dates. Progress and
+code are saved to your account. A Notes tab collects every note for revision.
 
 ## GenAI, RAG & Agents — Explained Simply
 

@@ -191,6 +191,33 @@ details p { margin: 0; }
 .foot { margin-top: 36px; font-size: 13px; color: var(--muted); max-width: 90ch; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
+/* Quizzes */
+.qlist { display: grid; gap: 14px; }
+.qcard { display: grid; gap: 10px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.qcard > * { min-width: 0; }
+.qn { margin: 0; font: 500 12px var(--f-mono); color: var(--muted); }
+.qq { margin: 0; font-weight: 700; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.opt { text-align: left; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font: 400 13.5px/1.4 var(--f-mono); cursor: pointer; overflow-wrap: anywhere; min-width: 0; }
+.opt:hover:not(:disabled) { border-color: var(--ink); }
+.opt:disabled { cursor: default; opacity: .6; }
+.opt.right { background: var(--good-soft); border-color: var(--good); opacity: 1; }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); opacity: 1; }
+.why { margin: 0; font-size: 14.5px; }
+.why.ok b { color: var(--good); } .why.no b { color: var(--bad); }
+
+/* Must-know JS */
+.reftable { display: grid; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.refrow { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); border-bottom: 1px solid var(--line); }
+.refrow:last-child { border-bottom: 0; }
+.refcode { margin: 0; padding: 10px 14px; background: var(--code-bg); color: var(--code-ink); font: 400 13px/1.55 var(--f-mono); overflow-x: auto; }
+.refout { display: grid; gap: 3px; align-content: center; padding: 9px 14px; font-size: 14.5px; min-width: 0; }
+.refout .lbl { color: var(--muted); font-size: 13px; }
+.refn { color: var(--muted); font-size: 13.5px; }
+
+@media (min-width: 1101px) {
+  .stages { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
 @media (max-width: 980px) {
   .work { grid-template-columns: minmax(0, 1fr); }
 }
@@ -198,6 +225,8 @@ details p { margin: 0; }
   .stages { display: flex; overflow-x: auto; }
   .stage { flex: none; width: 168px; }
   #code { font-size: 16px; height: 260px; }
+  .opts { grid-template-columns: 1fr; }
+  .refrow { grid-template-columns: minmax(0, 1fr); }
   .kbd { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
@@ -215,7 +244,7 @@ details p { margin: 0; }
         <button class="btn dark" id="saveBtn" type="button">Save</button>
       </div>
     </div>
-    <p class="lede">Small tasks like the ones in the online round: change a colour, move text, call the right function, show the date. For each task, read the short note, change the code, press <b>Run</b> to see it, then press <b>Check</b>. Do one stage a day; each takes about an hour.</p>
+    <p class="lede">Small tasks like the ones in the online round: change a colour, move text, call the right function, show the date. For each task, read the short note, change the code, press <b>Run</b> to see it, then press <b>Check</b>. Do one stage a day; each takes about an hour. Keep the <b>Must-know JS</b> tab handy while you work.</p>
     <div class="overall" id="overall"></div>
   </header>
 
@@ -237,7 +266,12 @@ details p { margin: 0; }
     { n: 4, title: 'JS: buttons and functions' },
     { n: 5, title: 'JS: date and time' },
     { n: 6, title: 'Forms, bugs and a mock' },
+    { n: 7, title: 'JS: functions to know' },
+    { n: 8, title: 'JS: lists, data, layouts' },
+    { n: 9, title: 'Quick quizzes' },
   ];
+
+  const FN_PAGE = '<p>This task has no page to change. Your console.log output appears in the console below.</p>';
 
   const TASKS = [
   /* ---------- Stage 1: HTML ---------- */
@@ -1214,6 +1248,788 @@ book.addEventListener("click", function () {
       t.eq(t.text(b), 'Booked', 'The button now says "Booked"');
       t.need(b.disabled, 'The button is disabled');
     } },
+
+  /* ---------- Stage 7: functions to know ---------- */
+  { id: 'fn-reverse', stage: 7, title: 'Reverse a string', files: ['js'], exports: ['reverseString'],
+    learn: 'Strings have no reverse method, but arrays do. `str.split("")` turns "abc" into ["a", "b", "c"], `.reverse()` flips the array, and `.join("")` glues it back into one string. A function gives its answer back with `return`.',
+    example: { lang: 'js', src: `const letters = "abc".split("");   // ["a", "b", "c"]
+letters.reverse();                  // ["c", "b", "a"]
+console.log(letters.join(""));      // cba` },
+    task: 'Complete **reverseString(str)** so it returns the text backwards: reverseString("hello") returns "olleh". Press Run to see your console.log line.',
+    html: FN_PAGE, css: '', js: `function reverseString(str) {
+  // your code here
+}
+
+console.log(reverseString("hello"));
+`,
+    hint: 'One line: `return str.split("").reverse().join("");`',
+    sol: { js: `function reverseString(str) {
+  return str.split("").reverse().join("");
+}
+
+console.log(reverseString("hello"));` },
+    check: async t => {
+      const f = t.fn('reverseString');
+      t.same(f('hello'), 'olleh', 'reverseString("hello") returns "olleh"');
+      t.same(f('Accenture'), 'erutneccA', 'reverseString("Accenture") returns "erutneccA"');
+      t.same(f(''), '', 'reverseString("") returns ""');
+    } },
+
+  { id: 'fn-vowels', stage: 7, title: 'Count the vowels', files: ['js'], exports: ['countVowels'],
+    learn: 'A `for...of` loop visits each character of a string. `"aeiou".includes(ch)` is true when ch is a vowel. Make the text lowercase first with `.toLowerCase()`, so capital vowels count too. Keep a counter with `let` and return it at the end.',
+    example: { lang: 'js', src: `for (const ch of "Hi!") {
+  console.log(ch);                  // H, then i, then !
+}
+console.log("aeiou".includes("e")); // true` },
+    task: 'Complete **countVowels(str)** so it returns how many vowels (a, e, i, o, u, small or capital) the text has. countVowels("Accenture") returns 4.',
+    html: FN_PAGE, css: '', js: `function countVowels(str) {
+  // your code here
+}
+
+console.log(countVowels("Accenture"));
+`,
+    hint: '`let count = 0;` then `for (const ch of str.toLowerCase()) { if ("aeiou".includes(ch)) count++; }` and `return count;`',
+    sol: { js: `function countVowels(str) {
+  let count = 0;
+  for (const ch of str.toLowerCase()) {
+    if ("aeiou".includes(ch)) {
+      count++;
+    }
+  }
+  return count;
+}
+
+console.log(countVowels("Accenture"));` },
+    check: async t => {
+      const f = t.fn('countVowels');
+      t.same(f('Accenture'), 4, 'countVowels("Accenture") returns 4', { '3': 'The capital A is a vowel too: use toLowerCase() first.' });
+      t.same(f('sky'), 0, 'countVowels("sky") returns 0');
+      t.same(f('AEIOU aeiou'), 10, 'countVowels("AEIOU aeiou") returns 10');
+    } },
+
+  { id: 'fn-palindrome', stage: 7, title: 'Is it a palindrome?', files: ['js'], exports: ['isPalindrome'],
+    learn: 'A palindrome reads the same forwards and backwards, like "level". Make the word lowercase, reverse it as in the first task, and compare the two with `===`. A comparison already gives `true` or `false`, so you can return it directly.',
+    example: { lang: 'js', src: `const word = "Level".toLowerCase();              // "level"
+const back = word.split("").reverse().join("");
+console.log(word === back);                      // true` },
+    task: 'Complete **isPalindrome(str)** so it returns **true** when the word reads the same backwards (capitals do not matter) and **false** otherwise. isPalindrome("Madam") returns true.',
+    html: FN_PAGE, css: '', js: `function isPalindrome(str) {
+  // your code here
+}
+
+console.log(isPalindrome("Madam"));
+`,
+    hint: 'Store `str.toLowerCase()` in a variable, reverse that, and `return word === back;`.',
+    sol: { js: `function isPalindrome(str) {
+  const word = str.toLowerCase();
+  const back = word.split("").reverse().join("");
+  return word === back;
+}
+
+console.log(isPalindrome("Madam"));` },
+    check: async t => {
+      const f = t.fn('isPalindrome');
+      t.same(f('Madam'), true, 'isPalindrome("Madam") returns true', { 'false': 'Compare in lowercase: "Madam" backwards is "madaM".' });
+      t.same(f('hello'), false, 'isPalindrome("hello") returns false');
+      t.same(f('Racecar'), true, 'isPalindrome("Racecar") returns true');
+    } },
+
+  { id: 'fn-sum', stage: 7, title: 'Add up an array', files: ['js'], exports: ['sumOfArray'],
+    learn: 'Start a total at 0 and add each number in a loop: `for (const n of nums) total += n;`. The one-line way is `nums.reduce((total, n) => total + n, 0)`: reduce walks the array carrying a running total that starts at 0.',
+    example: { lang: 'js', src: `let total = 0;
+for (const n of [2, 4, 6]) {
+  total = total + n;
+}
+console.log(total);                                 // 12
+console.log([2, 4, 6].reduce((s, n) => s + n, 0));  // 12` },
+    task: 'Complete **sumOfArray(nums)** so it returns the sum of all the numbers. sumOfArray([2, 4, 6]) returns 12, and an empty array gives 0.',
+    html: FN_PAGE, css: '', js: `function sumOfArray(nums) {
+  // your code here
+}
+
+console.log(sumOfArray([2, 4, 6]));
+`,
+    hint: 'Use the loop from the example and `return total;` at the end.',
+    sol: { js: `function sumOfArray(nums) {
+  let total = 0;
+  for (const n of nums) {
+    total += n;
+  }
+  return total;
+}
+
+console.log(sumOfArray([2, 4, 6]));` },
+    check: async t => {
+      const f = t.fn('sumOfArray');
+      t.same(f([2, 4, 6]), 12, 'sumOfArray([2, 4, 6]) returns 12');
+      t.same(f([10, -3, 5.5]), 12.5, 'sumOfArray([10, -3, 5.5]) returns 12.5');
+      t.same(f([]), 0, 'sumOfArray([]) returns 0');
+    } },
+
+  { id: 'fn-max', stage: 7, title: 'Find the largest number', files: ['js'], exports: ['findMax'],
+    learn: 'Start with the **first** element, `nums[0]`, not with 0 (or an array of negative numbers gives the wrong answer). Then compare each element and keep the bigger one. The quick way: `Math.max(...nums)`, where `...` spreads the array into separate numbers.',
+    example: { lang: 'js', src: `console.log(Math.max(3, 9, 4));   // 9
+const nums = [3, 9, 4];
+console.log(Math.max(...nums));   // 9` },
+    task: 'Complete **findMax(nums)** so it returns the largest number. findMax([3, 9, 4]) returns 9, and findMax([-5, -2, -9]) returns -2.',
+    html: FN_PAGE, css: '', js: `function findMax(nums) {
+  // your code here
+}
+
+console.log(findMax([3, 9, 4]));
+`,
+    hint: '`let max = nums[0];` then a loop with `if (n > max) max = n;`, then `return max;`. Or simply `return Math.max(...nums);`.',
+    sol: { js: `function findMax(nums) {
+  let max = nums[0];
+  for (const n of nums) {
+    if (n > max) {
+      max = n;
+    }
+  }
+  return max;
+}
+
+console.log(findMax([3, 9, 4]));` },
+    check: async t => {
+      const f = t.fn('findMax');
+      t.same(f([3, 9, 4]), 9, 'findMax([3, 9, 4]) returns 9');
+      t.same(f([-5, -2, -9]), -2, 'findMax([-5, -2, -9]) returns -2', { '0': 'Start with the first element, nums[0], instead of 0.' });
+      t.same(f([7]), 7, 'findMax([7]) returns 7');
+    } },
+
+  { id: 'fn-evens', stage: 7, title: 'Keep only the even numbers', files: ['js'], exports: ['getEvens'],
+    learn: '`filter` keeps the elements for which your test is true and returns a **new** array. `n % 2 === 0` is true for even numbers. Its partner `map` changes every element: `nums.map(n => n * 2)`. `n => n * 2` is a short (arrow) function.',
+    example: { lang: 'js', src: `const nums = [1, 2, 3, 4];
+console.log(nums.filter(n => n > 2));   // [3, 4]
+console.log(nums.map(n => n * 10));     // [10, 20, 30, 40]` },
+    task: 'Complete **getEvens(nums)** so it returns a new array with only the even numbers, in the same order. getEvens([1, 2, 3, 4, 5, 6]) returns [2, 4, 6].',
+    html: FN_PAGE, css: '', js: `function getEvens(nums) {
+  // your code here
+}
+
+console.log(getEvens([1, 2, 3, 4, 5, 6]));
+`,
+    hint: '`return nums.filter(n => n % 2 === 0);`',
+    sol: { js: `function getEvens(nums) {
+  return nums.filter(n => n % 2 === 0);
+}
+
+console.log(getEvens([1, 2, 3, 4, 5, 6]));` },
+    check: async t => {
+      const f = t.fn('getEvens');
+      t.same(f([1, 2, 3, 4, 5, 6]), [2, 4, 6], 'getEvens([1, 2, 3, 4, 5, 6]) returns [2, 4, 6]');
+      t.same(f([7, 9]), [], 'getEvens([7, 9]) returns []');
+      t.same(f([0, -2, 3]), [0, -2], 'getEvens([0, -2, 3]) returns [0, -2]');
+    } },
+
+  { id: 'fn-capitalize', stage: 7, title: 'Capitalise every word', files: ['js'], exports: ['capitalizeWords'],
+    learn: 'Split the sentence into words with `split(" ")`, change each word with `map`, and join them with `join(" ")`. For one word, `word.charAt(0).toUpperCase()` is its first letter in capitals and `word.slice(1)` is the rest of the word.',
+    example: { lang: 'js', src: `const word = "hello";
+console.log(word.charAt(0).toUpperCase() + word.slice(1));   // Hello
+console.log("a b c".split(" "));                             // ["a", "b", "c"]` },
+    task: 'Complete **capitalizeWords(sentence)** so every word starts with a capital letter. capitalizeWords("hello world from js") returns "Hello World From Js".',
+    html: FN_PAGE, css: '', js: `function capitalizeWords(sentence) {
+  // your code here
+}
+
+console.log(capitalizeWords("hello world from js"));
+`,
+    hint: '`return sentence.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");`',
+    sol: { js: `function capitalizeWords(sentence) {
+  const words = sentence.split(" ");
+  const done = words.map(w => w.charAt(0).toUpperCase() + w.slice(1));
+  return done.join(" ");
+}
+
+console.log(capitalizeWords("hello world from js"));` },
+    check: async t => {
+      const f = t.fn('capitalizeWords');
+      t.same(f('hello world from js'), 'Hello World From Js', 'capitalizeWords("hello world from js") returns "Hello World From Js"', { '"HELLO WORLD FROM JS"': 'Only the first letter of each word should be a capital.' });
+      t.same(f('accenture'), 'Accenture', 'capitalizeWords("accenture") returns "Accenture"');
+      t.same(f('i love coding'), 'I Love Coding', 'capitalizeWords("i love coding") returns "I Love Coding"');
+    } },
+
+  { id: 'fn-unique', stage: 7, title: 'Remove duplicates', files: ['js'], exports: ['removeDuplicates'],
+    learn: 'Make an empty result array and add each value only if it is not there yet: `if (!result.includes(x)) result.push(x);` (`!` means "not"). Shorter: a `Set` keeps one copy of each value, and `[...new Set(arr)]` turns it back into an array, in the same order.',
+    example: { lang: 'js', src: `const seen = [];
+for (const x of [1, 1, 2]) {
+  if (!seen.includes(x)) seen.push(x);
+}
+console.log(seen);                           // [1, 2]
+console.log([...new Set(["a", "a", "b"])]);  // ["a", "b"]` },
+    task: 'Complete **removeDuplicates(arr)** so it returns a new array without repeated values, keeping each value where it first appears. removeDuplicates([1, 2, 2, 3, 1]) returns [1, 2, 3].',
+    html: FN_PAGE, css: '', js: `function removeDuplicates(arr) {
+  // your code here
+}
+
+console.log(removeDuplicates([1, 2, 2, 3, 1]));
+`,
+    hint: 'Either the loop from the example (then `return seen;`) or `return [...new Set(arr)];`.',
+    sol: { js: `function removeDuplicates(arr) {
+  const result = [];
+  for (const x of arr) {
+    if (!result.includes(x)) {
+      result.push(x);
+    }
+  }
+  return result;
+}
+
+console.log(removeDuplicates([1, 2, 2, 3, 1]));` },
+    check: async t => {
+      const f = t.fn('removeDuplicates');
+      t.same(f([1, 2, 2, 3, 1]), [1, 2, 3], 'removeDuplicates([1, 2, 2, 3, 1]) returns [1, 2, 3]');
+      t.same(f(['js', 'py', 'js']), ['js', 'py'], 'removeDuplicates(["js", "py", "js"]) returns ["js", "py"]');
+      t.same(f([]), [], 'removeDuplicates([]) returns []');
+    } },
+
+  { id: 'fn-charcount', stage: 7, title: 'Count each character', files: ['js'], exports: ['charCount'],
+    learn: 'An **object** stores key–value pairs, like a map in C++: `const count = {}`. `count[ch] = (count[ch] || 0) + 1` adds one, starting from 0 the first time: a missing key gives `undefined`, and `undefined || 0` is 0.',
+    example: { lang: 'js', src: `const count = {};
+count["a"] = (count["a"] || 0) + 1;
+count["a"] = (count["a"] || 0) + 1;
+console.log(count);        // { a: 2 }
+console.log(count["b"]);   // undefined` },
+    task: 'Complete **charCount(str)** so it returns an object saying how many times each character appears. charCount("hello") returns { h: 1, e: 1, l: 2, o: 1 }.',
+    html: FN_PAGE, css: '', js: `function charCount(str) {
+  // your code here
+}
+
+console.log(charCount("hello"));
+`,
+    hint: '`const count = {};`, then a `for...of` loop over str with the line from the note, then `return count;`.',
+    sol: { js: `function charCount(str) {
+  const count = {};
+  for (const ch of str) {
+    count[ch] = (count[ch] || 0) + 1;
+  }
+  return count;
+}
+
+console.log(charCount("hello"));` },
+    check: async t => {
+      const f = t.fn('charCount');
+      t.same(f('hello'), { h: 1, e: 1, l: 2, o: 1 }, 'charCount("hello") returns { h: 1, e: 1, l: 2, o: 1 }');
+      t.same(f('aaa'), { a: 3 }, 'charCount("aaa") returns { a: 3 }');
+      t.same(f(''), {}, 'charCount("") returns {}');
+    } },
+
+  /* ---------- Stage 8: lists, data, layouts ---------- */
+  { id: 'show-list', stage: 8, title: 'Show an array as a list', files: ['js'],
+    learn: '`array.forEach(function (item) { ... })` runs the code once for each item. Inside: create an element, set its text, and append it. This is how data from JavaScript gets onto the page.',
+    example: { lang: 'js', src: `const colors = ["red", "green"];
+colors.forEach(function (c) {
+  const li = document.createElement("li");
+  li.textContent = c;
+  document.getElementById("out").appendChild(li);
+});` },
+    task: 'script.js has an array of courses. Show each course as an item of the list **#courses**, in the same order. Do not type them into index.html.',
+    html: `<h2>Courses</h2>
+<ul id="courses"></ul>`, css: '', js: `const courses = ["HTML", "CSS", "JavaScript", "SQL"];
+
+// show each course in the list #courses
+`,
+    hint: 'Copy the example and change `colors` to `courses` and `"out"` to `"courses"`.',
+    sol: { js: `const courses = ["HTML", "CSS", "JavaScript", "SQL"];
+const list = document.getElementById("courses");
+
+courses.forEach(function (course) {
+  const li = document.createElement("li");
+  li.textContent = course;
+  list.appendChild(li);
+});` },
+    check: async t => {
+      t.need(!/<li/i.test(t.files.html), 'The items come from JavaScript, not typed into index.html');
+      const lis = t.$$('#courses li');
+      t.eq(lis.length, 4, 'The list has 4 items');
+      t.same(lis.map(li => t.text(li)), ['HTML', 'CSS', 'JavaScript', 'SQL'], 'The items are HTML, CSS, JavaScript, SQL, in that order');
+    } },
+
+  { id: 'marks-table', stage: 8, title: 'Fill a table from data', files: ['js'],
+    learn: 'A table is made of rows `<tr>`, and each row has cells `<td>`. Create a `tr`, create two `td`s, set their text, append them to the row, then append the row to the table body. An object keeps named values: `student.name`, `student.marks`.',
+    example: { lang: 'js', src: `const s = { name: "Asha", marks: 82 };
+console.log(s.name, s.marks);   // Asha 82
+const tr = document.createElement("tr");
+const td = document.createElement("td");
+td.textContent = s.name;
+tr.appendChild(td);` },
+    task: 'Add one row to **#rows** for each student: the name in the first cell and the marks in the second. Give a row the class **fail** when the marks are below 40 (the CSS already makes those rows red).',
+    html: `<table>
+  <thead>
+    <tr><th>Name</th><th>Marks</th></tr>
+  </thead>
+  <tbody id="rows"></tbody>
+</table>`, css: `table { border-collapse: collapse; }
+th, td { border: 1px solid #999; padding: 6px 12px; }
+.fail { background: #ffd6d6; color: #a00000; }
+`, js: `const students = [
+  { name: "Asha", marks: 82 },
+  { name: "Ravi", marks: 35 },
+  { name: "Meena", marks: 67 },
+  { name: "John", marks: 28 }
+];
+
+// add a row to #rows for each student
+`,
+    hint: 'Inside `students.forEach(function (s) { ... })`: make a tr and two tds, fill them with `s.name` and `s.marks`, `if (s.marks < 40) tr.classList.add("fail");`, then append.',
+    sol: { js: `const students = [
+  { name: "Asha", marks: 82 },
+  { name: "Ravi", marks: 35 },
+  { name: "Meena", marks: 67 },
+  { name: "John", marks: 28 }
+];
+const rows = document.getElementById("rows");
+
+students.forEach(function (s) {
+  const tr = document.createElement("tr");
+  const nameCell = document.createElement("td");
+  const marksCell = document.createElement("td");
+  nameCell.textContent = s.name;
+  marksCell.textContent = s.marks;
+  tr.appendChild(nameCell);
+  tr.appendChild(marksCell);
+  if (s.marks < 40) {
+    tr.classList.add("fail");
+  }
+  rows.appendChild(tr);
+});` },
+    check: async t => {
+      const trs = t.$$('#rows tr');
+      t.eq(trs.length, 4, 'The table has 4 rows');
+      t.same(trs.map(tr => [...tr.querySelectorAll('td')].map(td => t.text(td))), [['Asha', '82'], ['Ravi', '35'], ['Meena', '67'], ['John', '28']], 'Each row shows the name, then the marks');
+      t.same(trs.filter(tr => tr.classList.contains('fail')).map(tr => t.text(tr.querySelector('td'))), ['Ravi', 'John'], 'Only Ravi and John (below 40) have the class fail');
+    } },
+
+  { id: 'search', stage: 8, title: 'Live search in a list', files: ['js'],
+    learn: '`document.querySelectorAll("#names li")` gives all the items; loop over them with `forEach`. On every **input** event, check each item with `li.textContent.toLowerCase().includes(text)`. Show a match with `li.style.display = ""` and hide the rest with `"none"`.',
+    example: { lang: 'js', src: `const items = document.querySelectorAll("#names li");
+items.forEach(function (li) {
+  console.log(li.textContent);
+});` },
+    task: 'As the user types in **#search**, show only the names that contain the typed text (capitals do not matter). With an empty box, show all names.',
+    html: `<input id="search" placeholder="Search names">
+<ul id="names">
+  <li>Aarav</li>
+  <li>Priya</li>
+  <li>Rahul</li>
+  <li>Sneha</li>
+  <li>Karan</li>
+</ul>`, css: '', js: '',
+    hint: 'In an input listener: `const text = search.value.toLowerCase();`, then loop over the items and set `li.style.display` to `""` or `"none"`.',
+    sol: { js: `const search = document.getElementById("search");
+const items = document.querySelectorAll("#names li");
+
+search.addEventListener("input", function () {
+  const text = search.value.toLowerCase();
+  items.forEach(function (li) {
+    if (li.textContent.toLowerCase().includes(text)) {
+      li.style.display = "";
+    } else {
+      li.style.display = "none";
+    }
+  });
+});` },
+    check: async t => {
+      const shown = () => t.$$('#names li').filter(li => t.visible(li)).map(li => t.text(li));
+      await t.type(t.$('#search'), 'ra');
+      t.same(shown(), ['Aarav', 'Rahul', 'Karan'], 'Typing "ra" shows Aarav, Rahul and Karan');
+      await t.type(t.$('#search'), 'PRI');
+      t.same(shown(), ['Priya'], 'Typing "PRI" shows Priya (capitals do not matter)', { '[]': 'Make both sides lowercase before comparing.' });
+      await t.type(t.$('#search'), '');
+      t.eq(shown().length, 5, 'An empty box shows all 5 names');
+    } },
+
+  { id: 'cart', stage: 8, title: 'Cart total with two decimals', files: ['js'],
+    learn: 'Loop over the items and add `price * qty` for each. `reduce` does it in one line: `cart.reduce((sum, it) => sum + it.price * it.qty, 0)`. `number.toFixed(2)` gives text with exactly two decimals: `(920).toFixed(2)` is "920.00".',
+    example: { lang: 'js', src: `const items = [{ price: 10, qty: 2 }, { price: 5, qty: 1 }];
+let sum = 0;
+for (const it of items) {
+  sum += it.price * it.qty;
+}
+console.log(sum, sum.toFixed(2));   // 25 25.00` },
+    task: 'Show the cart total in **#total** with two decimals. Each item costs price × qty. (The answer is 920.00.)',
+    html: `<h2>Your cart</h2>
+<p>Pen × 3, Notebook × 2, Bag × 1</p>
+<p>Total: Rs <span id="total"></span></p>`, css: '', js: `const cart = [
+  { name: "Pen", price: 10, qty: 3 },
+  { name: "Notebook", price: 45.5, qty: 2 },
+  { name: "Bag", price: 799, qty: 1 }
+];
+
+// show the total in #total
+`,
+    hint: 'Work out the total with the loop from the note, then `document.getElementById("total").textContent = total.toFixed(2);`.',
+    sol: { js: `const cart = [
+  { name: "Pen", price: 10, qty: 3 },
+  { name: "Notebook", price: 45.5, qty: 2 },
+  { name: "Bag", price: 799, qty: 1 }
+];
+
+const total = cart.reduce((sum, it) => sum + it.price * it.qty, 0);
+document.getElementById("total").textContent = total.toFixed(2);` },
+    check: async t => {
+      t.eq(t.text(t.$('#total')), '920.00', 'The total shows 920.00', { '920': 'Use toFixed(2) to show two decimals.', '854.50': 'Multiply each price by its qty.', '854.5': 'Multiply each price by its qty, and use toFixed(2).' });
+    } },
+
+  { id: 'sort', stage: 8, title: 'Sort numbers correctly', files: ['js'],
+    learn: '`array.sort()` with nothing inside compares items **as text**, so [10, 9, 100] becomes [10, 100, 9]. For numbers, give it a compare function: `nums.sort((a, b) => a - b)` sorts small to big, and `(a, b) => b - a` big to small. `join(", ")` makes the text "1, 2, 3".',
+    example: { lang: 'js', src: `console.log([10, 9, 100].sort());                  // [10, 100, 9]
+console.log([10, 9, 100].sort((a, b) => a - b));  // [9, 10, 100]` },
+    task: 'When **Sort** is clicked, show the numbers in **#nums** from smallest to largest, separated by a comma and a space: **1, 3, 10, 25, 100**.',
+    html: `<p id="nums">25, 3, 100, 1, 10</p>
+<button id="sort">Sort</button>`, css: '', js: `const numbers = [25, 3, 100, 1, 10];
+
+// when #sort is clicked, sort numbers and show them in #nums
+`,
+    hint: 'In the click listener: `numbers.sort((a, b) => a - b);` and then set `#nums` text to `numbers.join(", ")`.',
+    sol: { js: `const numbers = [25, 3, 100, 1, 10];
+
+document.getElementById("sort").addEventListener("click", function () {
+  numbers.sort((a, b) => a - b);
+  document.getElementById("nums").textContent = numbers.join(", ");
+});` },
+    check: async t => {
+      t.eq(t.text(t.$('#nums')), '25, 3, 100, 1, 10', 'Before the click the numbers are still unsorted');
+      await t.click(t.$('#sort'));
+      t.eq(t.text(t.$('#nums')), '1, 3, 10, 25, 100', 'After the click they show 1, 3, 10, 25, 100', { '1, 10, 100, 25, 3': 'That is text order. Use sort((a, b) => a - b).', '1,3,10,25,100': 'Join with ", " (a comma and a space).' });
+    } },
+
+  { id: 'enter-key', stage: 8, title: 'Press Enter to add', files: ['js'],
+    learn: 'The **keydown** event fires when a key is pressed. `event.key` says which one: `"Enter"`, `"a"`, `"Escape"`. Listen on the input box and check `if (event.key === "Enter")`.',
+    example: { lang: 'js', src: `box.addEventListener("keydown", function (event) {
+  console.log(event.key);
+});` },
+    task: 'When the user presses **Enter** in **#todo**, add the typed text as a new item at the end of **#items** and empty the box. Other keys, and Enter in an empty box, add nothing.',
+    html: `<input id="todo" placeholder="Type and press Enter">
+<ul id="items"></ul>`, css: '', js: '',
+    hint: 'One keydown listener on `#todo`: `if (event.key === "Enter" && todo.value !== "") { ... }` with the code from the "Add items to a list" task inside.',
+    sol: { js: `const todo = document.getElementById("todo");
+
+todo.addEventListener("keydown", function (event) {
+  if (event.key === "Enter" && todo.value !== "") {
+    const li = document.createElement("li");
+    li.textContent = todo.value;
+    document.getElementById("items").appendChild(li);
+    todo.value = "";
+  }
+});` },
+    check: async t => {
+      const box = t.$('#todo');
+      await t.type(box, 'Revise SQL'); await t.key(box, 'a');
+      t.eq(t.$$('#items li').length, 0, 'Pressing another key adds nothing');
+      await t.key(box, 'Enter');
+      t.same(t.$$('#items li').map(li => t.text(li)), ['Revise SQL'], 'Pressing Enter adds "Revise SQL"');
+      t.eq(box.value, '', 'The box is empty again');
+      await t.key(box, 'Enter');
+      t.eq(t.$$('#items li').length, 1, 'Enter in an empty box adds nothing');
+    } },
+
+  { id: 'storage', stage: 8, title: 'Remember a value (localStorage)', files: ['js'],
+    learn: '`localStorage` keeps small pieces of text in the browser even after the page is closed. `localStorage.setItem("key", value)` saves, `localStorage.getItem("key")` reads it back (or gives `null` if nothing was saved), and `localStorage.removeItem("key")` deletes it. In this preview, Run acts like opening the page again.',
+    example: { lang: 'js', src: `localStorage.setItem("city", "Pune");
+console.log(localStorage.getItem("city"));      // Pune
+console.log(localStorage.getItem("missing"));   // null` },
+    task: 'When **Save** is clicked, save the typed name. When the page opens and a name was saved, show **Welcome back, NAME** in **#welcome**. If nothing was saved, leave it empty.',
+    html: `<p id="welcome"></p>
+<input id="name" placeholder="Your name">
+<button id="save">Save</button>`, css: '', js: '',
+    hint: 'Two parts. At the top: `const saved = localStorage.getItem("name"); if (saved) { ... }`. In the click listener: `localStorage.setItem("name", ...value)`.',
+    sol: { js: `const welcome = document.getElementById("welcome");
+const saved = localStorage.getItem("name");
+if (saved) {
+  welcome.textContent = "Welcome back, " + saved;
+}
+
+document.getElementById("save").addEventListener("click", function () {
+  localStorage.setItem("name", document.getElementById("name").value);
+});` },
+    check: async t => {
+      t.clearStorage(); await t.rerun();
+      t.eq(t.text(t.$('#welcome')), '', 'With nothing saved, #welcome is empty', { 'Welcome back, null': 'getItem gives null when nothing is saved: check it with if (saved) first.' });
+      await t.type(t.$('#name'), 'Asha'); await t.click(t.$('#save'));
+      await t.rerun();
+      t.eq(t.text(t.$('#welcome')), 'Welcome back, Asha', 'After saving Asha and opening the page again, it shows "Welcome back, Asha"');
+    } },
+
+  { id: 'navbar', stage: 8, title: 'Build a nav bar layout', files: ['css'],
+    learn: 'A top bar usually has the logo at the left and the links at the right. On the bar: `display: flex` puts its children in a row, `justify-content: space-between` pushes the first child to the left edge and the last to the right edge, and `align-items: center` lines them up vertically.',
+    example: { lang: 'css', src: `.bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}` },
+    task: 'Make the nav bar one row with the logo at the **left** edge and the links at the **right** edge. Put the three links in a row with a **16px** gap.',
+    html: `<nav id="nav">
+  <div id="logo">CareerHub</div>
+  <div id="links">
+    <a href="#">Jobs</a>
+    <a href="#">Courses</a>
+    <a href="#">Login</a>
+  </div>
+</nav>`, css: `#nav {
+  background: #1f2a44;
+  color: white;
+  padding: 12px 16px;
+}
+#nav a {
+  color: white;
+}
+`, js: '',
+    hint: 'Add the three lines from the note to `#nav`, and write `#links { display: flex; gap: 16px; }`.',
+    sol: { css: `#nav {
+  background: #1f2a44;
+  color: white;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#nav a {
+  color: white;
+}
+#links {
+  display: flex;
+  gap: 16px;
+}` },
+    check: async t => {
+      const nav = t.$('#nav'), logo = t.$('#logo'), links = t.$$('#links a');
+      t.need(nav && logo && links.length === 3, 'The nav, logo and three links are still there');
+      const c = t.contentRect(nav), l = t.rect(logo), a = links.map(x => t.rect(x));
+      t.need(Math.abs((l.top + l.bottom) / 2 - (a[0].top + a[0].bottom) / 2) < 4, 'The logo and the links are in one row');
+      t.need(Math.abs(l.left - c.left) < 2, 'The logo is at the left edge');
+      t.need(Math.abs(c.right - a[2].right) < 2, 'The links end at the right edge', `${Math.round(c.right - a[2].right)}px from the right edge`);
+      const g = a[1].left - a[0].right;
+      t.need(Math.abs(g - 16) < 1.5, 'The gap between links is 16px', `${Math.round(g)}px`);
+    } },
+
+  { id: 'feedback', stage: 8, title: 'Feedback form with validation', files: ['js'],
+    learn: 'Check the fields one by one, top to bottom, and stop at the first problem with `return`. Useful checks: `value.trim() === ""` for empty, `email.includes("@")`, and `message.length < 10`. Call `event.preventDefault()` first so the page does not reload.',
+    example: { lang: 'js', src: `if (name === "") {
+  error.textContent = "Name is required";
+  return;   // stop here
+}` },
+    task: 'On submit, check in this order and show the **first** problem in **#error**: empty name → **Name is required**; email without @ → **Enter a valid email**; message shorter than 10 characters → **Message is too short**. If all is fine, empty #error and show **Thanks, NAME!** in **#success**.',
+    html: `<form id="feedback">
+  <input id="name" placeholder="Name">
+  <input id="email" placeholder="Email">
+  <textarea id="message" placeholder="Your feedback"></textarea>
+  <button type="submit">Send</button>
+</form>
+<p id="error"></p>
+<p id="success"></p>`, css: `form { display: grid; gap: 8px; max-width: 280px; }
+#error { color: #b00020; }
+#success { color: green; }
+`, js: '',
+    hint: 'One submit listener on `#feedback`. Read the three values with `.value.trim()`, then three `if` blocks that each set the error and `return`. At the end set the success text.',
+    sol: { js: `document.getElementById("feedback").addEventListener("submit", function (event) {
+  event.preventDefault();
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const message = document.getElementById("message").value.trim();
+  const error = document.getElementById("error");
+  const success = document.getElementById("success");
+  success.textContent = "";
+
+  if (name === "") {
+    error.textContent = "Name is required";
+    return;
+  }
+  if (!email.includes("@")) {
+    error.textContent = "Enter a valid email";
+    return;
+  }
+  if (message.length < 10) {
+    error.textContent = "Message is too short";
+    return;
+  }
+  error.textContent = "";
+  success.textContent = "Thanks, " + name + "!";
+});` },
+    check: async t => {
+      const send = async (n, e, m) => { await t.type(t.$('#name'), n); await t.type(t.$('#email'), e); await t.type(t.$('#message'), m); await t.click(t.$('button')); };
+      await send('', 'asha@example.com', 'Great test platform');
+      t.eq(t.text(t.$('#error')), 'Name is required', 'An empty name shows "Name is required"');
+      t.need(t.lastSubmitPrevented(), 'The listener calls event.preventDefault()');
+      await send('Asha', 'asha.example.com', 'Great test platform');
+      t.eq(t.text(t.$('#error')), 'Enter a valid email', 'An email without @ shows "Enter a valid email"');
+      await send('Asha', 'asha@example.com', 'Good');
+      t.eq(t.text(t.$('#error')), 'Message is too short', 'A 4-letter message shows "Message is too short"');
+      await send('Asha', 'asha@example.com', 'Great test platform');
+      t.eq(t.text(t.$('#error')), '', 'With everything correct, #error is empty');
+      t.eq(t.text(t.$('#success')), 'Thanks, Asha!', 'and #success says "Thanks, Asha!"');
+    } },
+
+  /* ---------- Stage 9: quick quizzes ---------- */
+  { id: 'quiz-html', stage: 9, type: 'quiz', title: 'Quiz: HTML basics', files: [],
+    learn: 'Pick an answer for each question. A wrong pick turns red and you can try again; a right pick shows why. The quiz is solved when every question is right.',
+    questions: [
+      { q: 'Which tag gives the biggest heading?', options: ['<h6>', '<h1>', '<head>', '<heading>'], answer: '<h1>', why: '`<h1>` is the largest heading and `<h6>` the smallest. `<head>` is the invisible part of the page that holds the title.' },
+      { q: 'Which attribute makes a link open in a new tab?', options: ['href="_new"', 'target="_blank"', 'new="tab"', 'open="new"'], answer: 'target="_blank"', why: '`href` is where the link goes; `target="_blank"` opens it in a new tab.' },
+      { q: 'Which tag makes a numbered list?', options: ['<ul>', '<ol>', '<li>', '<list>'], answer: '<ol>', why: '`<ol>` is ordered (numbers), `<ul>` is unordered (bullets), and `<li>` is one item inside either.' },
+      { q: 'Which input type shows dots instead of the typed letters?', options: ['text', 'hidden', 'password', 'secret'], answer: 'password', why: '`type="hidden"` is an input that is not shown at all; `password` shows dots.' },
+      { q: 'What is the alt attribute of an <img> for?', options: ['A caption shown under the picture', 'A text description used when the picture cannot be seen', 'The picture’s file name', 'The picture’s width'], answer: 'A text description used when the picture cannot be seen', why: 'alt is shown when the file is missing and read aloud by screen readers. It is hidden when the picture loads.' },
+      { q: 'In which tag do you write JavaScript in an HTML page?', options: ['<js>', '<javascript>', '<script>', '<code>'], answer: '<script>', why: 'Either `<script> ... <\/script>` with code inside, or `<script src="script.js"><\/script>` to load a file.' },
+      { q: 'What does each of HTML, CSS and JavaScript do?', options: ['HTML: style, CSS: logic, JS: content', 'HTML: content and structure, CSS: how it looks, JS: behaviour', 'All three do the same thing', 'HTML: database, CSS: server, JS: design'], answer: 'HTML: content and structure, CSS: how it looks, JS: behaviour', why: 'A common interview question. HTML is what is on the page, CSS is how it looks, JavaScript is what happens when people use it.' },
+    ] },
+
+  { id: 'quiz-css', stage: 9, type: 'quiz', title: 'Quiz: CSS basics', files: [],
+    learn: 'Pick an answer for each question. A wrong pick turns red and you can try again. The quiz is solved when every question is right.',
+    questions: [
+      { q: 'Which selector chooses the element with id="menu"?', options: ['.menu', '#menu', 'menu', '*menu'], answer: '#menu', why: '`#` is for an id, `.` is for a class, and a bare word is a tag name.' },
+      { q: 'Which selector chooses every element with class="item"?', options: ['#item', 'item', '.item', '@item'], answer: '.item', why: 'A dot, then the class name.' },
+      { q: 'Which property changes the colour of the text?', options: ['font-color', 'text-color', 'color', 'background-color'], answer: 'color', why: '`color` is the text colour; `background-color` is the colour behind it. `font-color` and `text-color` do not exist.' },
+      { q: 'Which property adds space inside the border, between the border and the content?', options: ['margin', 'padding', 'spacing', 'gap'], answer: 'padding', why: 'padding is inside the border, margin is outside it, and gap is the space between flex or grid children.' },
+      { q: 'What colour is the text?', lang: 'text', code: `<p id="note" class="info">Hello</p>
+
+.info { color: blue; }
+#note { color: red; }
+p     { color: green; }`, options: ['blue', 'red', 'green', 'black'], answer: 'red', why: 'An id selector beats a class, and a class beats a tag name. The order in the file only decides between equally strong selectors.' },
+      { q: 'In a flex row, which property centres the items left–right?', options: ['align-items: center', 'justify-content: center', 'text-align: middle', 'float: center'], answer: 'justify-content: center', why: 'In a row, justify-content works along the row (left–right) and align-items across it (top–bottom).' },
+      { q: 'Which one hides an element and also removes the space it took?', options: ['visibility: hidden', 'display: none', 'opacity: 0', 'color: transparent'], answer: 'display: none', why: 'The other three hide it but keep its space.' },
+    ] },
+
+  { id: 'quiz-js-values', stage: 9, type: 'quiz', title: 'Quiz: what does it print? (values)', files: [],
+    learn: 'Read the code and pick what console.log prints, before running anything. These are the classic JavaScript surprises.',
+    questions: [
+      { q: 'What does this print?', code: 'console.log(typeof 42, typeof "42");', options: ['number number', 'number string', 'string string', 'int string'], answer: 'number string', why: 'Quotes make a string, even if it looks like a number.' },
+      { q: 'What does this print?', code: 'console.log("5" + 3, "5" - 3);', options: ['8 2', '53 2', '53 NaN', '8 8'], answer: '53 2', why: '`+` with a string joins text. `-` only works on numbers, so "5" is turned into 5.' },
+      { q: 'What does this print?', code: 'console.log(5 == "5", 5 === "5");', options: ['true true', 'false false', 'true false', 'false true'], answer: 'true false', why: '`==` converts the types first; `===` also compares the type. Always use `===`.' },
+      { q: 'What does this print?', code: 'console.log(10 / 4, 10 % 4);', options: ['2 2', '2.5 2', '2.5 0.5', '2 0'], answer: '2.5 2', why: '`/` does not cut decimals in JavaScript. `%` is the remainder.' },
+      { q: 'What does this print?', code: 'console.log(Boolean(""), Boolean("0"), Boolean(0));', options: ['false false false', 'false true false', 'true true false', 'false true true'], answer: 'false true false', why: 'Empty text, 0, null, undefined and NaN count as false. Any non-empty text, even "0", counts as true.' },
+      { q: 'What does this print?', code: 'let x;\nconsole.log(x, typeof null);', options: ['null null', 'undefined undefined', 'undefined object', '0 object'], answer: 'undefined object', why: 'A variable with no value is undefined. `typeof null` being "object" is an old JavaScript mistake that was never fixed.' },
+      { q: 'What does this print?', code: 'console.log(Number("42") + 1, parseInt("42px") + 1, Number("42px"));', options: ['43 43 NaN', '43 NaN NaN', '421 43 NaN', '43 43 42'], answer: '43 43 NaN', why: 'Number() needs the whole text to be a number. parseInt reads digits from the start and stops at the first non-digit.' },
+    ] },
+
+  { id: 'quiz-js-arrays', stage: 9, type: 'quiz', title: 'Quiz: what does it print? (strings and arrays)', files: [],
+    learn: 'Read the code and pick what console.log prints. Every method here is in the Must-know JS tab.',
+    questions: [
+      { q: 'What does this print?', code: 'console.log("JavaScript".length);', options: ['9', '10', '11', 'Error'], answer: '10', why: 'length counts every character. Unlike C++, it is a property, so there are no brackets.' },
+      { q: 'What does this print?', code: 'console.log("hello".toUpperCase().charAt(1));', options: ['H', 'E', 'e', 'h'], answer: 'E', why: 'First "HELLO", then the character at index 1, which is E.' },
+      { q: 'What does this print?', code: 'console.log([10, 1, 5].sort().join(" "));', options: ['1 5 10', '1 10 5', '10 5 1', '10 1 5'], answer: '1 10 5', why: 'Without a compare function, sort compares as text, and "10" comes before "5". Use sort((a, b) => a - b).' },
+      { q: 'What does this print?', code: 'console.log("a,b,c".split(",").length);', options: ['1', '2', '3', '5'], answer: '3', why: 'split(",") gives ["a", "b", "c"].' },
+      { q: 'What does this print?', code: 'console.log([1, 2, 3].map(x => x * 2).join("-"));', options: ['1-2-3', '2-4-6', '246', '[2, 4, 6]'], answer: '2-4-6', why: 'map doubles each item, then join puts "-" between them.' },
+      { q: 'What does this print?', code: 'const arr = [1, 2];\narr.push(3);\nconsole.log(arr.length, arr.indexOf(3), arr.includes(5));', options: ['3 2 false', '2 3 false', '3 3 false', '3 2 true'], answer: '3 2 false', why: 'push adds 3 at index 2. `const` stops you from replacing the array, but you can still change what is inside it.' },
+      { q: 'What does this print?', code: 'console.log("Hello World".indexOf("o"), "Hello".slice(1, 3));', options: ['4 el', '4 ell', '5 el', '4 He'], answer: '4 el', why: 'indexOf finds the first match. slice(1, 3) takes indexes 1 and 2; the end is not included.' },
+    ] },
+
+  { id: 'quiz-js-functions', stage: 9, type: 'quiz', title: 'Quiz: functions, scope and events', files: [],
+    learn: 'Pick an answer for each question. These are favourite interview questions about how JavaScript runs.',
+    questions: [
+      { q: 'What happens?', code: 'const x = 5;\nx = 6;\nconsole.log(x);', options: ['6', '5', 'TypeError', 'undefined'], answer: 'TypeError', why: 'A `const` cannot get a new value. Use `let` for values that change.' },
+      { q: 'What does this print?', code: 'function f() {\n  2 + 2;\n}\nconsole.log(f());', options: ['4', 'undefined', 'null', 'Error'], answer: 'undefined', why: 'Without `return`, a function gives back undefined.' },
+      { q: 'What does this print?', code: 'console.log(a);\nvar a = 5;', options: ['5', 'undefined', 'ReferenceError', 'null'], answer: 'undefined', why: '`var` declarations are moved to the top (hoisting), but the value is set later. With `let` you would get a ReferenceError.' },
+      { q: 'In which order are the letters printed?', code: 'setTimeout(() => console.log("A"), 0);\nconsole.log("B");', join: ' then ', options: ['A then B', 'B then A', 'only A', 'only B'], answer: 'B then A', why: 'setTimeout always waits until the current code has finished, even with 0 milliseconds.' },
+      { q: 'What does document.getElementById("x") give when no element has id="x"?', options: ['undefined', 'null', 'an empty string', 'it throws an error'], answer: 'null', why: 'That is why the error "Cannot read properties of null" usually means a wrong id.' },
+      { q: 'Which line runs showMenu when the button is clicked?', options: ['btn.addEventListener("click", showMenu);', 'btn.addEventListener("click", showMenu());', 'btn.onClick = showMenu;', 'btn.addEventListener("onclick", showMenu);'], answer: 'btn.addEventListener("click", showMenu);', why: 'Pass the function itself, without `()`: with `()` it runs at once. The event is "click", not "onclick", and the property is all lowercase: `onclick`.' },
+      { q: 'What does this print?', code: 'const add = (a, b) => a + b;\nconsole.log(add(2, 3));', options: ['5', '23', 'undefined', 'Error'], answer: '5', why: 'An arrow function without braces returns its expression automatically.' },
+    ] },
+  ];
+
+  /* ======================= Must-know JavaScript =======================
+     Rows with r are checked by running them (tests); rows with d are descriptions.
+     s = setup line, show = variable whose new value is shown, prints = console output. */
+  const REF = [
+    { title: 'Find elements on the page', rows: [
+      { c: 'document.getElementById("total")', d: 'the element with id="total", or null if there is none' },
+      { c: 'document.querySelector(".card")', d: 'the first element that matches a CSS selector (#id, .class, tag)' },
+      { c: 'document.querySelectorAll("li")', d: 'all matching elements; loop over them with forEach' },
+      { c: 'document.body', d: 'the <body> of the page' },
+    ] },
+    { title: 'Change elements', rows: [
+      { c: 'el.textContent = "Saved!"', d: 'replace the text inside the element' },
+      { c: 'el.innerHTML = "<b>Saved!</b>"', d: 'replace the HTML inside the element (tags work)' },
+      { c: 'input.value', d: 'the text typed in an input box (always a string); set it to "" to empty the box' },
+      { c: 'el.style.backgroundColor = "red"', d: 'change one style; CSS names with a dash become camelCase' },
+      { c: 'el.classList.add("dark")', d: 'also .remove("dark"), .toggle("dark"), .contains("dark")' },
+      { c: 'el.setAttribute("src", "team.png")', d: 'set any attribute; el.getAttribute("href") reads one' },
+      { c: 'btn.disabled = true', d: 'grey a button out; false enables it again' },
+      { c: 'box.checked', d: 'true when a checkbox is ticked' },
+    ] },
+    { title: 'Create and remove elements', rows: [
+      { c: 'const li = document.createElement("li")', d: 'a new element that is not on the page yet' },
+      { c: 'list.appendChild(li)', d: 'add it as the last child of list (list.append(li) works too)' },
+      { c: 'li.remove()', d: 'delete the element from the page' },
+    ] },
+    { title: 'Events', rows: [
+      { c: 'btn.addEventListener("click", function () { ... })', d: 'run code on every click; pass a function name without ()' },
+      { c: '<button onclick="save()">', d: 'the HTML way to call a function on click' },
+      { c: 'box.addEventListener("input", ...)', d: 'every change while typing in a box' },
+      { c: 'box.addEventListener("change", ...)', d: 'a checkbox or select changed (or a box lost focus)' },
+      { c: 'form.addEventListener("submit", ...)', d: 'a form was sent; call event.preventDefault() to stop the reload' },
+      { c: 'box.addEventListener("keydown", ...)', d: 'a key was pressed; event.key is "Enter", "a", "Escape", …' },
+      { c: 'el.addEventListener("mouseover", ...)', d: 'the mouse moved onto the element ("mouseout" when it leaves)' },
+      { c: 'event.target', d: 'the element the event happened on' },
+    ] },
+    { title: 'Strings', rows: [
+      { c: '"Hello".length', r: '5', n: 'number of characters (no brackets)' },
+      { c: '"Hello".toUpperCase()', r: '"HELLO"', n: 'also toLowerCase()' },
+      { c: '"  hi  ".trim()', r: '"hi"', n: 'removes spaces at both ends' },
+      { c: '"Hello".includes("ell")', r: 'true', n: 'is the text inside?' },
+      { c: '"Hello".indexOf("l")', r: '2', n: 'first position, or -1 if missing' },
+      { c: '"Hello".charAt(0)', r: '"H"', n: 'same as "Hello"[0]' },
+      { c: '"Hello".slice(1, 4)', r: '"ell"', n: 'from index 1 up to, not including, 4' },
+      { c: '"a,b,c".split(",")', r: '["a", "b", "c"]', n: 'text to array; join is the reverse' },
+      { c: '"2026-10-12".replace("-", "/")', r: '"2026/10-12"', n: 'only the first match' },
+      { c: '"2026-10-12".replaceAll("-", "/")', r: '"2026/10/12"', n: 'every match' },
+      { c: '"Hello".startsWith("He")', r: 'true', n: 'also endsWith' },
+      { c: '"7".padStart(2, "0")', r: '"07"', n: 'pad to 2 characters from the left' },
+      { c: '"ab".repeat(3)', r: '"ababab"', n: '' },
+      { c: '"Hi " + name + "!"', s: 'const name = "Asha";', r: '"Hi Asha!"', n: 'join text with +' },
+    ] },
+    { title: 'Arrays', rows: [
+      { c: '[1, 2, 3].length', r: '3', n: 'number of items' },
+      { s: 'const a = [1, 2];', c: 'a.push(3);', show: 'a', r: '[1, 2, 3]', n: 'add at the end' },
+      { s: 'const a = [1, 2, 3];', c: 'a.pop();', show: 'a', r: '[1, 2]', n: 'remove the last item (pop also returns it)' },
+      { s: 'const a = [1, 2];', c: 'a.unshift(0);', show: 'a', r: '[0, 1, 2]', n: 'add at the start' },
+      { s: 'const a = [1, 2, 3];', c: 'a.shift();', show: 'a', r: '[2, 3]', n: 'remove the first item' },
+      { c: '[5, 8, 2].indexOf(8)', r: '1', n: '-1 if missing' },
+      { c: '[5, 8, 2].includes(2)', r: 'true', n: '' },
+      { c: '["a", "b", "c"].join("-")', r: '"a-b-c"', n: 'array to text' },
+      { c: '[1, 2, 3].reverse()', r: '[3, 2, 1]', n: 'changes the array itself' },
+      { c: '[1, 2, 3, 4].slice(1, 3)', r: '[2, 3]', n: 'a copy of part; the array is unchanged' },
+      { s: 'const a = [1, 2, 3, 4];', c: 'a.splice(1, 2);', show: 'a', r: '[1, 4]', n: 'remove 2 items from index 1 (changes the array)' },
+      { c: '[25, 3, 100].sort((a, b) => a - b)', r: '[3, 25, 100]', n: 'numbers small to big; plain sort() compares as text' },
+      { c: '[1, 2, 3].map(n => n * 2)', r: '[2, 4, 6]', n: 'change every item, get a new array' },
+      { c: '[1, 2, 3, 4].filter(n => n % 2 === 0)', r: '[2, 4]', n: 'keep the items that pass the test' },
+      { c: '[1, 2, 3].reduce((sum, n) => sum + n, 0)', r: '6', n: 'combine everything into one value' },
+      { c: '[5, 12, 8].find(n => n > 6)', r: '12', n: 'first item that passes, or undefined' },
+      { c: '[3, 7].some(n => n > 5)', r: 'true', n: 'does any pass? every() asks whether all pass' },
+      { c: '["x", "y"].forEach(v => console.log(v))', prints: true, r: 'x y', n: 'run code for each item' },
+      { c: '[...new Set([1, 1, 2])]', r: '[1, 2]', n: 'remove duplicates' },
+    ] },
+    { title: 'Numbers and Math', rows: [
+      { c: 'Number("42")', r: '42', n: 'text to number' },
+      { c: 'Number("42px")', r: 'NaN', n: 'NaN means "not a number"' },
+      { c: 'parseInt("42px")', r: '42', n: 'reads digits from the start' },
+      { c: 'parseFloat("3.75 kg")', r: '3.75', n: '' },
+      { c: '(3.14159).toFixed(2)', r: '"3.14"', n: 'gives text with 2 decimals' },
+      { c: 'Math.round(4.5)', r: '5', n: 'Math.floor(4.9) is 4, Math.ceil(4.1) is 5' },
+      { c: 'Math.max(3, 9, 4)', r: '9', n: 'Math.max(...nums) for an array' },
+      { c: 'Math.abs(-7)', r: '7', n: '' },
+      { c: 'Math.floor(Math.random() * 10)', d: 'a random whole number from 0 to 9' },
+      { c: '10 % 3', r: '1', n: 'remainder' },
+      { c: 'String(42) + 1', r: '"421"', n: 'number to text' },
+      { c: 'isNaN(Number("abc"))', r: 'true', n: 'check that a conversion worked' },
+    ] },
+    { title: 'Objects and JSON', rows: [
+      { s: 'const user = { name: "Asha", age: 22 };', c: 'user.name', r: '"Asha"', n: 'also user["name"]' },
+      { s: 'const user = { name: "Asha" };', c: 'user.age = 22;', show: 'user', r: '{ name: "Asha", age: 22 }', n: 'add or change a key' },
+      { c: 'Object.keys({ a: 1, b: 2 })', r: '["a", "b"]', n: 'Object.values gives [1, 2]' },
+      { c: 'JSON.stringify({ a: 1 })', r: '"{"a":1}"', n: 'object to text (to save it)' },
+      { c: 'JSON.parse(\'{"a":1}\').a', r: '1', n: 'text back to an object' },
+    ] },
+    { title: 'Dates, timers, storage and output', rows: [
+      { c: 'new Date()', d: 'the date and time now' },
+      { c: 'd.getFullYear(), d.getMonth(), d.getDate()', d: 'year; month 0–11 (add 1); day 1–31' },
+      { c: 'd.getHours(), d.getMinutes(), d.getDay()', d: 'hours 0–23; minutes; weekday 0 (Sunday) to 6' },
+      { c: 'd.toLocaleDateString("en-GB")', d: 'ready-made text like 12/10/2026' },
+      { c: 'd.setDate(d.getDate() + 7)', d: 'move the date 7 days ahead' },
+      { c: 'setTimeout(fn, 2000)', d: 'run fn once after 2 seconds' },
+      { c: 'const id = setInterval(fn, 1000)', d: 'run fn every second; clearInterval(id) stops it' },
+      { c: 'localStorage.setItem("k", "v")', d: 'save text in the browser; getItem("k") reads it, or null' },
+      { c: 'console.log(x)', d: 'print to the console (for checking your code)' },
+      { c: 'alert("Saved")', d: 'show a pop-up message' },
+    ] },
   ];
 
   /* ======================= Setup ======================= */
@@ -1393,7 +2209,7 @@ book.addEventListener("click", function () {
 
   function freshPreview() {
     if (pv) { pv.timers.forEach(id => clearTimeout(id)); pv.intervals.forEach(id => clearInterval(id)); pv.winListeners.forEach(([t, f, o]) => window.removeEventListener(t, f, o)); }
-    pv = { timers: new Set(), intervals: new Set(), winListeners: [], loadQueue: [], submits: [] };
+    pv = { timers: new Set(), intervals: new Set(), winListeners: [], loadQueue: [], submits: [], exports: {} };
     const slot = $('pvSlot');
     if (!slot) return false;
     const host = document.createElement('div');
@@ -1424,16 +2240,31 @@ book.addEventListener("click", function () {
     return { body: d.body.innerHTML, styles, handlers, bodyClass: d.body.getAttribute('class') || '', bodyStyle: d.body.getAttribute('style') || '' };
   }
 
-  const PARAMS = 'document, window, console, alert, prompt, confirm, setTimeout, setInterval, clearTimeout, clearInterval, location, Date, __g, __h';
+  const PARAMS = 'document, window, console, alert, prompt, confirm, setTimeout, setInterval, clearTimeout, clearInterval, location, Date, localStorage, sessionStorage, __g, __h, __x';
   const LOOP_STOP = 'if (__g()) throw new RangeError("This loop ran 100,000 times without stopping, so it was stopped. Check that it can end.");';
   const guardLoops = js => String(js || '')
     .replace(/\b(for|while)\s*\(((?:[^()]|\((?:[^()]|\([^()]*\))*\))*)\)\s*\{/g, m => m + LOOP_STOP)
     .replace(/\bdo\s*\{/g, m => m + LOOP_STOP);
   let loopCount = 0;
   const guard = () => { if (loopCount++ === 0) setTimeout(() => { loopCount = 0; }); return loopCount > 1e5; };
-  function buildProgram(js, handlers) {
+  function buildProgram(js, handlers, exports) {
     const hs = handlers.map(h => `__h.push(function (event) {\n${h.code}\n});`).join('\n');
-    return `(function (${PARAMS}) {\n${hs}\n${guardLoops(js)}\n})`;
+    // Hand named functions back to the checks: once before the code (declarations are hoisted) and once after.
+    const ex = (exports || []).map(n => `try { __x[${JSON.stringify(n)}] = ${n}; } catch (e) {}`).join('\n');
+    return `(function (${PARAMS}) {\n${hs}\n${ex}\n${guardLoops(js)}\n;${ex}\n})`;
+  }
+
+  // In-memory stand-ins for localStorage and sessionStorage. Run acts like reopening the page.
+  const STORES = { local: new Map(), session: new Map() };
+  function makeStorage(map) {
+    return {
+      getItem: k => map.has(String(k)) ? map.get(String(k)) : null,
+      setItem: (k, v) => { map.set(String(k), String(v)); },
+      removeItem: k => { map.delete(String(k)); },
+      clear: () => map.clear(),
+      key: i => [...map.keys()][i] ?? null,
+      get length() { return map.size; },
+    };
   }
 
   function injectScript(text, how) {
@@ -1544,8 +2375,9 @@ book.addEventListener("click", function () {
       assign: u => addConsole('warn', [`The page would go to ${u}`]), replace: u => addConsole('warn', [`The page would go to ${u}`]),
     };
     const FakeDate = at ? makeFakeDate(at) : Date;
+    const ls = makeStorage(STORES.local), ss = makeStorage(STORES.session);
     const own = {
-      document: doc, console: con, alert: alertFn, confirm: confirmFn, prompt: promptFn,
+      document: doc, console: con, alert: alertFn, confirm: confirmFn, prompt: promptFn, localStorage: ls, sessionStorage: ss,
       setTimeout: st, setInterval: si, clearTimeout: ct, clearInterval: ci, location: loc, Date: FakeDate,
       addEventListener: (type, f, o) => { if (type === 'load' || type === 'DOMContentLoaded') pv.loadQueue.push(f); else { window.addEventListener(type, f, o); pv.winListeners.push([type, f, o]); } },
       removeEventListener: (type, f, o) => window.removeEventListener(type, f, o),
@@ -1562,11 +2394,11 @@ book.addEventListener("click", function () {
       set(o, k, v) { if (k === 'onload') { if (typeof v === 'function') pv.loadQueue.push(v); return true; } o[k] = v; return true; },
       has(o, k) { return k in o || k in window; },
     });
-    return { doc, win, con, alertFn, promptFn, confirmFn, st, si, ct, ci, loc, FakeDate };
+    return { doc, win, con, alertFn, promptFn, confirmFn, st, si, ct, ci, loc, FakeDate, ls, ss };
   }
 
   async function runCode(files, opts) {
-    const at = opts && opts.at;
+    const at = opts && opts.at, exports = (opts && opts.exports) || [];
     if (!freshPreview()) return false;
     clearConsole();
     const prep = prepareHtml(files.html);
@@ -1592,11 +2424,11 @@ book.addEventListener("click", function () {
     if (!needsJs) return true;
     if (RUNNER === 'unknown') RUNNER = await detectRunner();
     if (RUNNER === 'none') { addConsole('warn', ['JavaScript cannot run in this app view. Use "Copy as one file" and run it on your laptop.']); return false; }
-    const fn = await compile(buildProgram(files.js, prep.handlers));
+    const fn = await compile(buildProgram(files.js, prep.handlers, exports));
     if (!fn || cur !== pv) return false;
     const env = makeEnv(at);
     const hs = [];
-    try { fn(env.doc, env.win, env.con, env.alertFn, env.promptFn, env.confirmFn, env.st, env.si, env.ct, env.ci, env.loc, env.FakeDate, guard, hs); }
+    try { fn(env.doc, env.win, env.con, env.alertFn, env.promptFn, env.confirmFn, env.st, env.si, env.ct, env.ci, env.loc, env.FakeDate, env.ls, env.ss, guard, hs, pv.exports); }
     catch (e) { logError(e); }
     prep.handlers.forEach((h, i) => {
       const el = h.id === 'body' ? pvBody : shadow.querySelector(`[data-pvid="${h.id}"]`);
@@ -1665,6 +2497,9 @@ book.addEventListener("click", function () {
 
   /* ======================= Checks ======================= */
   class Stop extends Error {}
+  // Compare values the same way whatever the key order of objects; show them the way the console does.
+  const canon = v => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x)) ? Object.keys(x).sort().reduce((o, key) => { o[key] = x[key]; return o; }, {}) : (typeof x === 'number' && !Number.isFinite(x) ? String(x) : x));
+  const showVal = v => v === undefined ? 'undefined' : typeof v === 'string' ? `"${v}"` : typeof v === 'number' ? String(v) : String(canon(v)).replace(/,/g, ', ').replace(/":/g, '": ');
   const NAMES = { 'rgb(17, 17, 17)': 'the default text colour', 'rgb(239, 239, 239)': 'the default button grey', 'rgb(0, 0, 255)': 'blue', 'rgb(255, 255, 255)': 'white', 'rgb(255, 0, 0)': 'red', 'rgb(0, 128, 0)': 'green', 'rgb(0, 0, 0)': 'black', 'rgba(0, 0, 0, 0)': 'transparent', 'rgb(255, 165, 0)': 'orange', 'rgb(128, 128, 128)': 'gray', 'rgb(211, 211, 211)': 'lightgray' };
   function makeTester(task, files, results) {
     const say = v => v === null || v === undefined ? 'nothing found' : typeof v === 'string' ? `"${v}"` : String(v);
@@ -1709,8 +2544,29 @@ book.addEventListener("click", function () {
       type: async (el, v) => { t.present(el, 'The box to type in is missing from the page. Did its id change?'); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); await wait(30); },
       select: async (el, v) => { t.present(el, 'The list is missing from the page. Did its id change?'); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); await wait(30); },
       wait,
-      rerun: async at => { await runCode(files, { at }); await wait(50); },
+      rerun: async at => { await runCode(files, { at, exports: task.exports }); await wait(50); },
       lastSubmitPrevented: () => pv.submits.length > 0 && pv.submits[pv.submits.length - 1] === true,
+      clearStorage: () => { STORES.local.clear(); STORES.session.clear(); },
+      key: async (el, k) => {
+        t.present(el, 'The box is missing from the page. Did its id change?');
+        const code = k === 'Enter' ? 13 : k.toUpperCase().charCodeAt(0);
+        for (const type of ['keydown', 'keypress', 'keyup']) el.dispatchEvent(new KeyboardEvent(type, { key: k, code: k === 'Enter' ? 'Enter' : 'Key' + k.toUpperCase(), keyCode: code, which: code, bubbles: true }));
+        await wait(40);
+      },
+      fn: name => {
+        const f = pv.exports[name];
+        need(typeof f === 'function', `There is a function called ${name}`);
+        return (...args) => {
+          try { return f(...args); }
+          catch (e) { need(false, `${name}(${args.map(a => JSON.stringify(a)).join(', ')}) runs without an error`, `${e.name}: ${e.message}`); }
+        };
+      },
+      same: (got, want, msg, hints) => {
+        if (canon(got) === canon(want)) { results.push({ ok: true, msg }); return; }
+        const shown = showVal(got);
+        results.push({ ok: false, msg, got: shown, tip: (hints && hints[shown]) || (got === undefined ? 'Nothing came back. Put return in front of the answer.' : undefined) });
+        throw new Stop(msg);
+      },
     };
     return t;
   }
@@ -1728,11 +2584,12 @@ book.addEventListener("click", function () {
     $('overall').innerHTML = `<span>Solved <b>${n}</b> / ${TASKS.length}</span><span class="bar" aria-hidden="true"><i style="width:${n / TASKS.length * 100}%"></i></span><span>Today: <b>${today}</b></span>`;
   }
   function renderStages() {
-    const cur = ui.task === 'notes' ? 'notes' : (curTask() || TASKS[0]).stage;
+    const cur = ui.task === 'notes' || ui.task === 'ref' ? ui.task : (curTask() || TASKS[0]).stage;
     $('stages').innerHTML = STAGES.map(s => {
       const ts = stageTasks(s.n), d = ts.filter(t => store.done[t.id]).length;
       return `<button type="button" class="stage${d === ts.length ? ' done' : ''}" data-stage="${s.n}" aria-current="${cur === s.n}"><span class="sn"><span>Stage ${s.n}</span><span>${d}/${ts.length}${d === ts.length ? ' ✓' : ''}</span></span><span class="st">${esc(s.title)}</span><span class="bar" aria-hidden="true"><i style="width:${d / ts.length * 100}%"></i></span></button>`;
-    }).join('') + `<button type="button" class="stage notes" data-stage="notes" aria-current="${cur === 'notes'}"><span class="sn"><span>All stages</span><span></span></span><span class="st">Notes to revise</span></button>`;
+    }).join('') + `<button type="button" class="stage notes" data-stage="ref" aria-current="${cur === 'ref'}"><span class="sn"><span>Reference</span><span></span></span><span class="st">Must-know JS</span></button>`
+      + `<button type="button" class="stage notes" data-stage="notes" aria-current="${cur === 'notes'}"><span class="sn"><span>All stages</span><span></span></span><span class="st">Notes to revise</span></button>`;
   }
   function renderPills() {
     const t = curTask(); const el = $('pills'); if (!t || !el) return;
@@ -1797,11 +2654,85 @@ book.addEventListener("click", function () {
   function notesBody() {
     const q = notesQuery.trim().toLowerCase();
     const html = STAGES.map(s => {
-      const items = stageTasks(s.n).filter(t => !q || (t.title + ' ' + t.learn + ' ' + (t.example ? t.example.src : '')).toLowerCase().includes(q));
+      const items = stageTasks(s.n).filter(t => t.type !== 'quiz').filter(t => !q || (t.title + ' ' + t.learn + ' ' + (t.example ? t.example.src : '')).toLowerCase().includes(q));
       if (!items.length) return '';
       return `<section class="nstage"><h3>Stage ${s.n} · ${esc(s.title)}</h3>${items.map(t => `<div class="nitem"><h4>${esc(t.title)}</h4><p>${fmt(t.learn)}</p>${t.example ? `<pre class="snip"><code>${hl(t.example.src, t.example.lang)}</code></pre>` : ''}<div><button type="button" class="btn small" data-task="${t.id}">Open this task</button></div></div>`).join('')}</section>`;
     }).join('');
     return html || '<p class="lede">Nothing matches. Try a shorter word.</p>';
+  }
+
+  const quizPicks = {};
+  function quizViewHtml(t) {
+    const ts = stageTasks(t.stage), k = ts.indexOf(t);
+    const prev = TASKS[t.i - 1], next = TASKS[t.i + 1];
+    return `<div class="work">
+      <section class="brief" aria-labelledby="tt">
+        <div class="pills" id="pills" aria-label="Tasks in stage ${t.stage}"></div>
+        <span class="eyebrow">Stage ${t.stage} · Quiz ${k + 1} of ${ts.length}<span class="solved-tag" id="solvedTag"></span></span>
+        <h2 id="tt">${esc(t.title)}</h2>
+        <div class="learn"><h3>How it works</h3><p>${fmt(t.learn)}</p></div>
+        <div class="taskbox"><span class="lab">Score</span><p id="qscore" aria-live="polite"></p><div><button type="button" class="btn small" id="quizReset">Start again</button></div></div>
+        <div class="prevnext">${prev ? `<button type="button" class="btn" data-task="${prev.id}">← Previous</button>` : '<span></span>'}${next ? `<button type="button" class="btn dark" data-task="${next.id}">Next →</button>` : ''}</div>
+      </section>
+      <section class="bench" aria-label="Questions"><div class="qlist" id="qlist"></div><div id="result" hidden></div></section>
+    </div>`;
+  }
+  const isRight = (q, picks) => (picks || []).some(o => q.options[o] === q.answer);
+  function renderQuiz(t) {
+    const picks = quizPicks[t.id] || (quizPicks[t.id] = {});
+    $('qlist').innerHTML = t.questions.map((q, i) => {
+      const tried = picks[i] || [], right = isRight(q, tried);
+      const opts = q.options.map((o, oi) => {
+        const chosen = tried.includes(oi);
+        return `<button type="button" class="opt${chosen ? (o === q.answer ? ' right' : ' wrong') : ''}" data-qt="${t.id}" data-q="${i}" data-o="${oi}"${right || chosen ? ' disabled' : ''}>${esc(o)}</button>`;
+      }).join('');
+      const msg = right ? `<p class="why ok" id="why-${i}" tabindex="-1"><b>Right.</b> ${fmt(q.why)}</p>`
+        : tried.length ? `<p class="why no" id="why-${i}" tabindex="-1"><b>Not quite.</b> Try another answer.</p>` : '';
+      const code = q.code ? `<pre class="snip"><code>${q.lang === 'text' ? esc(q.code) : hl(q.code, q.lang || 'js')}</code></pre>` : '';
+      return `<div class="qcard"><p class="qn">Question ${i + 1} of ${t.questions.length}</p><p class="qq">${fmt(q.q)}</p>${code}<div class="opts" role="group" aria-label="Answers for question ${i + 1}">${opts}</div>${msg}</div>`;
+    }).join('');
+    const n = t.questions.filter((q, i) => isRight(q, picks[i])).length;
+    const first = t.questions.filter((q, i) => picks[i] && q.options[picks[i][0]] === q.answer).length;
+    $('qscore').textContent = `${n} / ${t.questions.length} right${n ? ` · ${first} on the first try` : ''}`;
+    return n === t.questions.length;
+  }
+  function pickAnswer(t, qi, oi) {
+    const picks = quizPicks[t.id] || (quizPicks[t.id] = {});
+    (picks[qi] = picks[qi] || []).push(oi);
+    const all = renderQuiz(t);
+    const why = $('why-' + qi); if (why) why.focus({ preventScroll: true });
+    if (!all) return;
+    if (!store.done[t.id]) { edit(() => { store.done[t.id] = isoDay(new Date()); }); renderStages(); renderPills(); renderOverall(); }
+    showResult(t, true, [{ ok: true, msg: 'Every question is right' }]);
+  }
+
+  let refQuery = '';
+  function refHtml() {
+    return `<div class="notes-view">
+      <div class="brief"><span class="eyebrow">The JavaScript you will use again and again</span><h2 id="tt">Must-know JS</h2>
+        <p class="lede">Learn the first four groups well: they are what the web tasks use. Every result in the Strings, Arrays, Numbers and Objects groups comes from running that line. Search for a name, for example <code>split</code> or <code>event</code>.</p>
+        <label class="sr" for="refQ">Search the reference</label><input class="search" id="refQ" type="search" placeholder="Search, for example split" value="${esc(refQuery)}"></div>
+      <div id="refBody" style="display:grid;gap:26px">${refBody()}</div>
+    </div>`;
+  }
+  function refBody() {
+    const q = refQuery.trim().toLowerCase();
+    const html = REF.map(g => {
+      const rows = g.rows.filter(r => !q || [g.title, r.c, r.s, r.d, r.n].join(' ').toLowerCase().includes(q));
+      if (!rows.length) return '';
+      return `<section class="nstage"><h3>${esc(g.title)}</h3><div class="reftable">${rows.map(r => {
+        const out = r.d ? `<span>${esc(r.d)}</span>`
+          : `<span><span class="lbl">${r.show ? esc(r.show) + ' is now' : r.prints ? 'prints' : 'gives'}</span> <code>${esc(r.r)}</code></span>${r.n ? `<span class="refn">${esc(r.n)}</span>` : ''}`;
+        return `<div class="refrow"><pre class="refcode"><code>${hl((r.s ? r.s + '\n' : '') + r.c, 'js')}</code></pre><div class="refout">${out}</div></div>`;
+      }).join('')}</div></section>`;
+    }).join('');
+    return html || '<p class="lede">Nothing matches. Try a shorter word.</p>';
+  }
+  function openRef() {
+    ui.task = 'ref'; saveUi();
+    $('view').innerHTML = refHtml();
+    renderStages(); renderOverall();
+    freshPreviewCleanup(); pv = null;
   }
 
   function showTab(tab) {
@@ -1819,7 +2750,15 @@ book.addEventListener("click", function () {
 
   async function openTask(id, opts) {
     const t = BYID[id] || TASKS[0];
+    if (ui.task !== t.id) { STORES.local.clear(); STORES.session.clear(); }
     ui.task = t.id; saveUi();
+    if (t.type === 'quiz') {
+      freshPreviewCleanup(); pv = null; buf = null;
+      $('view').innerHTML = quizViewHtml(t);
+      renderStages(); renderPills(); renderOverall(); renderQuiz(t);
+      if (opts && opts.scroll) { const top = $('view').getBoundingClientRect().top; if (top < 0) $('view').scrollIntoView({ block: 'start' }); }
+      return;
+    }
     buf = codeFor(t);
     $('view').innerHTML = taskHtml(t);
     renderStages(); renderPills(); renderOverall();
@@ -1832,7 +2771,7 @@ book.addEventListener("click", function () {
     ui.task = 'notes'; saveUi();
     $('view').innerHTML = notesHtml();
     renderStages(); renderOverall();
-    pv = pv && (freshPreviewCleanup(), null);
+    freshPreviewCleanup(); pv = null;
   }
   function freshPreviewCleanup() { if (pv) { pv.timers.forEach(id => clearTimeout(id)); pv.intervals.forEach(id => clearInterval(id)); pv.winListeners.forEach(([t, f, o]) => window.removeEventListener(t, f, o)); } }
 
@@ -1840,7 +2779,7 @@ book.addEventListener("click", function () {
     lastRunSig = sig(buf);
     updateDirty();
     $('result').hidden = true;
-    await runCode({ ...buf });
+    await runCode({ ...buf }, { exports: (curTask() || {}).exports });
   }
 
   async function check() {
@@ -1855,7 +2794,7 @@ book.addEventListener("click", function () {
     }
     $('checkBtn').disabled = true;
     lastRunSig = sig(files); updateDirty();
-    await runCode(files);
+    await runCode(files, { exports: t.exports });
     await wait(60);
     const results = [];
     let pass = false;
@@ -1916,10 +2855,14 @@ ${close}
     const st = e.target.closest('[data-stage]');
     if (st) {
       if (st.dataset.stage === 'notes') { openNotes(); return; }
+      if (st.dataset.stage === 'ref') { openRef(); return; }
       const n = Number(st.dataset.stage);
       const first = stageTasks(n).find(t => !store.done[t.id]) || stageTasks(n)[0];
       openTask(first.id, { scroll: true }); return;
     }
+    const qo = e.target.closest('[data-qt]');
+    if (qo) { pickAnswer(BYID[qo.dataset.qt], Number(qo.dataset.q), Number(qo.dataset.o)); return; }
+    if (e.target.id === 'quizReset') { const t = curTask(); quizPicks[t.id] = {}; renderQuiz(t); $('result').hidden = true; return; }
     const tk = e.target.closest('[data-task]');
     if (tk) { openTask(tk.dataset.task, { scroll: true }); return; }
     const tab = e.target.closest('[data-tab]');
@@ -1950,6 +2893,9 @@ ${close}
       buf[ui.tab] = e.target.value;
       updateDirty();
       saveCode();
+    } else if (e.target.id === 'refQ') {
+      refQuery = e.target.value;
+      $('refBody').innerHTML = refBody();
     } else if (e.target.id === 'notesQ') {
       notesQuery = e.target.value;
       $('notesBody').innerHTML = notesBody();
@@ -2029,6 +2975,7 @@ ${close}
       b.innerHTML = 'This app view does not let typed JavaScript run. The HTML and CSS stages work fully here. For the JavaScript stages, write your code here, press <b>Copy as one file</b>, and run it on your laptop in Chrome.';
     }
     if (ui.task === 'notes') openNotes();
+    else if (ui.task === 'ref') openRef();
     else openTask(BYID[ui.task] ? ui.task : (TASKS.find(t => !store.done[t.id]) || TASKS[0]).id);
     connect();
   }
