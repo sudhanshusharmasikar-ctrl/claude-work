@@ -2254,6 +2254,272 @@ form.addEventListener("submit", function (event) {
       } },
     ] },
 
+  { id: 'rr-password', stage: 10, timed: true, title: 'Show / hide password', files: ['html', 'css', 'js'],
+    learn: 'An input’s `type` is a property you can change like any other: `pwd.type = "text"` shows the letters and `pwd.type = "password"` hides them again. Check which one it is now with `if (pwd.type === "password")`, and change the button text at the same time.',
+    example: { lang: 'js', src: `const box = document.getElementById("pin");
+console.log(box.type);   // "password"
+box.type = "text";       // the letters are visible now` },
+    task: 'Task 1 (index.html): add a button with id **toggle** and the text **Show** next to the password box, where the TODO is.\nTask 2 (style.css): make **.hint** grey (**#666**) and **13px**, and give **#toggle** a **pointer** cursor.\nTask 3 (script.js): clicking **#toggle** switches the password box between hidden and visible. The button says **Hide** while the password is visible and **Show** while it is hidden.',
+    html: `<div class="login">
+  <h2>Login</h2>
+  <label for="pwd">Password</label>
+  <div class="row">
+    <input id="pwd" type="password" value="secret123">
+    \x3C!-- TODO 1: add a button with id="toggle" and the text "Show" -->
+  </div>
+  <p class="hint">Use at least 8 characters.</p>
+</div>`,
+    css: `body {
+  font-family: Arial, sans-serif;
+}
+.login {
+  max-width: 300px;
+  padding: 16px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+.row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+#pwd {
+  flex: 1;
+  padding: 8px;
+}
+
+/* TODO 2: make .hint grey (#666) and 13px, and give #toggle a pointer cursor */
+`,
+    js: `const pwd = document.getElementById("pwd");
+
+// TODO 3: clicking #toggle switches the password box between type "password" and "text".
+// The button says "Hide" while the password is visible and "Show" while it is hidden.
+`,
+    hint: 'Task 1: `<button id="toggle">Show</button>` after the input.\nTask 2: `.hint { color: #666; font-size: 13px; }` and `#toggle { cursor: pointer; }`\nTask 3: a click listener with `if (pwd.type === "password") { pwd.type = "text"; toggle.textContent = "Hide"; } else { ... }`.',
+    sol: { html: `<div class="login">
+  <h2>Login</h2>
+  <label for="pwd">Password</label>
+  <div class="row">
+    <input id="pwd" type="password" value="secret123">
+    <button id="toggle">Show</button>
+  </div>
+  <p class="hint">Use at least 8 characters.</p>
+</div>`, css: `body {
+  font-family: Arial, sans-serif;
+}
+.login {
+  max-width: 300px;
+  padding: 16px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+.row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+#pwd {
+  flex: 1;
+  padding: 8px;
+}
+
+.hint {
+  color: #666;
+  font-size: 13px;
+}
+#toggle {
+  cursor: pointer;
+}`, js: `const pwd = document.getElementById("pwd");
+const toggle = document.getElementById("toggle");
+
+toggle.addEventListener("click", function () {
+  if (pwd.type === "password") {
+    pwd.type = "text";
+    toggle.textContent = "Hide";
+  } else {
+    pwd.type = "password";
+    toggle.textContent = "Show";
+  }
+});` },
+    parts: [
+      { name: 'Task 1 · index.html', check: async t => {
+        const b = t.$('#toggle'); t.need(b, 'There is an element with id="toggle"');
+        t.eq(b.tagName.toLowerCase(), 'button', 'It is a <button>');
+        t.eq(t.text(b), 'Show', 'Its text is "Show"');
+        t.need(b.closest('.row'), 'It is next to the password box, where the TODO was');
+      } },
+      { name: 'Task 2 · style.css', check: async t => {
+        const h = t.$('.hint');
+        t.eq(t.css(h, 'color'), 'rgb(102, 102, 102)', '.hint is #666');
+        t.eq(t.css(h, 'font-size'), '13px', 'and 13px');
+        t.need(t.$('#toggle'), 'The #toggle button from Task 1 is needed to test its cursor');
+        t.eq(t.css(t.$('#toggle'), 'cursor'), 'pointer', '#toggle has a pointer cursor');
+      } },
+      { name: 'Task 3 · script.js', check: async t => {
+        const b = t.$('#toggle'), p = t.$('#pwd'); t.need(b, 'The #toggle button from Task 1 is needed to test this part');
+        await t.click(b);
+        t.eq(p.type, 'text', 'One click shows the password (type becomes "text")');
+        t.eq(t.text(b), 'Hide', 'and the button says "Hide"');
+        await t.click(b);
+        t.eq(p.type, 'password', 'A second click hides it again (type "password")');
+        t.eq(t.text(b), 'Show', 'and the button says "Show"');
+      } },
+    ] },
+
+  { id: 'rr-todo', stage: 10, timed: true, title: 'To-do list with delete', files: ['html', 'css', 'js'],
+    learn: 'Instead of one listener per Delete button, put **one** listener on the whole list. `event.target` is the element that was actually clicked. If it has the class delete, `event.target.parentElement` is its `<li>`, and `.remove()` deletes it. This also works for tasks added later, because their clicks reach the list too.',
+    example: { lang: 'js', src: `list.addEventListener("click", function (event) {
+  console.log(event.target.textContent);   // what was clicked
+});` },
+    task: 'Task 1 (index.html): add a second task **Mock test** in the same format as the first, with its own Delete button.\nTask 2 (style.css): in each task line, put the text on the **left** and the Delete button on the **right**, and make **.delete** red (**#dc2626**) with **white** text.\nTask 3 (script.js): clicking any Delete button, for old or new tasks, removes its task and updates the count.',
+    html: `<h2>Today's plan</h2>
+<div class="add">
+  <input id="task" placeholder="New task">
+  <button id="add">Add</button>
+</div>
+<ul id="list">
+  <li>Revise arrays <button class="delete">Delete</button></li>
+  \x3C!-- TODO 1: add a second task "Mock test" in the same format, with its own Delete button -->
+</ul>
+<p id="count"></p>`,
+    css: `body {
+  font-family: Arial, sans-serif;
+}
+.add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+#list {
+  padding: 0;
+  list-style: none;
+}
+#list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+/* TODO 2: text on the left and Delete on the right of each line (hint: flex on the li),
+   and make .delete red (#dc2626) with white text */
+`,
+    js: `const list = document.getElementById("list");
+const input = document.getElementById("task");
+
+function updateCount() {
+  document.getElementById("count").textContent = list.children.length + " tasks";
+}
+
+document.getElementById("add").addEventListener("click", function () {
+  if (input.value.trim() === "") return;
+  const li = document.createElement("li");
+  const del = document.createElement("button");
+  del.className = "delete";
+  del.textContent = "Delete";
+  li.textContent = input.value.trim() + " ";
+  li.appendChild(del);
+  list.appendChild(li);
+  input.value = "";
+  updateCount();
+});
+
+// TODO 3: clicking any Delete button (old or new) removes its task and updates the count.
+// Tip: one click listener on #list; event.target is the element that was clicked.
+
+updateCount();
+`,
+    hint: 'Task 1: `<li>Mock test <button class="delete">Delete</button></li>`.\nTask 2: add `display: flex; justify-content: space-between; align-items: center;` to `#list li`, and `.delete { background: #dc2626; color: white; }`.\nTask 3: `list.addEventListener("click", function (event) { if (event.target.classList.contains("delete")) { event.target.parentElement.remove(); updateCount(); } });`',
+    sol: { html: `<h2>Today's plan</h2>
+<div class="add">
+  <input id="task" placeholder="New task">
+  <button id="add">Add</button>
+</div>
+<ul id="list">
+  <li>Revise arrays <button class="delete">Delete</button></li>
+  <li>Mock test <button class="delete">Delete</button></li>
+</ul>
+<p id="count"></p>`, css: `body {
+  font-family: Arial, sans-serif;
+}
+.add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+#list {
+  padding: 0;
+  list-style: none;
+}
+#list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+}`, js: `const list = document.getElementById("list");
+const input = document.getElementById("task");
+
+function updateCount() {
+  document.getElementById("count").textContent = list.children.length + " tasks";
+}
+
+document.getElementById("add").addEventListener("click", function () {
+  if (input.value.trim() === "") return;
+  const li = document.createElement("li");
+  const del = document.createElement("button");
+  del.className = "delete";
+  del.textContent = "Delete";
+  li.textContent = input.value.trim() + " ";
+  li.appendChild(del);
+  list.appendChild(li);
+  input.value = "";
+  updateCount();
+});
+
+list.addEventListener("click", function (event) {
+  if (event.target.classList.contains("delete")) {
+    event.target.parentElement.remove();
+    updateCount();
+  }
+});
+
+updateCount();` },
+    parts: [
+      { name: 'Task 1 · index.html', check: async t => {
+        const lis = t.$$('#list li'); t.eq(lis.length, 2, 'The list has 2 tasks');
+        t.eq(t.text(lis[1]).replace(/\s*Delete$/, ''), 'Mock test', 'The second task is "Mock test"');
+        const b = lis[1].querySelector('button.delete');
+        t.need(b && t.text(b) === 'Delete', 'It has its own <button class="delete">Delete</button>');
+      } },
+      { name: 'Task 2 · style.css', check: async t => {
+        const li = t.$('#list li'), del = li.querySelector('.delete');
+        t.eq(t.css(li, 'display'), 'flex', 'Each task line uses display: flex');
+        const gap = t.contentRect(li).right - t.rect(del).right;
+        t.need(Math.abs(gap) < 2, 'The Delete button sits at the right end of the line', `${Math.round(gap)}px from the right`);
+        t.eq(t.css(del, 'background-color'), 'rgb(220, 38, 38)', '.delete is #dc2626');
+        t.eq(t.color(del, 'color'), 'white', 'with white text');
+      } },
+      { name: 'Task 3 · script.js', check: async t => {
+        const count = () => t.$$('#list li').length, names = () => t.$$('#list li').map(li => t.text(li).replace(/\s*Delete$/, ''));
+        const n0 = count();
+        await t.click(t.$('#list .delete'));
+        t.eq(count(), n0 - 1, 'Clicking the first Delete removes that task');
+        t.need(!names().includes('Revise arrays'), '"Revise arrays" is gone');
+        t.eq(t.text(t.$('#count')), `${n0 - 1} tasks`, 'and the count updates');
+        await t.type(t.$('#task'), 'Read notes'); await t.click(t.$('#add'));
+        const last = t.$$('#list li').pop();
+        await t.click(last.querySelector('.delete'));
+        t.need(!names().includes('Read notes'), 'The Delete button of a newly added task works too');
+        t.eq(t.text(t.$('#count')), `${n0 - 1} tasks`, 'and the count is right again');
+      } },
+    ] },
+
   { id: 'rr-accordion', stage: 10, timed: true, title: 'FAQ accordion', files: ['html', 'css', 'js'],
     learn: 'Copy the structure of an existing item exactly when the task says "in the same format". In CSS, `.faq.open .answer` (a space before .answer) means "an .answer inside a .faq that also has class open". In JavaScript, `q.parentElement` is the element around q; remember whether it was open, close all items, then open this one if it was closed.',
     example: { lang: 'js', src: `document.querySelectorAll(".item").forEach(function (el) {
@@ -2726,6 +2992,260 @@ btn.addEventListener("click", function () {
       } },
     ] },
 
+  { id: 'rr-cards', stage: 10, timed: true, title: 'Card grid with hover', files: ['html', 'css', 'js'],
+    learn: '`grid-template-columns: repeat(3, 1fr)` makes 3 equal columns. For a hover effect, write a `:hover` rule: `transform: translateY(-4px)` lifts the card 4px and `box-shadow` adds a shadow; the existing `transition` line makes it smooth. In JavaScript, `card.textContent` is the text of the clicked card.',
+    example: { lang: 'css', src: `.tile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}` },
+    task: 'Task 1 (index.html): add a sixth card **Git and GitHub** in the same format.\nTask 2 (style.css): make **.grid** a grid with **3** equal columns and a **16px** gap. On hover, a card moves up **4px** and gets a shadow.\nTask 3 (script.js): clicking a card shows **You picked: COURSE** in **#picked** and gives only that card the class **picked**.',
+    html: `<h2>Popular courses</h2>
+<div class="grid">
+  <div class="card">HTML basics</div>
+  <div class="card">CSS layouts</div>
+  <div class="card">JavaScript DOM</div>
+  <div class="card">SQL queries</div>
+  <div class="card">Python DSA</div>
+  \x3C!-- TODO 1: add a sixth card "Git and GitHub" in the same format -->
+</div>
+<p id="picked">Click a course to pick it.</p>`,
+    css: `body {
+  font-family: Arial, sans-serif;
+}
+.card {
+  padding: 18px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.card.picked {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+/* TODO 2: make .grid a grid with 3 equal columns and a 16px gap.
+   On hover, a card moves up 4px (transform: translateY(-4px))
+   and gets a shadow (box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15)) */
+`,
+    js: `// TODO 3: clicking a card shows "You picked: COURSE" in #picked
+// and gives only that card the class "picked"
+`,
+    hint: 'Task 1: `<div class="card">Git and GitHub</div>`.\nTask 2: `.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }` and a `.card:hover` rule with the two lines from the note.\nTask 3: loop over `document.querySelectorAll(".card")`; in each click listener remove "picked" from all cards, add it to this one, and set the #picked text.',
+    sol: { html: `<h2>Popular courses</h2>
+<div class="grid">
+  <div class="card">HTML basics</div>
+  <div class="card">CSS layouts</div>
+  <div class="card">JavaScript DOM</div>
+  <div class="card">SQL queries</div>
+  <div class="card">Python DSA</div>
+  <div class="card">Git and GitHub</div>
+</div>
+<p id="picked">Click a course to pick it.</p>`, css: `body {
+  font-family: Arial, sans-serif;
+}
+.card {
+  padding: 18px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.card.picked {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}`, js: `const cards = document.querySelectorAll(".card");
+
+cards.forEach(function (card) {
+  card.addEventListener("click", function () {
+    cards.forEach(c => c.classList.remove("picked"));
+    card.classList.add("picked");
+    document.getElementById("picked").textContent = "You picked: " + card.textContent;
+  });
+});` },
+    parts: [
+      { name: 'Task 1 · index.html', check: async t => {
+        const cs = t.$$('.grid .card'); t.eq(cs.length, 6, 'There are 6 cards');
+        t.eq(t.text(cs[5]), 'Git and GitHub', 'The sixth card is "Git and GitHub"');
+      } },
+      { name: 'Task 2 · style.css', check: async t => {
+        const g = t.$('.grid');
+        t.eq(t.css(g, 'display'), 'grid', '.grid has display: grid');
+        t.eq(t.css(g, 'grid-template-columns').trim().split(/\s+/).length, 3, 'It has 3 columns');
+        t.eq(t.css(g, 'column-gap'), '16px', 'The gap is 16px');
+        const card = t.$('.card');
+        const tr = t.hoverValue(card, 'transform'), sh = t.hoverValue(card, 'box-shadow');
+        t.need(/-4px/.test(tr), 'On hover a card moves up 4px (transform: translateY(-4px))', tr || 'no :hover rule for .card');
+        t.need(sh && sh !== 'none', 'On hover a card gets a box-shadow', sh || 'no box-shadow in the :hover rule');
+      } },
+      { name: 'Task 3 · script.js', check: async t => {
+        const cs = t.$$('.card');
+        await t.click(cs[1]);
+        t.eq(t.text(t.$('#picked')), 'You picked: CSS layouts', 'Clicking "CSS layouts" shows "You picked: CSS layouts"');
+        t.need(cs[1].classList.contains('picked'), 'and that card gets the class picked');
+        await t.click(cs[0]);
+        t.need(cs[0].classList.contains('picked') && !cs[1].classList.contains('picked'), 'Clicking another card moves the class picked to it');
+      } },
+    ] },
+
+  { id: 'rr-navbar', stage: 10, timed: true, title: 'Responsive navbar', files: ['html', 'css', 'js'],
+    learn: '`@media (max-width: 600px) { ... }` applies the rules inside only when the screen is 600px wide or less, so phones get a different layout. Put it at the end of the CSS file and repeat only the properties that change. In this preview the media query follows the width of the preview box; Check tests the page at 800px and at 400px wide. For links, `event.preventDefault()` stops the browser from following the link.',
+    example: { lang: 'css', src: `@media (max-width: 600px) {
+  .menu {
+    flex-direction: column;
+  }
+}` },
+    task: 'Task 1 (index.html): add a fourth link **Contact** in the same format as the others.\nTask 2 (style.css): on screens **600px** wide or less, stack the nav (**flex-direction: column**, **align-items: flex-start**) and stack the links (**flex-direction: column**, **gap: 8px**).\nTask 3 (script.js): when a link is clicked, call **event.preventDefault()**, give that link the class **active** and remove it from the other links.',
+    html: `<nav class="nav">
+  <div class="logo">CareerHub</div>
+  <ul class="links">
+    <li><a href="#">Jobs</a></li>
+    <li><a href="#">Courses</a></li>
+    <li><a href="#">Login</a></li>
+    \x3C!-- TODO 1: add a fourth link "Contact" in the same format -->
+  </ul>
+</nav>
+<main>
+  <p>On narrow screens the links should stack under the logo.</p>
+</main>`,
+    css: `body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #1f2a44;
+  color: white;
+}
+.links {
+  display: flex;
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.links a {
+  color: white;
+  text-decoration: none;
+}
+.links a.active {
+  border-bottom: 2px solid #f59e0b;
+}
+main {
+  padding: 16px;
+}
+
+/* TODO 2: on screens 600px wide or less (@media (max-width: 600px)):
+   stack the nav (flex-direction: column; align-items: flex-start)
+   and stack the links (flex-direction: column; gap: 8px) */
+`,
+    js: `const links = document.querySelectorAll(".links a");
+
+// TODO 3: when a link is clicked, call event.preventDefault(),
+// give that link the class "active" and remove "active" from the other links.
+`,
+    hint: 'Task 1: `<li><a href="#">Contact</a></li>`.\nTask 2: one `@media (max-width: 600px) { ... }` block with a `.nav { ... }` rule and a `.links { ... }` rule inside.\nTask 3: `links.forEach(function (link) { link.addEventListener("click", function (event) { ... }); });` with preventDefault, a loop that removes "active", and `link.classList.add("active")`.',
+    sol: { html: `<nav class="nav">
+  <div class="logo">CareerHub</div>
+  <ul class="links">
+    <li><a href="#">Jobs</a></li>
+    <li><a href="#">Courses</a></li>
+    <li><a href="#">Login</a></li>
+    <li><a href="#">Contact</a></li>
+  </ul>
+</nav>
+<main>
+  <p>On narrow screens the links should stack under the logo.</p>
+</main>`, css: `body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #1f2a44;
+  color: white;
+}
+.links {
+  display: flex;
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.links a {
+  color: white;
+  text-decoration: none;
+}
+.links a.active {
+  border-bottom: 2px solid #f59e0b;
+}
+main {
+  padding: 16px;
+}
+
+@media (max-width: 600px) {
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .links {
+    flex-direction: column;
+    gap: 8px;
+  }
+}`, js: `const links = document.querySelectorAll(".links a");
+
+links.forEach(function (link) {
+  link.addEventListener("click", function (event) {
+    event.preventDefault();
+    links.forEach(l => l.classList.remove("active"));
+    link.classList.add("active");
+  });
+});` },
+    parts: [
+      { name: 'Task 1 · index.html', check: async t => {
+        const as = t.$$('.links li a'); t.eq(as.length, 4, 'There are 4 links, each inside an <li>');
+        t.eq(t.text(as[3]), 'Contact', 'The fourth link is "Contact"');
+      } },
+      { name: 'Task 2 · style.css', check: async t => {
+        const nav = t.$('.nav'), links = t.$('.links');
+        t.setWidth(800);
+        t.eq(t.css(nav, 'flex-direction'), 'row', 'At 800px wide the nav stays in one row');
+        t.eq(t.css(links, 'flex-direction'), 'row', 'and the links stay in a row');
+        t.setWidth(400);
+        t.eq(t.css(nav, 'flex-direction'), 'column', 'At 400px wide the nav is stacked (flex-direction: column)');
+        t.eq(t.css(nav, 'align-items'), 'flex-start', 'with align-items: flex-start');
+        t.eq(t.css(links, 'flex-direction'), 'column', 'and the links are stacked too');
+        t.eq(t.css(links, 'row-gap'), '8px', 'with an 8px gap');
+        t.setWidth(null);
+      } },
+      { name: 'Task 3 · script.js', check: async t => {
+        const as = t.$$('.links a');
+        await t.click(as[1]);
+        t.need(as[1].classList.contains('active'), 'Clicking "Courses" gives it the class active');
+        t.need(t.lastLinkPrevented(), 'and the listener calls event.preventDefault()');
+        await t.click(as[0]);
+        t.need(as[0].classList.contains('active') && !as[1].classList.contains('active'), 'Clicking "Jobs" moves active to Jobs');
+      } },
+    ] },
+
   { id: 'rr-notes', stage: 10, timed: true, title: 'Notes that stay after reload', files: ['html', 'css', 'js'],
     learn: 'localStorage only stores text. `JSON.stringify(array)` turns an array into text to save, and `JSON.parse(text)` turns it back into an array. `JSON.parse(localStorage.getItem("notes")) || []` gives the saved array, or an empty one when nothing was saved. In this preview, Run acts like reloading the page.',
     example: { lang: 'js', src: `const list = ["a", "b"];
@@ -2989,11 +3509,13 @@ setInterval(updateClock, 1000);` },
       { c: 'el.setAttribute("src", "team.png")', d: 'set any attribute; el.getAttribute("href") reads one' },
       { c: 'btn.disabled = true', d: 'grey a button out; false enables it again' },
       { c: 'box.checked', d: 'true when a checkbox is ticked' },
+      { c: 'pwd.type = "text"', d: 'change an input’s type, for example to show a password' },
     ] },
     { title: 'Create and remove elements', rows: [
       { c: 'const li = document.createElement("li")', d: 'a new element that is not on the page yet' },
       { c: 'list.appendChild(li)', d: 'add it as the last child of list (list.append(li) works too)' },
       { c: 'li.remove()', d: 'delete the element from the page' },
+      { c: 'btn.parentElement', d: 'the element around btn, for example the <li> that holds a Delete button' },
     ] },
     { title: 'Events', rows: [
       { c: 'btn.addEventListener("click", function () { ... })', d: 'run code on every click; pass a function name without ()' },
@@ -3247,17 +3769,19 @@ setInterval(updateClock, 1000);` },
   /* ======================= Preview runner ======================= */
   // The preview is a shadow root standing in for a page. Your JavaScript runs with
   // document, window, alert and console pointed at it, so it cannot touch this app.
-  const BASE_PV = `:host { all: initial; display: block; }
+  const BASE_PV = `:host { all: initial; display: block; container-type: inline-size; }
 .pv-body { display: block; box-sizing: border-box; min-height: 100%; margin: 0; padding: 12px; background: #fff; color: #111; font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }`;
   let RUNNER = 'unknown', progSeq = 0, compiling = false;
   let shadow = null, pvBody = null, pv = null;
 
   const mapSel = s => String(s).replace(/(^|[\s,>+~(])(html|body|:root)(?=$|[\s,.:#[>+~)])/gi, (m, a, b) => a + (b.toLowerCase() === 'body' ? '.pv-body' : ':host'));
-  const mapCss = css => String(css || '').replace(/<\/style/gi, '').replace(/([^{}]+)\{/g, (m, sel) => mapSel(sel) + '{');
+  // Width media queries become container queries on the preview box, so "the screen" is the preview.
+  const mapMedia = css => css.replace(/@media([^{]*)\{/gi, (m, cond) => /width/i.test(cond) ? '@container ' + cond.replace(/\b(only\s+)?(screen|all)\s+and\s+/gi, '').trim() + ' {' : m);
+  const mapCss = css => mapMedia(String(css || '').replace(/<\/style/gi, '')).replace(/([^{}]+)\{/g, (m, sel) => mapSel(sel) + '{');
 
   function freshPreview() {
     if (pv) { pv.timers.forEach(id => clearTimeout(id)); pv.intervals.forEach(id => clearInterval(id)); pv.winListeners.forEach(([t, f, o]) => window.removeEventListener(t, f, o)); }
-    pv = { timers: new Set(), intervals: new Set(), winListeners: [], loadQueue: [], submits: [], exports: {} };
+    pv = { timers: new Set(), intervals: new Set(), winListeners: [], loadQueue: [], submits: [], linkClicks: [], exports: {} };
     const slot = $('pvSlot');
     if (!slot) return false;
     const host = document.createElement('div');
@@ -3463,7 +3987,9 @@ setInterval(updateClock, 1000);` },
     });
     shadow.addEventListener('click', e => {
       const a = e.target.closest && e.target.closest('a[href]');
-      if (!a || e.defaultPrevented) return;
+      if (!a) return;
+      cur.linkClicks.push(e.defaultPrevented);
+      if (e.defaultPrevented) return;
       e.preventDefault();
       const href = a.getAttribute('href');
       if (href && href !== '#') addConsole('log', [`Link clicked: ${href}${a.getAttribute('target') === '_blank' ? ' (opens in a new tab on a real page)' : ''}`], 'info');
@@ -3595,6 +4121,19 @@ setInterval(updateClock, 1000);` },
       rerun: async at => { await runCode(files, { at, exports: task.exports }); await wait(50); },
       lastSubmitPrevented: () => pv.submits.length > 0 && pv.submits[pv.submits.length - 1] === true,
       clearStorage: () => { STORES.local.clear(); STORES.session.clear(); },
+      lastLinkPrevented: () => pv.linkClicks.length > 0 && pv.linkClicks[pv.linkClicks.length - 1] === true,
+      setWidth: w => { shadow.host.style.width = w ? w + 'px' : ''; void shadow.host.offsetWidth; },
+      hoverValue: (el, p) => {
+        for (const sheet of shadow.styleSheets) {
+          let rules; try { rules = sheet.cssRules; } catch (e) { continue; }
+          for (const r of rules) {
+            if (!r.selectorText || !r.selectorText.includes(':hover')) continue;
+            let hit = false; try { hit = el.matches(r.selectorText.replace(/:hover/g, '')); } catch (e) { hit = false; }
+            if (hit && r.style.getPropertyValue(p)) return r.style.getPropertyValue(p);
+          }
+        }
+        return '';
+      },
       key: async (el, k) => {
         t.present(el, 'The box is missing from the page. Did its id change?');
         const code = k === 'Enter' ? 13 : k.toUpperCase().charCodeAt(0);

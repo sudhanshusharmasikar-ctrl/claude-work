@@ -66,7 +66,7 @@ quiz and drill with Python and stops if any answer is wrong. To rebuild:
 
 ## Web Round Drills (HTML, CSS, JavaScript)
 
-**`web-round/web-round-drills.html`** (published as a private claude.ai artifact) has 69 small tasks of the kind asked
+**`web-round/web-round-drills.html`** (published as a private claude.ai artifact) has 73 small tasks of the kind asked
 in online rounds, for someone starting from zero. There are 10 stages:
 
 1. HTML basics
@@ -78,7 +78,7 @@ in online rounds, for someone starting from zero. There are 10 stages:
 7. Functions to write and test: reverse, vowels, palindrome, sum, max, filter, capitalise, duplicates, character count
 8. Lists, data and layouts: render an array, fill a table, live search, cart total, numeric sort, Enter key, localStorage, a nav bar, a validated feedback form
 9. Five multiple-choice quizzes on HTML, CSS and JavaScript output
-10. Real-round format: 8 small finished pages (search, sign-up, accordion, tabs, slider, dark mode, saved notes, clock), each with a TODO in index.html, style.css and script.js. Check scores each of the three parts separately, and there is an optional 20-minute timer.
+10. Real-round format: 12 small finished pages (search, sign-up, show/hide password, to-do with delete, accordion, tabs, slider, dark mode, card grid with hover, responsive navbar, saved notes, clock), each with a TODO in index.html, style.css and script.js. Check scores each of the three parts separately, and there is an optional 20-minute timer.
 
 Each coding task has a short note with an example, an editor with index.html, style.css and script.js tabs, a live
 preview with a console, a Check button that tests the result, a hint and a solution. A **Must-know JS** tab lists the
@@ -86,7 +86,7 @@ DOM, event, string, array, number, object, date and storage functions used most 
 object results shown there were produced by running each line.
 
 The preview runs your code inside a shadow root with its own `document`, `window`, `alert`, `console` and an in-memory
-`localStorage`. It stops endless loops and fakes the clock, so the date tasks are checked on fixed dates. Progress and
+`localStorage`. It stops endless loops and fakes the clock, so the date tasks are checked on fixed dates. Width media queries follow the preview's width, so a responsive layout can be checked at 800px and 400px. Progress and
 code are saved to your account. A Notes tab collects every note for revision.
 
 ## GenAI, RAG & Agents — Explained Simply
