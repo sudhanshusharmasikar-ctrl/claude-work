@@ -155,6 +155,10 @@ details p { margin: 0; }
 .got { display: block; font: 400 13px var(--f-mono); color: var(--muted); overflow-wrap: anywhere; }
 .tip { display: block; font-size: 14px; color: var(--ink); }
 .result .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.result li.head { margin-top: 6px; font-weight: 700; }
+.result li.head:first-child { margin-top: 0; }
+.timerrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.timer { font: 500 14px var(--f-mono); color: var(--accent); font-variant-numeric: tabular-nums; }
 
 .pv { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
 .pvbar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); font: 500 12px var(--f-mono); color: var(--muted); }
@@ -269,6 +273,7 @@ details p { margin: 0; }
     { n: 7, title: 'JS: functions to know' },
     { n: 8, title: 'JS: lists, data, layouts' },
     { n: 9, title: 'Quick quizzes' },
+    { n: 10, title: 'Real-round format' },
   ];
 
   const FN_PAGE = '<p>This task has no page to change. Your console.log output appears in the console below.</p>';
@@ -1923,6 +1928,1046 @@ p     { color: green; }`, options: ['blue', 'red', 'green', 'black'], answer: 'r
       { q: 'Which line runs showMenu when the button is clicked?', options: ['btn.addEventListener("click", showMenu);', 'btn.addEventListener("click", showMenu());', 'btn.onClick = showMenu;', 'btn.addEventListener("onclick", showMenu);'], answer: 'btn.addEventListener("click", showMenu);', why: 'Pass the function itself, without `()`: with `()` it runs at once. The event is "click", not "onclick", and the property is all lowercase: `onclick`.' },
       { q: 'What does this print?', code: 'const add = (a, b) => a + b;\nconsole.log(add(2, 3));', options: ['5', '23', 'undefined', 'Error'], answer: '5', why: 'An arrow function without braces returns its expression automatically.' },
     ] },
+
+  /* ---------- Stage 10: real-round format (one page, three TODOs, scored per part) ---------- */
+  { id: 'rr-search', stage: 10, timed: true, title: 'Product search page', files: ['html', 'css', 'js'],
+    learn: 'Read all three files first and find the TODO comments; only change what they ask. Useful here: `display: grid` with `grid-template-columns: repeat(3, 1fr)` makes 3 equal columns, and `gap` sets the space between them. `array.filter(...)` keeps the matching products, and the page already has a `render(list)` function that draws whatever list you give it.',
+    example: { lang: 'css', src: `.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}` },
+    task: 'Task 1 (index.html): add the search box where the TODO is: an input with id **search** and placeholder **Search products**.\nTask 2 (style.css): show **#products** as a grid with **3** equal columns and a **12px** gap.\nTask 3 (script.js): as the user types, show only products whose name contains the text (ignore capitals). If nothing matches, show **No products found** in **#empty**; otherwise empty it.',
+    html: `<header class="top">
+  <h1>ShopEasy</h1>
+  \x3C!-- TODO 1: add a search box here: an input with id="search" and placeholder="Search products" -->
+</header>
+
+<main>
+  <div id="products"></div>
+  <p id="empty"></p>
+</main>`,
+    css: `body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #1f2a44;
+  color: white;
+}
+.top h1 {
+  margin: 0;
+  font-size: 22px;
+}
+main {
+  padding: 16px;
+}
+.card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px;
+}
+.card h3 {
+  margin: 0 0 6px;
+}
+.price {
+  margin: 0;
+  color: #c2410c;
+  font-weight: bold;
+}
+
+/* TODO 2: show #products as a grid with 3 equal columns and a 12px gap */
+`,
+    js: `const products = [
+  { name: "Running Shoes", price: 2499 },
+  { name: "Shirt", price: 799 },
+  { name: "Smart Watch", price: 3999 },
+  { name: "Backpack", price: 1299 },
+  { name: "Sunglasses", price: 999 },
+  { name: "Water Bottle", price: 349 }
+];
+
+function render(list) {
+  const box = document.getElementById("products");
+  box.innerHTML = "";
+  list.forEach(function (p) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = "<h3>" + p.name + "</h3><p class='price'>Rs " + p.price + "</p>";
+    box.appendChild(card);
+  });
+}
+
+render(products);
+
+// TODO 3: when the user types in #search, show only the products whose name
+// contains the typed text (ignore capitals). If nothing matches, show
+// "No products found" in #empty; otherwise empty it.
+`,
+    hint: 'Task 1: `<input id="search" placeholder="Search products">` inside the header.\nTask 2: `#products { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }`\nTask 3: an input listener that does `const found = products.filter(p => p.name.toLowerCase().includes(text));`, then `render(found);` and sets #empty.',
+    sol: { html: `<header class="top">
+  <h1>ShopEasy</h1>
+  <input id="search" placeholder="Search products">
+</header>
+
+<main>
+  <div id="products"></div>
+  <p id="empty"></p>
+</main>`, css: `body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #1f2a44;
+  color: white;
+}
+.top h1 {
+  margin: 0;
+  font-size: 22px;
+}
+main {
+  padding: 16px;
+}
+.card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px;
+}
+.card h3 {
+  margin: 0 0 6px;
+}
+.price {
+  margin: 0;
+  color: #c2410c;
+  font-weight: bold;
+}
+
+#products {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}`, js: `const products = [
+  { name: "Running Shoes", price: 2499 },
+  { name: "Shirt", price: 799 },
+  { name: "Smart Watch", price: 3999 },
+  { name: "Backpack", price: 1299 },
+  { name: "Sunglasses", price: 999 },
+  { name: "Water Bottle", price: 349 }
+];
+
+function render(list) {
+  const box = document.getElementById("products");
+  box.innerHTML = "";
+  list.forEach(function (p) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = "<h3>" + p.name + "</h3><p class='price'>Rs " + p.price + "</p>";
+    box.appendChild(card);
+  });
+}
+
+render(products);
+
+document.getElementById("search").addEventListener("input", function () {
+  const text = this.value.toLowerCase();
+  const found = products.filter(p => p.name.toLowerCase().includes(text));
+  render(found);
+  document.getElementById("empty").textContent = found.length === 0 ? "No products found" : "";
+});` },
+    parts: [
+      { name: 'Task 1 · index.html', check: async t => {
+        const s = t.$('#search'); t.need(s, 'There is an element with id="search"');
+        t.eq(s.tagName.toLowerCase(), 'input', 'It is an <input>');
+        t.eq(s.getAttribute('placeholder'), 'Search products', 'Its placeholder is "Search products"');
+        t.need(s.closest('.top'), 'It is inside the header, where the TODO was');
+      } },
+      { name: 'Task 2 · style.css', check: async t => {
+        const p = t.$('#products');
+        t.eq(t.css(p, 'display'), 'grid', '#products has display: grid');
+        t.eq(t.css(p, 'grid-template-columns').trim().split(/\s+/).length, 3, 'It has 3 columns');
+        t.eq(t.css(p, 'column-gap'), '12px', 'The gap is 12px');
+      } },
+      { name: 'Task 3 · script.js', check: async t => {
+        const s = t.$('#search'); t.need(s, 'The search box from Task 1 is needed to test this part');
+        const names = () => t.$$('#products .card').filter(c => t.visible(c)).map(c => t.text(c.querySelector('h3')));
+        await t.type(s, 'sh'); t.same(names(), ['Running Shoes', 'Shirt'], 'Typing "sh" shows Running Shoes and Shirt');
+        await t.type(s, 'WATCH'); t.same(names(), ['Smart Watch'], 'Typing "WATCH" shows Smart Watch (capitals ignored)');
+        await t.type(s, 'zzz'); t.same(names(), [], 'Typing "zzz" shows no products');
+        t.eq(t.text(t.$('#empty')), 'No products found', 'and #empty says "No products found"');
+        await t.type(s, ''); t.eq(names().length, 6, 'An empty box shows all 6 products again');
+        t.eq(t.text(t.$('#empty')), '', 'and #empty is empty again');
+      } },
+    ] },
+
+  { id: 'rr-signup', stage: 10, timed: true, title: 'Sign-up form', files: ['html', 'css', 'js'],
+    learn: 'The submit listener already exists in script.js; you only add the checks inside it. Use `||` ("or") to test several empty boxes at once, `!==` for "not equal", and `classList.add` / `classList.remove` to switch the red error style on and off. In CSS, `#msg.error` (no space) means "the element with id msg when it also has class error".',
+    example: { lang: 'js', src: `if (a === "" || b === "") {
+  console.log("something is empty");
+} else if (a !== b) {
+  console.log("different");
+}` },
+    task: 'Task 1 (index.html): add a second password box with id **confirm** and placeholder **Confirm password**, where the TODO is.\nTask 2 (style.css): make the Sign up button **#2563eb** with **white** text and **no border**, and make **#msg.error** text **red**.\nTask 3 (script.js): inside the submit listener show in #msg: **All fields are required** if any box is empty; **Passwords do not match** if they differ (both with class error); otherwise **Account created for NAME** (and remove class error).',
+    html: `<div class="box">
+  <h2>Create account</h2>
+  <form id="signup">
+    <input id="name" placeholder="Full name">
+    <input id="password" type="password" placeholder="Password">
+    \x3C!-- TODO 1: add a second password box with id="confirm" and placeholder="Confirm password" -->
+    <button type="submit">Sign up</button>
+  </form>
+  <p id="msg"></p>
+</div>`,
+    css: `body {
+  font-family: Arial, sans-serif;
+  background: #f1f3f6;
+}
+.box {
+  max-width: 300px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+}
+form {
+  display: grid;
+  gap: 10px;
+}
+input {
+  padding: 8px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+}
+button {
+  padding: 10px;
+}
+
+/* TODO 2: make the Sign up button blue (#2563eb) with white text and no border,
+   and make #msg.error red */
+`,
+    js: `const form = document.getElementById("signup");
+const msg = document.getElementById("msg");
+
+form.addEventListener("submit", function (event) {
+  event.preventDefault();
+  const name = document.getElementById("name").value.trim();
+  const password = document.getElementById("password").value;
+
+  // TODO 3: read the confirm box too, then show in #msg:
+  //  "All fields are required" (add class "error") if any box is empty,
+  //  "Passwords do not match" (add class "error") if the passwords differ,
+  //  otherwise "Account created for NAME" (remove class "error").
+});
+`,
+    hint: 'Task 1: `<input id="confirm" type="password" placeholder="Confirm password">` before the button.\nTask 2: add `background: #2563eb; color: white; border: none;` to the button rule, and `#msg.error { color: red; }`.\nTask 3: `const confirm = document.getElementById("confirm").value;` then if / else if / else with the three messages.',
+    sol: { html: `<div class="box">
+  <h2>Create account</h2>
+  <form id="signup">
+    <input id="name" placeholder="Full name">
+    <input id="password" type="password" placeholder="Password">
+    <input id="confirm" type="password" placeholder="Confirm password">
+    <button type="submit">Sign up</button>
+  </form>
+  <p id="msg"></p>
+</div>`, css: `body {
+  font-family: Arial, sans-serif;
+  background: #f1f3f6;
+}
+.box {
+  max-width: 300px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+}
+form {
+  display: grid;
+  gap: 10px;
+}
+input {
+  padding: 8px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+}
+button {
+  padding: 10px;
+  background: #2563eb;
+  color: white;
+  border: none;
+}
+#msg.error {
+  color: red;
+}`, js: `const form = document.getElementById("signup");
+const msg = document.getElementById("msg");
+
+form.addEventListener("submit", function (event) {
+  event.preventDefault();
+  const name = document.getElementById("name").value.trim();
+  const password = document.getElementById("password").value;
+  const confirm = document.getElementById("confirm").value;
+
+  if (name === "" || password === "" || confirm === "") {
+    msg.textContent = "All fields are required";
+    msg.classList.add("error");
+  } else if (password !== confirm) {
+    msg.textContent = "Passwords do not match";
+    msg.classList.add("error");
+  } else {
+    msg.textContent = "Account created for " + name;
+    msg.classList.remove("error");
+  }
+});` },
+    parts: [
+      { name: 'Task 1 · index.html', check: async t => {
+        const c = t.$('#confirm'); t.need(c, 'There is an element with id="confirm"');
+        t.eq(c.getAttribute('type'), 'password', 'It is a password box (type="password")');
+        t.eq(c.getAttribute('placeholder'), 'Confirm password', 'Its placeholder is "Confirm password"');
+        t.need(c.closest('form') && (c.compareDocumentPosition(t.$('button')) & Node.DOCUMENT_POSITION_FOLLOWING), 'It is inside the form, before the button');
+      } },
+      { name: 'Task 2 · style.css', check: async t => {
+        const b = t.$('button');
+        t.eq(t.css(b, 'background-color'), 'rgb(37, 99, 235)', 'The button is #2563eb');
+        t.eq(t.color(b, 'color'), 'white', 'Its text is white');
+        t.eq(t.css(b, 'border-top-style'), 'none', 'It has no border');
+        const m = t.$('#msg'); m.classList.add('error'); m.textContent = 'test';
+        t.eq(t.color(m, 'color'), 'red', '#msg with class error is red');
+      } },
+      { name: 'Task 3 · script.js', check: async t => {
+        t.need(t.$('#confirm'), 'The confirm box from Task 1 is needed to test this part');
+        const m = t.$('#msg');
+        const send = async (n, p, c) => { await t.type(t.$('#name'), n); await t.type(t.$('#password'), p); await t.type(t.$('#confirm'), c); await t.click(t.$('button')); };
+        await send('', 'abc123', 'abc123');
+        t.eq(t.text(m), 'All fields are required', 'An empty name shows "All fields are required"');
+        t.need(m.classList.contains('error'), 'and #msg gets the class error');
+        await send('Asha', 'abc123', 'abc124');
+        t.eq(t.text(m), 'Passwords do not match', 'Different passwords show "Passwords do not match"');
+        await send('Asha', 'abc123', 'abc123');
+        t.eq(t.text(m), 'Account created for Asha', 'Matching passwords show "Account created for Asha"');
+        t.need(!m.classList.contains('error'), 'and the class error is removed');
+      } },
+    ] },
+
+  { id: 'rr-accordion', stage: 10, timed: true, title: 'FAQ accordion', files: ['html', 'css', 'js'],
+    learn: 'Copy the structure of an existing item exactly when the task says "in the same format". In CSS, `.faq.open .answer` (a space before .answer) means "an .answer inside a .faq that also has class open". In JavaScript, `q.parentElement` is the element around q; remember whether it was open, close all items, then open this one if it was closed.',
+    example: { lang: 'js', src: `document.querySelectorAll(".item").forEach(function (el) {
+  el.classList.remove("open");
+});` },
+    task: 'Task 1 (index.html): add a third FAQ in the same format. Question: **Is there negative marking?** Answer: **No.**\nTask 2 (style.css): hide every **.answer**, and show it only when its **.faq** has the class **open**.\nTask 3 (script.js): clicking a question opens its FAQ (class **open**) and closes all the others. Clicking an open question again closes it.',
+    html: `<h2>Test FAQ</h2>
+<div id="faqs">
+  <div class="faq">
+    <button class="question">How long is the test?</button>
+    <div class="answer">90 minutes.</div>
+  </div>
+  <div class="faq">
+    <button class="question">When are results announced?</button>
+    <div class="answer">Within two weeks.</div>
+  </div>
+  \x3C!-- TODO 1: add a third FAQ in the same format.
+       Question: "Is there negative marking?"  Answer: "No." -->
+</div>`,
+    css: `body {
+  font-family: Arial, sans-serif;
+}
+.faq {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.question {
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  border: none;
+  background: #f4f4f4;
+  font-size: 15px;
+  cursor: pointer;
+}
+.answer {
+  padding: 10px;
+}
+
+/* TODO 2: hide every .answer; show it only when its .faq also has the class "open" */
+`,
+    js: `const questions = document.querySelectorAll(".question");
+
+questions.forEach(function (q) {
+  q.addEventListener("click", function () {
+    const faq = q.parentElement;   // the .faq around this question
+
+    // TODO 3: open this FAQ (class "open") and close all the others.
+    // Clicking an open FAQ again closes it.
+  });
+});
+`,
+    hint: 'Task 1: copy one whole `<div class="faq"> ... </div>` block and change the two texts.\nTask 2: add `display: none;` to `.answer`, and write `.faq.open .answer { display: block; }`.\nTask 3: `const wasOpen = faq.classList.contains("open");`, remove "open" from every .faq, then `if (!wasOpen) faq.classList.add("open");`.',
+    sol: { html: `<h2>Test FAQ</h2>
+<div id="faqs">
+  <div class="faq">
+    <button class="question">How long is the test?</button>
+    <div class="answer">90 minutes.</div>
+  </div>
+  <div class="faq">
+    <button class="question">When are results announced?</button>
+    <div class="answer">Within two weeks.</div>
+  </div>
+  <div class="faq">
+    <button class="question">Is there negative marking?</button>
+    <div class="answer">No.</div>
+  </div>
+</div>`, css: `body {
+  font-family: Arial, sans-serif;
+}
+.faq {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.question {
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  border: none;
+  background: #f4f4f4;
+  font-size: 15px;
+  cursor: pointer;
+}
+.answer {
+  padding: 10px;
+  display: none;
+}
+.faq.open .answer {
+  display: block;
+}`, js: `const questions = document.querySelectorAll(".question");
+
+questions.forEach(function (q) {
+  q.addEventListener("click", function () {
+    const faq = q.parentElement;
+    const wasOpen = faq.classList.contains("open");
+    document.querySelectorAll(".faq").forEach(function (f) {
+      f.classList.remove("open");
+    });
+    if (!wasOpen) {
+      faq.classList.add("open");
+    }
+  });
+});` },
+    parts: [
+      { name: 'Task 1 · index.html', check: async t => {
+        const faqs = t.$$('.faq'); t.eq(faqs.length, 3, 'There are 3 FAQs');
+        const q = faqs[2].querySelector('button.question'), a = faqs[2].querySelector('div.answer');
+        t.need(q && a, 'The third FAQ has a button.question and a div.answer, like the others');
+        t.eq(t.text(q), 'Is there negative marking?', 'Its question is "Is there negative marking?"');
+        t.eq(t.text(a), 'No.', 'Its answer is "No."');
+      } },
+      { name: 'Task 2 · style.css', check: async t => {
+        const faqs = t.$$('.faq'), ans = t.$$('.answer');
+        t.need(ans.every(a => !t.visible(a)), 'Every answer is hidden at first');
+        faqs[0].classList.add('open');
+        t.need(t.visible(ans[0]), 'Adding class "open" to a .faq shows its answer');
+        t.need(!t.visible(ans[1]), 'The other answers stay hidden');
+      } },
+      { name: 'Task 3 · script.js', check: async t => {
+        const faqs = t.$$('.faq'), qs = t.$$('.question'), open = () => faqs.map(f => f.classList.contains('open'));
+        await t.click(qs[0]); t.need(open()[0], 'Clicking the first question opens it (class open)');
+        await t.click(qs[1]); t.need(open()[1] && !open()[0], 'Clicking the second opens it and closes the first');
+        await t.click(qs[1]); t.need(!open().some(Boolean), 'Clicking the open one again closes it');
+      } },
+    ] },
+
+  { id: 'rr-tabs', stage: 10, timed: true, title: 'Tab switcher', files: ['html', 'css', 'js'],
+    learn: '`data-*` attributes store your own information on an element: `<button data-tab="results">` can be read in JavaScript as `button.dataset.tab`, which gives "results". Here it is also the id of the panel to show. In CSS, `.tab.active` (no space) means "a .tab that also has class active".',
+    example: { lang: 'js', src: `const btn = document.querySelector("[data-tab]");
+console.log(btn.dataset.tab);   // "profile"` },
+    task: 'Task 1 (index.html): add a third tab button for **results**, in the same format as the other two (text **Results**).\nTask 2 (style.css): give the active tab (**.tab.active**) background **#1f2a44** and **white** text. Hide every **.panel** except the one with class **active**.\nTask 3 (script.js): clicking a tab makes it and its panel the only ones with class **active**.',
+    html: `<div class="tabs">
+  <button class="tab active" data-tab="profile">Profile</button>
+  <button class="tab" data-tab="courses">Courses</button>
+  \x3C!-- TODO 1: add a third tab button for "results", like the two above -->
+</div>
+
+<div class="panel active" id="profile">Name: Asha Rao · Branch: CSE</div>
+<div class="panel" id="courses">HTML, CSS, JavaScript, SQL</div>
+<div class="panel" id="results">Online round: cleared</div>`,
+    css: `body {
+  font-family: Arial, sans-serif;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid #1f2a44;
+}
+.tab {
+  padding: 8px 14px;
+  border: none;
+  background: #e5e7eb;
+  cursor: pointer;
+}
+.panel {
+  padding: 14px 4px;
+}
+
+/* TODO 2: the active tab (.tab.active) gets background #1f2a44 and white text.
+   Hide every .panel except the one with class "active". */
+`,
+    js: `const tabs = document.querySelectorAll(".tab");
+
+tabs.forEach(function (tab) {
+  tab.addEventListener("click", function () {
+    // tab.dataset.tab is "profile", "courses" or "results": the id of its panel
+
+    // TODO 3: remove "active" from every tab and every panel,
+    // then add "active" to this tab and to its panel.
+  });
+});
+`,
+    hint: 'Task 1: `<button class="tab" data-tab="results">Results</button>`.\nTask 2: `.tab.active { background: #1f2a44; color: white; }`, add `display: none;` to `.panel`, and `.panel.active { display: block; }`.\nTask 3: two forEach loops that remove "active", then `tab.classList.add("active");` and `document.getElementById(tab.dataset.tab).classList.add("active");`.',
+    sol: { html: `<div class="tabs">
+  <button class="tab active" data-tab="profile">Profile</button>
+  <button class="tab" data-tab="courses">Courses</button>
+  <button class="tab" data-tab="results">Results</button>
+</div>
+
+<div class="panel active" id="profile">Name: Asha Rao · Branch: CSE</div>
+<div class="panel" id="courses">HTML, CSS, JavaScript, SQL</div>
+<div class="panel" id="results">Online round: cleared</div>`, css: `body {
+  font-family: Arial, sans-serif;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid #1f2a44;
+}
+.tab {
+  padding: 8px 14px;
+  border: none;
+  background: #e5e7eb;
+  cursor: pointer;
+}
+.panel {
+  padding: 14px 4px;
+  display: none;
+}
+.tab.active {
+  background: #1f2a44;
+  color: white;
+}
+.panel.active {
+  display: block;
+}`, js: `const tabs = document.querySelectorAll(".tab");
+
+tabs.forEach(function (tab) {
+  tab.addEventListener("click", function () {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById(tab.dataset.tab).classList.add("active");
+  });
+});` },
+    parts: [
+      { name: 'Task 1 · index.html', check: async t => {
+        const tabs = t.$$('.tab'); t.eq(tabs.length, 3, 'There are 3 tab buttons');
+        t.eq(tabs[2].dataset.tab, 'results', 'The third has data-tab="results"');
+        t.eq(t.text(tabs[2]), 'Results', 'Its text is "Results"');
+      } },
+      { name: 'Task 2 · style.css', check: async t => {
+        const on = t.$('.tab.active'), off = t.$('.tab:not(.active)');
+        t.eq(t.css(on, 'background-color'), 'rgb(31, 42, 68)', 'The active tab has background #1f2a44');
+        t.eq(t.color(on, 'color'), 'white', 'and white text');
+        t.need(t.css(off, 'background-color') !== 'rgb(31, 42, 68)', 'The other tabs keep their grey background');
+        t.need(t.visible(t.$('#profile')), 'The active panel (#profile) is visible');
+        t.need(!t.visible(t.$('#courses')) && !t.visible(t.$('#results')), 'The other panels are hidden');
+      } },
+      { name: 'Task 3 · script.js', check: async t => {
+        const tab = n => t.$(`.tab[data-tab="${n}"]`), act = el => el.classList.contains('active');
+        await t.click(tab('courses'));
+        t.need(act(tab('courses')) && !act(tab('profile')), 'Clicking Courses makes only the Courses tab active');
+        t.need(act(t.$('#courses')) && !act(t.$('#profile')), 'and only the #courses panel active');
+        await t.click(tab('profile'));
+        t.need(act(tab('profile')) && act(t.$('#profile')) && !act(t.$('#courses')), 'Clicking Profile switches back');
+      } },
+    ] },
+
+  { id: 'rr-slider', stage: 10, timed: true, title: 'Slider with wrap-around', files: ['html', 'css', 'js'],
+    learn: 'A slider keeps the current slide number in a variable. The page already has a `show(index)` function and a working Previous button; read them, then write Next the same way. `%` gives a remainder, so `(current + 1) % slides.length` goes 0, 1, 2, 3 and back to 0.',
+    example: { lang: 'js', src: `console.log((3 + 1) % 4);   // 0, back to the start` },
+    task: 'Task 1 (index.html): add a **Next** button with id **next** where the TODO is.\nTask 2 (style.css): show only the slide with class **active**; hide the others.\nTask 3 (script.js): clicking **Next** shows the next slide and updates the counter; after the last slide it goes back to the first.',
+    html: `<div class="slider">
+  <div class="slide active">Slide 1: Aptitude</div>
+  <div class="slide">Slide 2: Coding</div>
+  <div class="slide">Slide 3: Communication</div>
+  <div class="slide">Slide 4: Interview</div>
+</div>
+<div class="controls">
+  <button id="prev">Previous</button>
+  <span id="counter">1 / 4</span>
+  \x3C!-- TODO 1: add a "Next" button with id="next" -->
+</div>`,
+    css: `body {
+  font-family: Arial, sans-serif;
+}
+.slider {
+  height: 120px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.slide {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: white;
+  background: #2563eb;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* TODO 2: show only the slide with class "active"; hide the others */
+`,
+    js: `const slides = document.querySelectorAll(".slide");
+const counter = document.getElementById("counter");
+let current = 0;
+
+function show(index) {
+  slides[current].classList.remove("active");
+  current = index;
+  slides[current].classList.add("active");
+  counter.textContent = (current + 1) + " / " + slides.length;
+}
+
+document.getElementById("prev").addEventListener("click", function () {
+  show(current === 0 ? slides.length - 1 : current - 1);
+});
+
+// TODO 3: clicking #next shows the next slide; after the last one it goes back to the first
+`,
+    hint: 'Task 1: `<button id="next">Next</button>` after the counter.\nTask 2: `.slide { display: none; }` and `.slide.active { display: flex; }` at the end of the file.\nTask 3: copy the Previous listener, use the id "next" and `show((current + 1) % slides.length);`.',
+    sol: { html: `<div class="slider">
+  <div class="slide active">Slide 1: Aptitude</div>
+  <div class="slide">Slide 2: Coding</div>
+  <div class="slide">Slide 3: Communication</div>
+  <div class="slide">Slide 4: Interview</div>
+</div>
+<div class="controls">
+  <button id="prev">Previous</button>
+  <span id="counter">1 / 4</span>
+  <button id="next">Next</button>
+</div>`, css: `body {
+  font-family: Arial, sans-serif;
+}
+.slider {
+  height: 120px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.slide {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: white;
+  background: #2563eb;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.slide {
+  display: none;
+}
+.slide.active {
+  display: flex;
+}`, js: `const slides = document.querySelectorAll(".slide");
+const counter = document.getElementById("counter");
+let current = 0;
+
+function show(index) {
+  slides[current].classList.remove("active");
+  current = index;
+  slides[current].classList.add("active");
+  counter.textContent = (current + 1) + " / " + slides.length;
+}
+
+document.getElementById("prev").addEventListener("click", function () {
+  show(current === 0 ? slides.length - 1 : current - 1);
+});
+
+document.getElementById("next").addEventListener("click", function () {
+  show((current + 1) % slides.length);
+});` },
+    parts: [
+      { name: 'Task 1 · index.html', check: async t => {
+        const n = t.$('#next'); t.need(n, 'There is an element with id="next"');
+        t.eq(n.tagName.toLowerCase(), 'button', 'It is a <button>');
+        t.eq(t.text(n), 'Next', 'Its text is "Next"');
+        t.need(n.closest('.controls'), 'It is inside .controls, where the TODO was');
+      } },
+      { name: 'Task 2 · style.css', check: async t => {
+        const vis = t.$$('.slide').filter(s => t.visible(s));
+        t.eq(vis.length, 1, 'Only one slide is visible', );
+        t.need(vis[0].classList.contains('active'), 'The visible one is the active slide');
+      } },
+      { name: 'Task 3 · script.js', check: async t => {
+        const n = t.$('#next'); t.need(n, 'The Next button from Task 1 is needed to test this part');
+        await t.click(n);
+        t.eq(t.text(t.$('#counter')), '2 / 4', 'One click on Next shows 2 / 4');
+        t.need(t.$$('.slide')[1].classList.contains('active'), 'and slide 2 is the active one');
+        await t.click(n); await t.click(n); await t.click(n);
+        t.eq(t.text(t.$('#counter')), '1 / 4', 'After the last slide, Next goes back to 1 / 4', { '4 / 4': 'After slide 4 it must go back to the first: use % slides.length.' });
+      } },
+    ] },
+
+  { id: 'rr-theme', stage: 10, timed: true, title: 'Dark mode with CSS variables', files: ['html', 'css', 'js'],
+    learn: 'CSS variables are named values: `--bg: white;` defines one and `var(--bg)` uses it. This page already uses them for every colour, so dark mode only needs new values for the same names under `body.dark { ... }`. Then JavaScript just switches the class with `classList.toggle`.',
+    example: { lang: 'css', src: `:root { --main: navy; }
+h1 { color: var(--main); }
+body.dark { --main: skyblue; }` },
+    task: 'Task 1 (index.html): add a button with id **theme** and the text **Dark mode** where the TODO is.\nTask 2 (style.css): when body has the class **dark**, set **--bg** to **#111111**, **--text** to **#f5f5f5** and **--card** to **#222222**.\nTask 3 (script.js): clicking **#theme** switches the class **dark** on the body, and changes the button text to **Light mode** when dark and back to **Dark mode** when light.',
+    html: `<div class="card">
+  <h2>Settings</h2>
+  <p>Switch between the light and dark theme.</p>
+  \x3C!-- TODO 1: add a button with id="theme" and the text "Dark mode" -->
+</div>`,
+    css: `:root {
+  --bg: #ffffff;
+  --text: #111111;
+  --card: #f3f4f6;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+}
+.card {
+  background: var(--card);
+  padding: 16px;
+  border-radius: 10px;
+}
+
+/* TODO 2: when body has the class "dark", change the variables:
+   --bg to #111111, --text to #f5f5f5 and --card to #222222 */
+`,
+    js: `// TODO 3: clicking #theme switches the class "dark" on the body,
+// and changes the button text to "Light mode" when dark, "Dark mode" when light
+`,
+    hint: 'Task 1: `<button id="theme">Dark mode</button>`.\nTask 2: `body.dark { --bg: #111111; --text: #f5f5f5; --card: #222222; }`\nTask 3: in a click listener, `document.body.classList.toggle("dark");` then set the button text with an if/else on `document.body.classList.contains("dark")`.',
+    sol: { html: `<div class="card">
+  <h2>Settings</h2>
+  <p>Switch between the light and dark theme.</p>
+  <button id="theme">Dark mode</button>
+</div>`, css: `:root {
+  --bg: #ffffff;
+  --text: #111111;
+  --card: #f3f4f6;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+}
+.card {
+  background: var(--card);
+  padding: 16px;
+  border-radius: 10px;
+}
+
+body.dark {
+  --bg: #111111;
+  --text: #f5f5f5;
+  --card: #222222;
+}`, js: `const btn = document.getElementById("theme");
+
+btn.addEventListener("click", function () {
+  document.body.classList.toggle("dark");
+  if (document.body.classList.contains("dark")) {
+    btn.textContent = "Light mode";
+  } else {
+    btn.textContent = "Dark mode";
+  }
+});` },
+    parts: [
+      { name: 'Task 1 · index.html', check: async t => {
+        const b = t.$('#theme'); t.need(b, 'There is an element with id="theme"');
+        t.eq(b.tagName.toLowerCase(), 'button', 'It is a <button>');
+        t.eq(t.text(b), 'Dark mode', 'Its text is "Dark mode"');
+      } },
+      { name: 'Task 2 · style.css', check: async t => {
+        t.body.classList.add('dark');
+        t.eq(t.css(t.body, 'background-color'), 'rgb(17, 17, 17)', 'With class dark, the page background is #111111');
+        t.eq(t.css(t.body, 'color'), 'rgb(245, 245, 245)', 'the text is #f5f5f5');
+        t.eq(t.css(t.$('.card'), 'background-color'), 'rgb(34, 34, 34)', 'and the card is #222222');
+        t.body.classList.remove('dark');
+        t.eq(t.css(t.body, 'background-color'), 'rgb(255, 255, 255)', 'Without the class it is white again');
+      } },
+      { name: 'Task 3 · script.js', check: async t => {
+        const b = t.$('#theme'); t.need(b, 'The button from Task 1 is needed to test this part');
+        await t.click(b);
+        t.need(t.body.classList.contains('dark'), 'One click adds the class dark to the body');
+        t.eq(t.text(b), 'Light mode', 'and the button says "Light mode"');
+        await t.click(b);
+        t.need(!t.body.classList.contains('dark'), 'A second click removes it');
+        t.eq(t.text(b), 'Dark mode', 'and the button says "Dark mode" again');
+      } },
+    ] },
+
+  { id: 'rr-notes', stage: 10, timed: true, title: 'Notes that stay after reload', files: ['html', 'css', 'js'],
+    learn: 'localStorage only stores text. `JSON.stringify(array)` turns an array into text to save, and `JSON.parse(text)` turns it back into an array. `JSON.parse(localStorage.getItem("notes")) || []` gives the saved array, or an empty one when nothing was saved. In this preview, Run acts like reloading the page.',
+    example: { lang: 'js', src: `const list = ["a", "b"];
+localStorage.setItem("list", JSON.stringify(list));
+const back = JSON.parse(localStorage.getItem("list"));
+console.log(back.length);   // 2` },
+    task: 'Task 1 (index.html): add a button with id **clear** and the text **Clear all** where the TODO is.\nTask 2 (style.css): style each **.note**: background **#fff8c5**, **10px** padding, a **4px solid #e0b000** left border and **8px** space below it.\nTask 3 (script.js): load the saved notes when the page opens, save them whenever a note is added, and make **Clear all** remove every note (also from storage).',
+    html: `<h2>My notes</h2>
+<div class="add">
+  <input id="note-text" placeholder="Write a note">
+  <button id="add">Add</button>
+  \x3C!-- TODO 1: add a button with id="clear" and the text "Clear all" -->
+</div>
+<ul id="notes"></ul>`,
+    css: `body {
+  font-family: Arial, sans-serif;
+}
+.add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+#notes {
+  list-style: none;
+  padding: 0;
+}
+
+/* TODO 2: style each .note: background #fff8c5, padding 10px,
+   a 4px solid #e0b000 left border and 8px space below it (margin-bottom) */
+`,
+    js: `let notes = [];   // TODO 3a: start with the notes saved under the key "notes", or [] if none
+
+function render() {
+  const list = document.getElementById("notes");
+  list.innerHTML = "";
+  notes.forEach(function (text) {
+    const li = document.createElement("li");
+    li.className = "note";
+    li.textContent = text;
+    list.appendChild(li);
+  });
+}
+
+function save() {
+  // TODO 3b: save the notes array in localStorage under the key "notes" (use JSON.stringify)
+}
+
+document.getElementById("add").addEventListener("click", function () {
+  const box = document.getElementById("note-text");
+  if (box.value.trim() === "") return;
+  notes.push(box.value.trim());
+  box.value = "";
+  save();
+  render();
+});
+
+// TODO 3c: clicking #clear removes all notes: empty the array, save, render
+
+render();
+`,
+    hint: 'Task 1: `<button id="clear">Clear all</button>`.\nTask 2: `.note { background: #fff8c5; padding: 10px; border-left: 4px solid #e0b000; margin-bottom: 8px; }`\nTask 3: `let notes = JSON.parse(localStorage.getItem("notes")) || [];`, `localStorage.setItem("notes", JSON.stringify(notes));` inside save(), and a click listener on #clear.',
+    sol: { html: `<h2>My notes</h2>
+<div class="add">
+  <input id="note-text" placeholder="Write a note">
+  <button id="add">Add</button>
+  <button id="clear">Clear all</button>
+</div>
+<ul id="notes"></ul>`, css: `body {
+  font-family: Arial, sans-serif;
+}
+.add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+#notes {
+  list-style: none;
+  padding: 0;
+}
+
+.note {
+  background: #fff8c5;
+  padding: 10px;
+  border-left: 4px solid #e0b000;
+  margin-bottom: 8px;
+}`, js: `let notes = JSON.parse(localStorage.getItem("notes")) || [];
+
+function render() {
+  const list = document.getElementById("notes");
+  list.innerHTML = "";
+  notes.forEach(function (text) {
+    const li = document.createElement("li");
+    li.className = "note";
+    li.textContent = text;
+    list.appendChild(li);
+  });
+}
+
+function save() {
+  localStorage.setItem("notes", JSON.stringify(notes));
+}
+
+document.getElementById("add").addEventListener("click", function () {
+  const box = document.getElementById("note-text");
+  if (box.value.trim() === "") return;
+  notes.push(box.value.trim());
+  box.value = "";
+  save();
+  render();
+});
+
+document.getElementById("clear").addEventListener("click", function () {
+  notes = [];
+  save();
+  render();
+});
+
+render();` },
+    parts: [
+      { name: 'Task 1 · index.html', check: async t => {
+        const c = t.$('#clear'); t.need(c, 'There is an element with id="clear"');
+        t.eq(c.tagName.toLowerCase(), 'button', 'It is a <button>');
+        t.eq(t.text(c), 'Clear all', 'Its text is "Clear all"');
+        t.need(c.closest('.add'), 'It is next to the Add button, where the TODO was');
+      } },
+      { name: 'Task 2 · style.css', check: async t => {
+        const li = document.createElement('li'); li.className = 'note'; li.textContent = 'Sample note'; t.$('#notes').appendChild(li);
+        t.eq(t.css(li, 'background-color'), 'rgb(255, 248, 197)', 'A note has background #fff8c5');
+        t.eq(t.css(li, 'padding-top'), '10px', 'and 10px padding');
+        t.eq(t.css(li, 'border-left-width'), '4px', 'a 4px left border');
+        t.eq(t.css(li, 'border-left-style'), 'solid', 'that is solid');
+        t.eq(t.css(li, 'border-left-color'), 'rgb(224, 176, 0)', 'and #e0b000');
+        t.eq(t.css(li, 'margin-bottom'), '8px', 'with 8px space below it');
+      } },
+      { name: 'Task 3 · script.js', check: async t => {
+        t.clearStorage(); await t.rerun();
+        const add = async text => { await t.type(t.$('#note-text'), text); await t.click(t.$('#add')); };
+        await add('Revise SQL'); await add('Mock test');
+        t.eq(t.$$('#notes li').length, 2, 'Adding two notes shows 2 notes');
+        await t.rerun();
+        t.same(t.$$('#notes li').map(li => t.text(li)), ['Revise SQL', 'Mock test'], 'After reloading the page, both notes are still there', { '[]': 'Save in save() and load at the top with JSON.parse(localStorage.getItem("notes")).' });
+        await t.click(t.$('#clear'));
+        t.eq(t.$$('#notes li').length, 0, 'Clear all removes every note');
+        await t.rerun();
+        t.eq(t.$$('#notes li').length, 0, 'and they stay gone after a reload');
+      } },
+    ] },
+
+  { id: 'rr-clock', stage: 10, timed: true, title: 'Digital clock card', files: ['html', 'css', 'js'],
+    learn: 'A pad helper already exists: `pad(7)` gives "07". Build the text with the Date parts (`getHours`, `getMinutes`, `getSeconds`, `getDate`, `getMonth() + 1`, `getFullYear`), write it into the page, then call your function once and again every second with `setInterval`. `text-align: center` on a box centres all the text inside it.',
+    example: { lang: 'js', src: `const now = new Date();
+console.log(pad(now.getHours()) + ":" + pad(now.getMinutes()));` },
+    task: 'Task 1 (index.html): below the time, add a paragraph with id **date**.\nTask 2 (style.css): centre all text inside **.clock**, and make **#time** **36px** and **bold**.\nTask 3 (script.js): show the time in **#time** as **HH:MM:SS** and the date in **#date** as **DD/MM/YYYY**, updated every second.',
+    html: `<div class="clock">
+  <p class="label">Current time</p>
+  <p id="time">--:--:--</p>
+  \x3C!-- TODO 1: below the time, add a paragraph with id="date" -->
+</div>`,
+    css: `body {
+  font-family: Arial, sans-serif;
+}
+.clock {
+  width: 240px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #1f2a44;
+  color: white;
+}
+.label {
+  margin: 0;
+  opacity: 0.7;
+}
+
+/* TODO 2: centre all text inside .clock and make #time 36px and bold */
+`,
+    js: `function pad(n) {
+  return String(n).padStart(2, "0");
+}
+
+function updateClock() {
+  const now = new Date();
+  // TODO 3: show the time in #time as HH:MM:SS and the date in #date as DD/MM/YYYY
+}
+
+// TODO 3 (continued): call updateClock once now, then every second
+`,
+    hint: 'Task 1: `<p id="date"></p>` right after the time paragraph.\nTask 2: `text-align: center;` on `.clock`, and `#time { font-size: 36px; font-weight: bold; }`.\nTask 3: two textContent lines inside updateClock, then `updateClock();` and `setInterval(updateClock, 1000);`.',
+    sol: { html: `<div class="clock">
+  <p class="label">Current time</p>
+  <p id="time">--:--:--</p>
+  <p id="date"></p>
+</div>`, css: `body {
+  font-family: Arial, sans-serif;
+}
+.clock {
+  width: 240px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #1f2a44;
+  color: white;
+  text-align: center;
+}
+.label {
+  margin: 0;
+  opacity: 0.7;
+}
+
+#time {
+  font-size: 36px;
+  font-weight: bold;
+}`, js: `function pad(n) {
+  return String(n).padStart(2, "0");
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById("time").textContent = pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+  document.getElementById("date").textContent = pad(now.getDate()) + "/" + pad(now.getMonth() + 1) + "/" + now.getFullYear();
+}
+
+updateClock();
+setInterval(updateClock, 1000);` },
+    parts: [
+      { name: 'Task 1 · index.html', check: async t => {
+        const d = t.$('#date'); t.need(d, 'There is an element with id="date"');
+        t.eq(d.tagName.toLowerCase(), 'p', 'It is a <p> paragraph');
+        t.need(d.closest('.clock') && (t.$('#time').compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING), 'It is inside the clock, below the time');
+      } },
+      { name: 'Task 2 · style.css', check: async t => {
+        t.eq(t.css(t.$('.clock'), 'text-align'), 'center', 'Text inside .clock is centred');
+        t.eq(t.css(t.$('#time'), 'font-size'), '36px', '#time is 36px');
+        t.eq(t.css(t.$('#time'), 'font-weight'), '700', 'and bold');
+      } },
+      { name: 'Task 3 · script.js', check: async t => {
+        t.need(t.$('#date'), 'The #date paragraph from Task 1 is needed to test this part');
+        await t.rerun('2026-03-05T09:05:07');
+        t.eq(t.text(t.$('#time')), '09:05:07', 'At 9:05:07 on 5 March 2026 the time shows 09:05:07', { '--:--:--': 'Call updateClock() once when the page opens.' });
+        t.eq(t.text(t.$('#date')), '05/03/2026', 'and the date shows 05/03/2026', { '05/02/2026': 'getMonth() counts from 0: add 1.' });
+        await t.wait(1150);
+        t.eq(t.text(t.$('#time')), '09:05:08', 'One second later it shows 09:05:08 (setInterval)');
+      } },
+    ] },
   ];
 
   /* ======================= Must-know JavaScript =======================
@@ -2191,6 +3236,9 @@ p     { color: green; }`, options: ['blue', 'red', 'green', 'black'], answer: 'r
     }).join('');
   }
   function hlHtml(src) {
+    return String(src).split(/(\x3C!--[\s\S]*?-->)/).map((part, i) => i % 2 ? `<span class="t-cm">${esc(part)}</span>` : hlTags(part)).join('');
+  }
+  function hlTags(src) {
     return esc(src).replace(/(&lt;\/?)([a-zA-Z][\w-]*)([\s\S]*?)(\/?&gt;)/g, (m, a, name, attrs, end) =>
       `${a}<span class="t-tag">${name}</span>${attrs.replace(/([\w:-]+)(=)(&quot;[\s\S]*?&quot;)/g, '<span class="t-at">$1</span>$2<span class="t-s">$3</span>')}${end}`);
   }
@@ -2609,9 +3657,9 @@ p     { color: green; }`, options: ['blue', 'red', 'green', 'black'], answer: 'r
         <div class="pills" id="pills" aria-label="Tasks in stage ${t.stage}"></div>
         <span class="eyebrow">Stage ${t.stage} · Task ${k + 1} of ${ts.length}<span class="solved-tag" id="solvedTag"></span></span>
         <h2 id="tt">${esc(t.title)}</h2>
-        <div class="taskbox"><span class="lab">Your task</span><p>${fmt(t.task)}</p><span class="files">Change: ${fileChips}</span></div>
+        <div class="taskbox"><span class="lab">Your task</span>${t.task.split('\n').map(line => `<p>${fmt(line)}</p>`).join('')}<span class="files">Change: ${fileChips}</span>${t.timed ? '<div class="timerrow"><button type="button" class="btn small" id="timerBtn">Start a 20-minute timer</button><span class="timer" id="timer"></span></div>' : ''}</div>
         <div class="learn"><h3>What you need</h3><p>${fmt(t.learn)}</p>${t.example ? `<pre class="snip"><code>${hl(t.example.src, t.example.lang)}</code></pre>` : ''}</div>
-        <details id="hintBox"><summary>Hint</summary><p>${fmt(t.hint)}</p></details>
+        <details id="hintBox"><summary>Hint</summary>${t.hint.split('\n').map(line => `<p>${fmt(line)}</p>`).join('')}</details>
         <details id="solBox"><summary>Solution</summary>${sol}<button type="button" class="btn small" id="useSol">Put the solution in the editor</button></details>
         <div class="prevnext">${prev ? `<button type="button" class="btn" data-task="${prev.id}">← Previous</button>` : '<span></span>'}${next ? `<button type="button" class="btn dark" data-task="${next.id}">Next task →</button>` : ''}</div>
       </section>
@@ -2729,6 +3777,7 @@ p     { color: green; }`, options: ['blue', 'red', 'green', 'black'], answer: 'r
     return html || '<p class="lede">Nothing matches. Try a shorter word.</p>';
   }
   function openRef() {
+    stopTimer();
     ui.task = 'ref'; saveUi();
     $('view').innerHTML = refHtml();
     renderStages(); renderOverall();
@@ -2748,8 +3797,26 @@ p     { color: green; }`, options: ['blue', 'red', 'green', 'black'], answer: 'r
     el.textContent = lastRunSig !== null && sig(buf) !== lastRunSig ? 'Changed. Press Run to see it.' : '';
   }
 
+  let timerId = null, timerEnd = 0;
+  function stopTimer() { clearInterval(timerId); timerId = null; }
+  function tickTimer() {
+    const el = $('timer');
+    if (!el) { stopTimer(); return; }
+    const left = Math.max(0, timerEnd - Date.now());
+    el.textContent = left ? `${Math.floor(left / 60000)}:${pad2(Math.floor(left / 1000) % 60)} left` : 'Time is up. Press Check to see your score.';
+    if (!left) { stopTimer(); const b = $('timerBtn'); if (b) b.textContent = 'Start a 20-minute timer'; }
+  }
+  function toggleTimer() {
+    const b = $('timerBtn');
+    if (timerId) { stopTimer(); $('timer').textContent = ''; b.textContent = 'Start a 20-minute timer'; return; }
+    timerEnd = Date.now() + 20 * 60000;
+    timerId = setInterval(tickTimer, 1000); tickTimer();
+    b.textContent = 'Stop timer';
+  }
+
   async function openTask(id, opts) {
     const t = BYID[id] || TASKS[0];
+    stopTimer();
     if (ui.task !== t.id) { STORES.local.clear(); STORES.session.clear(); }
     ui.task = t.id; saveUi();
     if (t.type === 'quiz') {
@@ -2768,6 +3835,7 @@ p     { color: green; }`, options: ['blue', 'red', 'green', 'black'], answer: 'r
     await run();
   }
   function openNotes() {
+    stopTimer();
     ui.task = 'notes'; saveUi();
     $('view').innerHTML = notesHtml();
     renderStages(); renderOverall();
@@ -2794,24 +3862,40 @@ p     { color: green; }`, options: ['blue', 'red', 'green', 'black'], answer: 'r
     }
     $('checkBtn').disabled = true;
     lastRunSig = sig(files); updateDirty();
-    await runCode(files, { exports: t.exports });
-    await wait(60);
     const results = [];
-    let pass = false;
-    try { await t.check(makeTester(t, files, results)); pass = true; }
-    catch (e) { if (!(e instanceof Stop)) results.push({ ok: false, msg: 'The page could not be checked because of an error', got: `${e.name}: ${e.message}`, tip: tipFor(e.message || '') }); }
+    let pass = false, title;
+    const attempt = async fn => {
+      try { await fn(makeTester(t, files, results)); return true; }
+      catch (e) { if (!(e instanceof Stop)) results.push({ ok: false, msg: 'The page could not be checked because of an error', got: `${e.name}: ${e.message}`, tip: tipFor(e.message || '') }); return false; }
+    };
+    if (t.parts) {
+      // Each part is checked on a fresh run, so one unfinished part does not hide the others.
+      let passed = 0;
+      for (const part of t.parts) {
+        await runCode(files, { exports: t.exports }); await wait(60);
+        const head = { head: true, ok: true, msg: part.name };
+        results.push(head);
+        if (await attempt(part.check)) passed++; else head.ok = false;
+      }
+      pass = passed === t.parts.length;
+      title = `${passed} of ${t.parts.length} parts pass`;
+    } else {
+      await runCode(files, { exports: t.exports });
+      await wait(60);
+      pass = await attempt(t.check);
+    }
     if ($('checkBtn')) $('checkBtn').disabled = false;
     if (curTask() !== t) return;
-    showResult(t, pass, results);
+    showResult(t, pass, results, title);
     if (pass && !store.done[t.id]) { edit(() => { store.done[t.id] = isoDay(new Date()); }); renderStages(); renderPills(); renderOverall(); }
   }
-  function showResult(t, pass, results) {
+  function showResult(t, pass, results, title) {
     const box = $('result');
     box.hidden = false;
     box.className = 'result ' + (pass ? 'pass' : 'fail');
     const next = TASKS[t.i + 1];
-    const items = results.map(r => `<li class="${r.ok ? 'ok' : 'no'}"><span>${esc(r.msg)}${r.got !== undefined ? `<span class="got">Found: ${esc(r.got)}</span>` : ''}${r.tip ? `<span class="tip">${esc(r.tip)}</span>` : ''}</span></li>`).join('');
-    box.innerHTML = `<h3>${pass ? 'Solved' : 'Not yet'}</h3><ul>${items}</ul>${pass ? `<div class="row">${next ? `<button type="button" class="btn dark" data-task="${next.id}">Next task →</button>` : '<span>That was the last task. Revise with the notes.</span>'}</div>` : '<p class="tip">Fix the first ✗, press Check again. The console under the preview shows any errors.</p>'}`;
+    const items = results.map(r => r.head ? `<li class="head ${r.ok ? 'ok' : 'no'}"><span>${esc(r.msg)}</span></li>` : `<li class="${r.ok ? 'ok' : 'no'}"><span>${esc(r.msg)}${r.got !== undefined ? `<span class="got">Found: ${esc(r.got)}</span>` : ''}${r.tip ? `<span class="tip">${esc(r.tip)}</span>` : ''}</span></li>`).join('');
+    box.innerHTML = `<h3>${pass ? 'Solved' : (title || 'Not yet')}</h3><ul>${items}</ul>${pass ? `<div class="row">${next ? `<button type="button" class="btn dark" data-task="${next.id}">Next task →</button>` : '<span>That was the last task. Revise with the notes.</span>'}</div>` : '<p class="tip">Fix the first ✗, press Check again. The console under the preview shows any errors.</p>'}`;
     box.scrollIntoView({ block: 'nearest' });
   }
 
@@ -2862,6 +3946,7 @@ ${close}
     }
     const qo = e.target.closest('[data-qt]');
     if (qo) { pickAnswer(BYID[qo.dataset.qt], Number(qo.dataset.q), Number(qo.dataset.o)); return; }
+    if (e.target.id === 'timerBtn') { toggleTimer(); return; }
     if (e.target.id === 'quizReset') { const t = curTask(); quizPicks[t.id] = {}; renderQuiz(t); $('result').hidden = true; return; }
     const tk = e.target.closest('[data-task]');
     if (tk) { openTask(tk.dataset.task, { scroll: true }); return; }
