@@ -64,6 +64,18 @@ Progress is saved to your account. The content lives in `python-dsa/build/lesson
 quiz and drill with Python and stops if any answer is wrong. To rebuild:
 `cd python-dsa/build && python3 build.py && python3 make_page.py`.
 
+## Web Round Drills (HTML, CSS, JavaScript)
+
+**`web-round/web-round-drills.html`** (published as a private claude.ai artifact) has 38 small tasks of the kind asked
+in online rounds, for someone starting from zero. There are 6 stages: HTML basics, CSS colours and boxes, CSS placement
+(text-align, margin auto, flexbox, absolute positioning), JavaScript with buttons and functions (`getElementById`,
+`textContent`, `style`, `addEventListener`, `onclick`, `classList`), dates and times (`Date`, `padStart`, `setInterval`),
+and forms, fix-the-bug tasks and a short mock. Each task has a short note with an example, an editor with index.html,
+style.css and script.js tabs, a live preview with a console, a Check button that tests the result, a hint and a
+solution. The preview runs your code inside a shadow root with its own `document`, `window`, `alert` and `console`,
+stops endless loops, and fakes the clock so the date tasks are checked on fixed dates. Progress and code are saved to
+your account. A Notes tab collects every note for revision.
+
 ## GenAI, RAG & Agents — Explained Simply
 
 Placement preparation for AI roles, planned as 45 days of about 3 hours a day. It explains the course code from

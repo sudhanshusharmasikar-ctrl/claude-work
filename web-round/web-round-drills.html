@@ -1,0 +1,2037 @@
+<title>Web Round Drills</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@700;800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header with progress, a strip of 6 stages, then a two-column workbench: the task brief on the left, the editor with preview and console on the right */
+:root {
+  --bg: #EEF0F3;
+  --surface: #FFFFFF;
+  --ink: #141821;
+  --muted: #586273;
+  --line: #D6DBE3;
+  --accent: #C2410C;
+  --accent-soft: #FDEBDD;
+  --good: #15803D;
+  --good-soft: #E3F4E8;
+  --bad: #B42318;
+  --bad-soft: #FCE8E6;
+  --html: #E34F26;
+  --css: #1572B6;
+  --js: #B89600;
+  --code-bg: #161A22;
+  --code-line: #2B323D;
+  --code-ink: #E6E9EF;
+  --pv-bg: #FFFFFF;
+  --f-display: 'Schibsted Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --f-body: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1116; --surface: #161B22; --ink: #E6EAF0; --muted: #98A2B3; --line: #2A313C;
+    --accent: #FB8A4C; --accent-soft: #3A2416; --good: #4ADE80; --good-soft: #12261A; --bad: #F87171; --bad-soft: #2E1515;
+    --html: #FF7A50; --css: #5AA9E6; --js: #F7DF1E; --code-bg: #0A0D12; --code-line: #252C36; --code-ink: #E6E9EF; --pv-bg: #FFFFFF;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1116; --surface: #161B22; --ink: #E6EAF0; --muted: #98A2B3; --line: #2A313C;
+  --accent: #FB8A4C; --accent-soft: #3A2416; --good: #4ADE80; --good-soft: #12261A; --bad: #F87171; --bad-soft: #2E1515;
+  --html: #FF7A50; --css: #5AA9E6; --js: #F7DF1E; --code-bg: #0A0D12; --code-line: #252C36; --code-ink: #E6E9EF; --pv-bg: #FFFFFF;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; font-variant-ligatures: none !important; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.5 var(--f-body); -webkit-font-smoothing: antialiased; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: inherit; }
+code { font-family: var(--f-mono); font-size: .86em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { margin: 0; }
+pre code { background: none; padding: 0; border-radius: 0; font-size: inherit; overflow-wrap: normal; }
+
+.page { max-width: 1280px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 32px); padding-block: 24px 72px; }
+.eyebrow { font: 500 11.5px/1.4 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+
+/* Header */
+.top { display: grid; gap: 14px; padding-bottom: 18px; }
+.title-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+h1 { margin: 6px 0 0; font: 800 clamp(34px, 5.4vw, 56px)/0.98 var(--f-display); letter-spacing: -.03em; text-wrap: balance; }
+h1 .tag { color: var(--accent); }
+.lede { margin: 0; max-width: 72ch; color: var(--muted); }
+.lede b { color: var(--ink); }
+.savebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.sync { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--f-mono); color: var(--muted); max-width: 100%; }
+.sync::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync[data-state="synced"]::before { background: var(--good); }
+.sync[data-state="saving"]::before, .sync[data-state="local"]::before { background: var(--js); }
+.sync[data-state="error"]::before, .sync[data-state="readonly"]::before { background: var(--bad); }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 14.5px; line-height: 1.2; }
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn.dark { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 700; }
+.btn.go { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+.btn.small { padding: 5px 10px; font-size: 13px; }
+.overall { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font: 500 13.5px var(--f-mono); color: var(--muted); }
+.overall b { color: var(--ink); font-size: 18px; }
+.overall .bar { width: min(260px, 100%); }
+.bar { position: relative; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--good); transition: width .3s ease; }
+
+/* Stages */
+.stages { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.stage { display: grid; gap: 4px; text-align: left; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; min-width: 0; }
+.stage .sn { display: flex; justify-content: space-between; gap: 6px; font: 500 11px var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.stage .st { font-weight: 700; font-size: 14.5px; line-height: 1.25; }
+.stage .bar { height: 4px; }
+.stage[aria-current="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.stage.done { background: var(--good-soft); border-color: transparent; }
+.stage.done .sn span:last-child { color: var(--good); }
+.stage.notes { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.stage.notes .sn { color: inherit; opacity: .7; }
+.stage.notes[aria-current="true"] { box-shadow: 0 0 0 2px var(--accent); }
+
+.banner { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--accent-soft); font-size: 14.5px; }
+
+/* Workbench */
+.work { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 22px; align-items: start; padding-top: 20px; }
+.work > * { min-width: 0; }
+.brief { display: grid; gap: 14px; }
+.brief > * { min-width: 0; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { min-width: 36px; height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: 500 13px var(--f-mono); cursor: pointer; }
+.pill.done { background: var(--good-soft); border-color: transparent; color: var(--good); }
+.pill[aria-current="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); color: var(--ink); }
+h2 { margin: 0; font: 800 clamp(24px, 3vw, 32px)/1.1 var(--f-display); letter-spacing: -.02em; text-wrap: balance; }
+.solved-tag { color: var(--good); font: 500 12px var(--f-mono); }
+.taskbox { display: grid; gap: 8px; padding: 14px 16px; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); }
+.taskbox p { margin: 0; font-size: 17px; }
+.lab { font: 500 11px var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.files { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13.5px; color: var(--muted); }
+.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px; font: 500 12.5px var(--f-mono); color: var(--ink); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.dot.html { background: var(--html); } .dot.css { background: var(--css); } .dot.js { background: var(--js); }
+.learn { display: grid; gap: 10px; padding: 14px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.learn h3 { margin: 0; font: 700 15px var(--f-body); }
+.learn p { margin: 0; }
+.snip { padding: 12px 14px; border-radius: 8px; background: var(--code-bg); color: var(--code-ink); font: 400 13.5px/1.6 var(--f-mono); overflow-x: auto; }
+details { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 10px 14px; }
+details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+details[open] summary { margin-bottom: 10px; }
+details p { margin: 0; }
+.solfile { display: grid; gap: 6px; margin-bottom: 10px; }
+.prevnext { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+
+.bench { display: grid; gap: 12px; }
+.bench > * { min-width: 0; }
+.editor { border-radius: 12px; overflow: hidden; background: var(--code-bg); }
+.tabs { display: flex; align-items: stretch; flex-wrap: wrap; border-bottom: 1px solid var(--code-line); }
+.tab { display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px; border: 0; border-right: 1px solid var(--code-line); background: transparent; color: #9AA4B2; font: 500 13px var(--f-mono); cursor: pointer; }
+.tab[aria-selected="true"] { background: #222833; color: #FFFFFF; box-shadow: inset 0 -2px 0 var(--accent); }
+.tab .edit { font-size: 10.5px; padding: 1px 6px; border-radius: 999px; background: #3A2416; color: #FDBA8C; }
+.tabs .spacer { flex: 1; }
+.tabs .reset { margin: 6px 8px; border: 1px solid #3A424D; background: transparent; color: #C9D1DB; border-radius: 6px; padding: 3px 10px; font: 500 12px var(--f-mono); cursor: pointer; }
+.tabs .reset:hover { border-color: #8A95A3; color: #fff; }
+#code { display: block; width: 100%; height: 300px; resize: vertical; margin: 0; padding: 14px 16px; border: 0; outline: none; background: var(--code-bg); color: var(--code-ink); font: 400 14px/1.6 var(--f-mono); tab-size: 2; white-space: pre; overflow: auto; caret-color: #FDBA8C; }
+#code:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 12px; border-top: 1px solid var(--code-line); }
+.actions .btn { border-color: #3A424D; background: #222833; color: #E6E9EF; }
+.actions .btn.go { background: var(--accent); border-color: var(--accent); color: #fff; }
+.actions .btn.run { background: #E6E9EF; border-color: #E6E9EF; color: #141821; font-weight: 700; }
+.dirty { font: 500 12px var(--f-mono); color: #FDBA8C; }
+.actions .spacer { flex: 1; }
+.kbd { font: 500 11px var(--f-mono); color: #9AA4B2; }
+
+.result { display: grid; gap: 8px; padding: 14px 16px; border-radius: 12px; border: 2px solid var(--bad); background: var(--bad-soft); }
+.result.pass { border-color: var(--good); background: var(--good-soft); }
+.result.info { border-color: var(--line); background: var(--surface); }
+.result h3 { margin: 0; font: 800 19px var(--f-display); }
+.result.pass h3 { color: var(--good); } .result.fail h3 { color: var(--bad); }
+.result ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font-size: 15px; }
+.result li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 6px; }
+.result li::before { content: "✓"; color: var(--good); font-weight: 700; }
+.result li.no::before { content: "✗"; color: var(--bad); }
+.got { display: block; font: 400 13px var(--f-mono); color: var(--muted); overflow-wrap: anywhere; }
+.tip { display: block; font-size: 14px; color: var(--ink); }
+.result .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.pv { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.pvbar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); font: 500 12px var(--f-mono); color: var(--muted); }
+.pvbar .lights { display: inline-flex; gap: 5px; }
+.pvbar .lights i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.pvbar .url { flex: 1; min-width: 0; padding: 3px 10px; border-radius: 6px; background: var(--bg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pv-slot { position: relative; height: 280px; resize: vertical; overflow: auto; background: var(--pv-bg); contain: layout paint; }
+.pv-alert { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 24px); padding: 8px 14px; border-radius: 8px; background: #141821; color: #fff; font: 500 13px var(--f-mono); box-shadow: 0 6px 20px rgba(0, 0, 0, .25); z-index: 5; overflow-wrap: anywhere; }
+.console { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; }
+.cbar { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-bottom: 1px solid var(--line); font: 500 12px var(--f-mono); color: var(--muted); }
+.linkbtn { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font: 500 12px var(--f-mono); }
+#console { list-style: none; margin: 0; padding: 6px 0; max-height: 170px; overflow: auto; font: 400 13px/1.5 var(--f-mono); }
+#console li { padding: 3px 12px; overflow-wrap: anywhere; white-space: pre-wrap; }
+#console li.empty { color: var(--muted); }
+#console li.error { color: var(--bad); background: var(--bad-soft); }
+#console li.warn { color: var(--ink); background: var(--accent-soft); }
+#console li.alert { color: var(--ink); }
+#console li .k { font-weight: 500; margin-right: 6px; color: var(--muted); }
+#console li .tip { font-family: var(--f-body); color: var(--ink); margin-top: 2px; }
+
+/* Code colours (on the dark editor and snippets) */
+.t-tag { color: #FF9A6B; } .t-at { color: #FFCB6B; } .t-s { color: #C3E88D; } .t-cm { color: #7D8896; font-style: italic; }
+.t-sel { color: #82AAFF; } .t-pr { color: #89DDFF; } .t-v { color: #C3E88D; } .t-kw { color: #C792EA; } .t-n { color: #F78C6C; }
+.t-f { color: #FFCB6B; } .t-b { color: #82AAFF; } .t-p { color: #D5DCE6; }
+
+/* Notes */
+.notes-view { display: grid; gap: 26px; padding-top: 22px; max-width: 900px; }
+.notes-view .search { width: 100%; max-width: 420px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.nstage { display: grid; gap: 12px; }
+.nstage h3 { margin: 0; padding-bottom: 6px; border-bottom: 2px solid var(--ink); font: 800 22px var(--f-display); }
+.nitem { display: grid; gap: 8px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.nitem h4 { margin: 0; font: 700 15.5px var(--f-body); }
+.nitem p { margin: 0; }
+.foot { margin-top: 36px; font-size: 13px; color: var(--muted); max-width: 90ch; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (max-width: 980px) {
+  .work { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .stages { display: flex; overflow-x: auto; }
+  .stage { flex: none; width: 168px; }
+  #code { font-size: 16px; height: 260px; }
+  .kbd { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="title-row">
+      <div>
+        <span class="eyebrow">Accenture prep · HTML, CSS and JavaScript tasks</span>
+        <h1>Web Round <span class="tag">Drills</span></h1>
+      </div>
+      <div class="savebar">
+        <span class="sync" id="sync" data-state="saving" role="status">Connecting to your account…</span>
+        <button class="btn dark" id="saveBtn" type="button">Save</button>
+      </div>
+    </div>
+    <p class="lede">Small tasks like the ones in the online round: change a colour, move text, call the right function, show the date. For each task, read the short note, change the code, press <b>Run</b> to see it, then press <b>Check</b>. Do one stage a day; each takes about an hour.</p>
+    <div class="overall" id="overall"></div>
+  </header>
+
+  <nav class="stages" id="stages" aria-label="Stages"></nav>
+  <div class="banner" id="banner" hidden></div>
+  <main id="view"></main>
+  <p class="foot">The preview is a small browser inside this page. <code>document</code>, <code>window</code>, <code>console.log</code> and <code>alert</code> work as usual; alert messages also appear in the console. To practise on your laptop, press <b>Copy as one file</b>, paste it into a file called <code>test.html</code> and open it in Chrome.</p>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ======================= Tasks ======================= */
+  const STAGES = [
+    { n: 1, title: 'HTML: the page' },
+    { n: 2, title: 'CSS: colours, text, boxes' },
+    { n: 3, title: 'CSS: placing things' },
+    { n: 4, title: 'JS: buttons and functions' },
+    { n: 5, title: 'JS: date and time' },
+    { n: 6, title: 'Forms, bugs and a mock' },
+  ];
+
+  const TASKS = [
+  /* ---------- Stage 1: HTML ---------- */
+  { id: 'heading', stage: 1, title: 'Change the text on the page', files: ['html'],
+    learn: 'HTML is the content of the page, written as tags. `<h1>` is the main heading and `<p>` is a paragraph. The text between the opening tag and the closing tag (the one with `/`) is what you see.',
+    example: { lang: 'html', src: `<h1>Hello</h1>
+<p>This is a paragraph.</p>` },
+    task: 'Change the heading to **Welcome, Candidate** and the paragraph to **Your test starts at 10:00**.',
+    html: `<h1>Hello</h1>
+<p>Some text</p>`, css: '', js: '',
+    hint: 'Only change the words between the tags. Keep `<h1>` and `</h1>` as they are.',
+    sol: { html: `<h1>Welcome, Candidate</h1>
+<p>Your test starts at 10:00</p>` },
+    check: async t => {
+      const h = t.$('h1'); t.need(h, 'There is an <h1> heading');
+      t.eq(t.text(h), 'Welcome, Candidate', 'The heading says "Welcome, Candidate"');
+      const p = t.$('p'); t.need(p, 'There is a <p> paragraph');
+      t.eq(t.text(p), 'Your test starts at 10:00', 'The paragraph says "Your test starts at 10:00"');
+    } },
+
+  { id: 'button-id', stage: 1, title: 'Add a button with an id', files: ['html'],
+    learn: '`<button>` makes a button. An **id** is a unique name for one element; CSS and JavaScript use it to find that element. A **class** is a shared name you can give to many elements. Both are written inside the opening tag.',
+    example: { lang: 'html', src: `<button id="start" class="primary">Start</button>` },
+    task: 'Below the paragraph, add a button with the id **start** and the text **Start test**.',
+    html: `<h1>Online round</h1>
+<p>Press the button when you are ready.</p>
+`, css: '', js: '',
+    hint: 'Write `<button id="start">Start test</button>` on a new line after the `</p>`.',
+    sol: { html: `<h1>Online round</h1>
+<p>Press the button when you are ready.</p>
+<button id="start">Start test</button>` },
+    check: async t => {
+      const b = t.$('#start'); t.need(b, 'There is an element with id="start"');
+      t.eq(b.tagName.toLowerCase(), 'button', 'It is a <button>');
+      t.eq(t.text(b), 'Start test', 'The button says "Start test"');
+    } },
+
+  { id: 'link', stage: 1, title: 'A link that opens in a new tab', files: ['html'],
+    learn: '`<a>` is a link. `href` says where it goes, and `target="_blank"` opens it in a new tab. Settings written inside the opening tag, like `href="..."`, are called **attributes**.',
+    example: { lang: 'html', src: `<a href="https://example.com" target="_blank">Example</a>` },
+    task: 'Make the word **Careers** a link to **https://www.example.com/careers** that opens in a new tab.',
+    html: `<h2>Useful links</h2>
+<p>Careers</p>`, css: '', js: '',
+    hint: 'Wrap the word inside the paragraph: `<p><a href="..." target="_blank">Careers</a></p>`.',
+    sol: { html: `<h2>Useful links</h2>
+<p><a href="https://www.example.com/careers" target="_blank">Careers</a></p>` },
+    check: async t => {
+      const a = t.$('a'); t.need(a, 'There is a link (<a>)');
+      t.eq(a.getAttribute('href'), 'https://www.example.com/careers', 'The link goes to https://www.example.com/careers');
+      t.eq(a.getAttribute('target'), '_blank', 'target="_blank" makes it open in a new tab');
+      t.eq(t.text(a), 'Careers', 'The link text is "Careers"');
+    } },
+
+  { id: 'list', stage: 1, title: 'Lists', files: ['html'],
+    learn: '`<ul>` is a bulleted list and `<ol>` is a numbered list. Each item inside is an `<li>`.',
+    example: { lang: 'html', src: `<ol>
+  <li>Aptitude</li>
+  <li>Coding</li>
+</ol>` },
+    task: 'Add a third item **SQL** to the list, and change it to a **numbered** list.',
+    html: `<h2>Skills</h2>
+<ul id="skills">
+  <li>HTML</li>
+  <li>CSS</li>
+</ul>`, css: '', js: '',
+    hint: 'Change both `<ul>` and `</ul>` to `<ol>` and `</ol>`, and add `<li>SQL</li>` before the closing tag.',
+    sol: { html: `<h2>Skills</h2>
+<ol id="skills">
+  <li>HTML</li>
+  <li>CSS</li>
+  <li>SQL</li>
+</ol>` },
+    check: async t => {
+      const list = t.$('ol') || t.$('ul'); t.need(list, 'There is a list');
+      const items = list.querySelectorAll('li');
+      t.eq(items.length, 3, 'The list has 3 items');
+      t.eq(t.text(items[2]), 'SQL', 'The third item is "SQL"');
+      t.eq(list.tagName.toLowerCase(), 'ol', 'It is a numbered list (<ol>)');
+    } },
+
+  { id: 'input', stage: 1, title: 'A text box with a label', files: ['html'],
+    learn: '`<input>` is a box to type in. It has no closing tag. `type` says what kind it is (`text`, `email`, `password`, `checkbox`, `date`), and `placeholder` is the grey hint shown while it is empty. `<label for="x">` is the name shown next to the input whose id is x.',
+    example: { lang: 'html', src: `<label for="email">Email</label>
+<input type="email" id="email" placeholder="you@example.com">` },
+    task: 'Before the button, add a label **Name** and a text input with the id **name** and the placeholder **Your name**. Connect the label to the input.',
+    html: `<h2>Register</h2>
+
+<button>Register</button>`, css: '', js: '',
+    hint: 'The label’s `for` must be the same as the input’s `id`: `<label for="name">`.',
+    sol: { html: `<h2>Register</h2>
+<label for="name">Name</label>
+<input type="text" id="name" placeholder="Your name">
+<button>Register</button>` },
+    check: async t => {
+      const i = t.$('#name'); t.need(i, 'There is an element with id="name"');
+      t.eq(i.tagName.toLowerCase(), 'input', 'It is an <input>');
+      t.eq(i.getAttribute('placeholder'), 'Your name', 'Its placeholder is "Your name"');
+      const l = t.$('label[for="name"]'); t.need(l, 'A <label for="name"> is connected to it');
+      t.eq(t.text(l), 'Name', 'The label says "Name"');
+    } },
+
+  { id: 'image', stage: 1, title: 'Change an image', files: ['html'],
+    learn: '`<img>` shows a picture. `src` is the picture file, `alt` is the text read out by screen readers (and shown when the file is missing), and `width` sets its width in pixels. `<img>` has no closing tag. This preview has no picture files, so you will see the alt text instead; the check reads the attributes.',
+    example: { lang: 'html', src: `<img src="logo.png" alt="Company logo" width="120">` },
+    task: 'Change the picture to **team.png**, give it the alt text **Our team**, and make it **200** pixels wide.',
+    html: `<h2>About us</h2>
+<img src="office.png" alt="">`, css: '', js: '',
+    hint: 'Change `src`, fill in `alt`, and add `width="200"`.',
+    sol: { html: `<h2>About us</h2>
+<img src="team.png" alt="Our team" width="200">` },
+    check: async t => {
+      const img = t.$('img'); t.need(img, 'There is an <img>');
+      t.eq(img.getAttribute('src'), 'team.png', 'Its src is team.png');
+      t.eq(img.getAttribute('alt'), 'Our team', 'Its alt text is "Our team"');
+      t.eq(img.getAttribute('width'), '200', 'It has width="200"');
+    } },
+
+  /* ---------- Stage 2: CSS ---------- */
+  { id: 'btn-color', stage: 2, title: 'Change a button’s colour', files: ['css'],
+    learn: 'CSS chooses elements with a **selector** and then sets **properties**. `#pay` chooses the element with id pay, `.note` chooses every element with class note, and `button` chooses every button. Each rule is written `selector { property: value; }`.',
+    example: { lang: 'css', src: `#start {
+  background-color: green;
+  color: white;   /* the text colour */
+}` },
+    task: 'Make the **Pay now** button (id **pay**) blue (`blue`) with white text. The Cancel button must not change.',
+    html: `<h2>Checkout</h2>
+<button id="pay">Pay now</button>
+<button id="cancel">Cancel</button>`, css: `/* write your CSS here */
+`, js: '',
+    hint: 'Use the id selector `#pay` and the properties `background-color` and `color`.',
+    sol: { css: `#pay {
+  background-color: blue;
+  color: white;
+}` },
+    check: async t => {
+      const pay = t.$('#pay'); t.need(pay, 'The Pay button is still there');
+      t.eq(t.color(pay, 'background-color'), 'blue', 'The Pay button’s background is blue');
+      t.eq(t.color(pay, 'color'), 'white', 'Its text is white');
+      t.need(t.color(t.$('#cancel'), 'background-color') !== 'blue', 'The Cancel button is not blue (use #pay, not button)');
+    } },
+
+  { id: 'text-style', stage: 2, title: 'Text size, bold and centre', files: ['css'],
+    learn: '`font-size` sets the size, for example `20px`. `font-weight: bold` makes text bold. `text-align: center` centres text inside its box (also `left` and `right`). `color` sets the text colour.',
+    example: { lang: 'css', src: `h2 {
+  text-align: center;
+  font-size: 24px;
+}` },
+    task: 'Centre the heading. Make the paragraph **18px** and **bold**.',
+    html: `<h1>Result</h1>
+<p>You have cleared the online round.</p>`, css: '', js: '',
+    hint: 'Two rules: one for `h1` with `text-align`, one for `p` with `font-size` and `font-weight`.',
+    sol: { css: `h1 {
+  text-align: center;
+}
+p {
+  font-size: 18px;
+  font-weight: bold;
+}` },
+    check: async t => {
+      t.eq(t.css(t.$('h1'), 'text-align'), 'center', 'The heading is centred');
+      const p = t.$('p');
+      t.eq(t.css(p, 'font-size'), '18px', 'The paragraph is 18px');
+      t.eq(t.css(p, 'font-weight'), '700', 'The paragraph is bold', { '400': 'Add font-weight: bold;' });
+    } },
+
+  { id: 'class', stage: 2, title: 'Style many elements with a class', files: ['html', 'css'],
+    learn: 'Give several elements the same class and style them all with one rule: `.error { ... }` (a dot, then the class name). One element can have more than one class: `class="tag urgent"`.',
+    example: { lang: 'css', src: `.note {
+  color: gray;
+}` },
+    task: 'Make every element with the class **error** red. Then give the second paragraph the class **error** too, so it turns red. The third paragraph stays black.',
+    html: `<p class="error">Email is missing</p>
+<p>Password is too short</p>
+<p>Welcome back!</p>`, css: '', js: '',
+    hint: 'CSS: `.error { color: red; }`. HTML: `<p class="error">Password is too short</p>`.',
+    sol: { html: `<p class="error">Email is missing</p>
+<p class="error">Password is too short</p>
+<p>Welcome back!</p>`, css: `.error {
+  color: red;
+}` },
+    check: async t => {
+      const ps = t.$$('p'); t.need(ps.length === 3, 'There are still three paragraphs');
+      t.eq(t.color(ps[0], 'color'), 'red', '"Email is missing" is red');
+      t.need(ps[1].classList.contains('error'), 'The second paragraph has class="error"');
+      t.eq(t.color(ps[1], 'color'), 'red', '"Password is too short" is red');
+      t.need(t.color(ps[2], 'color') !== 'red', '"Welcome back!" is not red');
+    } },
+
+  { id: 'box', stage: 2, title: 'Border, padding and rounded corners', files: ['css'],
+    learn: 'Every element is a box. `padding` is the space inside the border, `margin` is the space outside it. `border: 2px solid black` draws a border (width, style, colour). `border-radius: 8px` rounds the corners. `width: 300px` sets the width.',
+    example: { lang: 'css', src: `.card {
+  border: 1px solid gray;
+  padding: 16px;
+  margin: 10px;
+  border-radius: 8px;
+}` },
+    task: 'Give the card a **2px solid black** border, **16px** padding, **8px** rounded corners and a width of **300px**.',
+    html: `<div class="card">
+  <h3>Associate Software Engineer</h3>
+  <p>Bangalore · Full time</p>
+</div>`, css: '', js: '',
+    hint: 'One rule for `.card` with four properties: `border`, `padding`, `border-radius`, `width`.',
+    sol: { css: `.card {
+  border: 2px solid black;
+  padding: 16px;
+  border-radius: 8px;
+  width: 300px;
+}` },
+    check: async t => {
+      const c = t.$('.card'); t.need(c, 'The card is still there');
+      t.eq(t.css(c, 'border-top-width'), '2px', 'The border is 2px wide');
+      t.eq(t.css(c, 'border-top-style'), 'solid', 'The border is solid');
+      t.eq(t.color(c, 'border-top-color'), 'black', 'The border is black');
+      t.eq(t.css(c, 'padding-top'), '16px', 'The padding is 16px');
+      t.eq(t.css(c, 'padding-left'), '16px', 'The padding is 16px on the sides too');
+      t.eq(t.css(c, 'border-top-left-radius'), '8px', 'The corners are rounded by 8px');
+      t.eq(t.css(c, 'width'), '300px', 'The card is 300px wide');
+    } },
+
+  { id: 'hover', stage: 2, title: 'Change colour on hover', files: ['css'],
+    learn: '`:hover` after a selector applies only while the mouse is over the element. `cursor: pointer` shows the hand cursor, so people can see it is clickable.',
+    example: { lang: 'css', src: `a:hover {
+  color: red;
+}` },
+    task: 'When the mouse is over the button, its background should turn **green**. Also give the button `cursor: pointer`.',
+    html: `<button id="go">Continue</button>`, css: '', js: '',
+    hint: 'Two rules: `#go { cursor: pointer; }` and `#go:hover { background-color: green; }`.',
+    sol: { css: `#go {
+  cursor: pointer;
+}
+#go:hover {
+  background-color: green;
+}` },
+    check: async t => {
+      const go = t.$('#go'); t.need(go, 'The button is still there');
+      t.eq(t.css(go, 'cursor'), 'pointer', 'The button shows the pointer cursor');
+      t.eq(t.hoverColor(go, 'background-color'), 'green', 'On hover, its background is green', { none: 'Write a rule with :hover, for example #go:hover { ... }' });
+      t.need(t.color(go, 'background-color') !== 'green', 'It is green only on hover, not all the time');
+    } },
+
+  { id: 'hide', stage: 2, title: 'Hide something with CSS', files: ['css'],
+    learn: '`display: none` hides an element completely; the space it used closes up. `visibility: hidden` hides it but keeps the empty space.',
+    example: { lang: 'css', src: `.popup {
+  display: none;
+}` },
+    task: 'Hide the advert (id **ad**) using CSS. Do not delete it from the HTML.',
+    html: `<h2>Practice test</h2>
+<div id="ad">Buy premium now!</div>
+<p>Question 1 of 10</p>`, css: '', js: '',
+    hint: '`#ad { display: none; }`',
+    sol: { css: `#ad {
+  display: none;
+}` },
+    check: async t => {
+      const ad = t.$('#ad'); t.need(ad, 'The advert is still in the HTML (hide it with CSS instead of deleting it)');
+      t.eq(t.css(ad, 'display'), 'none', 'The advert has display: none');
+      t.need(t.visible(t.$('p')), 'The question text is still visible');
+    } },
+
+  /* ---------- Stage 3: placement ---------- */
+  { id: 'text-right', stage: 3, title: 'Move text to the right', files: ['css'],
+    learn: '`text-align` moves **text** inside its box: `left`, `center` or `right`. It works on block elements like `<p>`, `<div>` and `<h1>`.',
+    example: { lang: 'css', src: `.total {
+  text-align: right;
+}` },
+    task: 'Move the price to the right side of the line.',
+    html: `<h3>Order summary</h3>
+<p id="price">Total: Rs 499</p>`, css: '', js: '',
+    hint: '`#price { text-align: right; }`',
+    sol: { css: `#price {
+  text-align: right;
+}` },
+    check: async t => {
+      const p = t.$('#price'); t.need(p, 'The price is still there');
+      const gap = t.contentRect(p.parentElement).right - t.textRect(p).right;
+      t.need(Math.abs(gap) < 3, 'The price text sits at the right edge', `${Math.round(gap)}px from the right edge`);
+    } },
+
+  { id: 'box-right', stage: 3, title: 'Move a box to the right', files: ['css'],
+    learn: '`text-align` does not move boxes. A box with a width can be pushed right with `margin-left: auto`, or centred with `margin: 0 auto`. In a flex parent, `justify-content: flex-end` sends the children to the right.',
+    example: { lang: 'css', src: `.logo {
+  width: 100px;
+  margin: 0 auto;   /* centred */
+}` },
+    task: 'Move the blue box to the **right** edge of the grey area.',
+    html: `<div id="area">
+  <div id="box"></div>
+</div>`, css: `#area {
+  background: #ddd;
+  padding: 10px;
+}
+#box {
+  width: 80px;
+  height: 80px;
+  background: steelblue;
+}
+`, js: '',
+    hint: 'Add `margin-left: auto;` to `#box`.',
+    sol: { css: `#area {
+  background: #ddd;
+  padding: 10px;
+}
+#box {
+  width: 80px;
+  height: 80px;
+  background: steelblue;
+  margin-left: auto;
+}` },
+    check: async t => {
+      const box = t.$('#box'), area = t.$('#area'); t.need(box && area, 'The box and the grey area are still there');
+      t.eq(Math.round(t.rect(box).width), 80, 'The box is still 80px wide');
+      const gap = t.contentRect(area).right - t.rect(box).right;
+      t.need(Math.abs(gap) < 2, 'The box touches the right edge of the grey area', `${Math.round(gap)}px from the right edge`);
+    } },
+
+  { id: 'center', stage: 3, title: 'Centre a box both ways', files: ['css'],
+    learn: 'Flexbox is the easiest way to place things. Put these on the **parent**: `display: flex` turns it on, `justify-content: center` centres left–right, and `align-items: center` centres top–bottom (the parent needs a height).',
+    example: { lang: 'css', src: `.parent {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}` },
+    task: 'Put the **Login** box in the middle of the grey stage, both left–right and top–bottom.',
+    html: `<div id="stage">
+  <div id="login">Login</div>
+</div>`, css: `#stage {
+  height: 220px;
+  background: #eee;
+}
+#login {
+  width: 120px;
+  padding: 20px;
+  background: white;
+  border: 1px solid #999;
+}
+`, js: '',
+    hint: 'Add `display: flex; justify-content: center; align-items: center;` to `#stage` (the parent), not to `#login`.',
+    sol: { css: `#stage {
+  height: 220px;
+  background: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#login {
+  width: 120px;
+  padding: 20px;
+  background: white;
+  border: 1px solid #999;
+}` },
+    check: async t => {
+      const st = t.$('#stage'), lg = t.$('#login'); t.need(st && lg, 'The stage and the Login box are still there');
+      t.eq(Math.round(t.rect(st).height), 220, 'The stage is still 220px tall');
+      const s = t.contentRect(st), l = t.rect(lg);
+      const dx = (l.left + l.right) / 2 - (s.left + s.right) / 2, dy = (l.top + l.bottom) / 2 - (s.top + s.bottom) / 2;
+      t.need(Math.abs(dx) < 2, 'The box is centred left–right', `${Math.round(dx)}px off centre`);
+      t.need(Math.abs(dy) < 2, 'The box is centred top–bottom', `${Math.round(dy)}px off centre`);
+    } },
+
+  { id: 'row', stage: 3, title: 'Put boxes side by side', files: ['css'],
+    learn: 'Block elements like `<div>` stack on top of each other. `display: flex` on the parent puts its children in a **row**. `gap: 12px` adds space between them. `flex-direction: column` stacks them again.',
+    example: { lang: 'css', src: `.menu {
+  display: flex;
+  gap: 20px;
+}` },
+    task: 'Put the three cards side by side in one row, with a **12px** gap between them.',
+    html: `<div id="cards">
+  <div class="card">HTML</div>
+  <div class="card">CSS</div>
+  <div class="card">JS</div>
+</div>`, css: `.card {
+  padding: 16px;
+  background: #ffe9c7;
+  border: 1px solid #e0a040;
+}
+`, js: '',
+    hint: 'Style the parent: `#cards { display: flex; gap: 12px; }`.',
+    sol: { css: `#cards {
+  display: flex;
+  gap: 12px;
+}
+.card {
+  padding: 16px;
+  background: #ffe9c7;
+  border: 1px solid #e0a040;
+}` },
+    check: async t => {
+      const cs = t.$$('.card'); t.eq(cs.length, 3, 'There are three cards');
+      const r = cs.map(c => t.rect(c));
+      t.need(Math.abs(r[1].top - r[0].top) < 1 && Math.abs(r[2].top - r[0].top) < 1, 'The three cards are in one row');
+      const g = r[1].left - r[0].right;
+      t.need(Math.abs(g - 12) < 1, 'The gap between cards is 12px', `${Math.round(g)}px`);
+    } },
+
+  { id: 'corner', stage: 3, title: 'Pin a badge to a corner', files: ['css'],
+    learn: 'To place something at an exact spot inside a box: give the box `position: relative`, give the child `position: absolute`, then use `top`, `right`, `bottom`, `left`. (`position: fixed` does the same against the screen, for things that stay put while you scroll.)',
+    example: { lang: 'css', src: `.card { position: relative; }
+.close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}` },
+    task: 'Place the red **New** badge in the **top-right corner** of the card: 0px from the top and 0px from the right.',
+    html: `<div id="card">
+  <span id="badge">New</span>
+  <h3>Cloud Practitioner</h3>
+  <p>Free course</p>
+</div>`, css: `#card {
+  width: 260px;
+  padding: 16px;
+  border: 1px solid #999;
+}
+#badge {
+  background: red;
+  color: white;
+  padding: 2px 8px;
+}
+`, js: '',
+    hint: 'Add `position: relative;` to `#card`, and `position: absolute; top: 0; right: 0;` to `#badge`.',
+    sol: { css: `#card {
+  width: 260px;
+  padding: 16px;
+  border: 1px solid #999;
+  position: relative;
+}
+#badge {
+  background: red;
+  color: white;
+  padding: 2px 8px;
+  position: absolute;
+  top: 0;
+  right: 0;
+}` },
+    check: async t => {
+      const card = t.$('#card'), b = t.$('#badge'); t.need(card && b, 'The card and badge are still there');
+      const c = t.paddingRect(card), r = t.rect(b);
+      t.need(Math.abs(r.top - c.top) < 1.5, 'The badge touches the top of the card', `${Math.round(r.top - c.top)}px from the top`);
+      t.need(Math.abs(c.right - r.right) < 1.5, 'The badge touches the right side of the card', `${Math.round(c.right - r.right)}px from the right`);
+    } },
+
+  /* ---------- Stage 4: JavaScript ---------- */
+  { id: 'js-text', stage: 4, title: 'Change text with JavaScript', files: ['js'],
+    learn: 'JavaScript changes the page in two steps. First **find** the element: `document.getElementById("msg")` finds it by id; `document.querySelector(".note")` finds the first match of any CSS selector. Then **change** it: `.textContent = "..."` replaces its text. `console.log(...)` prints to the console below the preview.',
+    example: { lang: 'js', src: `const msg = document.getElementById("msg");
+msg.textContent = "Saved!";
+console.log(msg.textContent);` },
+    task: 'In script.js, change the text of the paragraph with id **status** to **Test submitted**.',
+    html: `<h2>Status</h2>
+<p id="status">Not submitted</p>`, css: '', js: `// write your JavaScript here
+`,
+    hint: '`document.getElementById("status").textContent = "Test submitted";`',
+    sol: { js: `const status = document.getElementById("status");
+status.textContent = "Test submitted";` },
+    check: async t => {
+      t.eq(t.text(t.$('#status')), 'Test submitted', 'The status says "Test submitted"');
+    } },
+
+  { id: 'click-color', stage: 4, title: 'Change a colour when a button is clicked', files: ['js'],
+    learn: '`element.style.property = "value"` changes one style. CSS names with a dash are written in camelCase in JavaScript: `background-color` becomes `backgroundColor`, `font-size` becomes `fontSize`. `button.addEventListener("click", function () { ... })` runs the code inside every time the button is clicked.',
+    example: { lang: 'js', src: `const btn = document.getElementById("btn");
+btn.addEventListener("click", function () {
+  btn.style.backgroundColor = "orange";
+});` },
+    task: 'When the **Change colour** button is clicked, make the box (id **box**) **red**.',
+    html: `<div id="box"></div>
+<button id="change">Change colour</button>`, css: `#box {
+  width: 100px;
+  height: 100px;
+  background-color: lightgray;
+  margin-bottom: 10px;
+}
+`, js: '',
+    hint: 'Find the button and the box. In the click function, set `box.style.backgroundColor = "red";`.',
+    sol: { js: `const box = document.getElementById("box");
+const button = document.getElementById("change");
+
+button.addEventListener("click", function () {
+  box.style.backgroundColor = "red";
+});` },
+    check: async t => {
+      const box = t.$('#box'); t.need(box, 'The box is still there');
+      t.need(t.color(box, 'background-color') !== 'red', 'Before the click the box is not red yet (change it inside the click function)');
+      await t.click(t.$('#change'));
+      t.eq(t.color(box, 'background-color'), 'red', 'After the click the box is red');
+    } },
+
+  { id: 'onclick', stage: 4, title: 'Which function does the button call?', files: ['html'],
+    learn: 'Another way to connect a button to code is the `onclick` attribute in HTML: `<button onclick="save()">` calls the function `save` from script.js when it is clicked. The name must match exactly, capitals included, and it needs the brackets `()`.',
+    example: { lang: 'html', src: `<button onclick="sayHello()">Hi</button>` },
+    task: 'script.js has three functions. Make the **Apply** button call the one that shows the success message. Change only index.html.',
+    html: `<button id="apply">Apply</button>
+<p id="result"></p>`, css: '', js: `function showError() {
+  document.getElementById("result").textContent = "Something went wrong";
+}
+
+function showSuccess() {
+  document.getElementById("result").textContent = "Application sent!";
+}
+
+function clearResult() {
+  document.getElementById("result").textContent = "";
+}
+`,
+    hint: 'Read the three functions: the one that writes "Application sent!" is `showSuccess`. Add `onclick="showSuccess()"` to the button.',
+    sol: { html: `<button id="apply" onclick="showSuccess()">Apply</button>
+<p id="result"></p>` },
+    check: async t => {
+      await t.click(t.$('#apply'));
+      t.eq(t.text(t.$('#result')), 'Application sent!', 'Clicking Apply shows "Application sent!"', { 'Something went wrong': 'That is showError. Read the functions again.' });
+      t.need(t.files.js.trim() === t.task.js.trim(), 'script.js is unchanged (only edit index.html)');
+    } },
+
+  { id: 'function', stage: 4, title: 'Write a function and call it', files: ['js'],
+    learn: 'A function is a named piece of code. `function add(a, b) { return a + b; }` defines it; `add(2, 3)` runs it and gives back 5. Values from inputs are **text**, so `"4" + "5"` is `"45"`. Convert them first with `Number(...)`.',
+    example: { lang: 'js', src: `function fullName(first, last) {
+  return first + " " + last;
+}
+console.log(fullName("Asha", "Rao"));` },
+    task: 'Write a function **add(a, b)** that returns the sum. When **Add** is clicked, read the two numbers, call `add`, and show the answer in **#sum**.',
+    html: `<input id="a" type="number" value="4">
+<input id="b" type="number" value="5">
+<button id="add">Add</button>
+<p>Sum: <span id="sum"></span></p>`, css: '', js: '',
+    hint: 'Inside the click function: `const a = Number(document.getElementById("a").value);`, the same for b, then `document.getElementById("sum").textContent = add(a, b);`.',
+    sol: { js: `function add(a, b) {
+  return a + b;
+}
+
+document.getElementById("add").addEventListener("click", function () {
+  const a = Number(document.getElementById("a").value);
+  const b = Number(document.getElementById("b").value);
+  document.getElementById("sum").textContent = add(a, b);
+});` },
+    check: async t => {
+      t.need(/\bfunction\s+add\s*\(|\badd\s*=\s*(function\b|\()/.test(t.files.js), 'There is a function called add');
+      await t.click(t.$('#add'));
+      t.eq(t.text(t.$('#sum')), '9', 'With 4 and 5, clicking Add shows 9', { '45': 'You joined two pieces of text. Convert the values with Number(...) first.' });
+      await t.type(t.$('#a'), '10'); await t.type(t.$('#b'), '-3'); await t.click(t.$('#add'));
+      t.eq(t.text(t.$('#sum')), '7', 'With 10 and -3, it shows 7 (it reads the boxes on every click)');
+    } },
+
+  { id: 'toggle', stage: 4, title: 'Show and hide on click', files: ['js'],
+    learn: '`element.style.display = "none"` hides an element and `"block"` shows it again. To switch between the two, look at the current value with `if (...) { ... } else { ... }`. Use `===` to compare.',
+    example: { lang: 'js', src: `if (panel.style.display === "none") {
+  panel.style.display = "block";
+} else {
+  panel.style.display = "none";
+}` },
+    task: 'Clicking **Show details** shows the details. Clicking again hides them. They start hidden.',
+    html: `<button id="toggle">Show details</button>
+<div id="details" style="display: none">
+  <p>Duration: 90 minutes</p>
+  <p>Sections: aptitude, coding, communication</p>
+</div>`, css: '', js: '',
+    hint: 'Add a click listener to `#toggle`. Inside, use the if/else from the note on `#details`.',
+    sol: { js: `const details = document.getElementById("details");
+
+document.getElementById("toggle").addEventListener("click", function () {
+  if (details.style.display === "none") {
+    details.style.display = "block";
+  } else {
+    details.style.display = "none";
+  }
+});` },
+    check: async t => {
+      const d = t.$('#details'), b = t.$('#toggle'); t.need(d && b, 'The button and details are still there');
+      t.need(!t.visible(d), 'The details start hidden');
+      await t.click(b); t.need(t.visible(d), 'One click shows the details');
+      await t.click(b); t.need(!t.visible(d), 'A second click hides them again');
+    } },
+
+  { id: 'counter', stage: 4, title: 'Count the clicks', files: ['js'],
+    learn: 'Keep a number in a variable **outside** the click function, so it keeps its value between clicks. Use `let` for a variable that changes. `count = count + 1` (or `count++`) adds one.',
+    example: { lang: 'js', src: `let count = 0;
+button.addEventListener("click", function () {
+  count++;
+  console.log(count);
+});` },
+    task: 'Each click on **+1** adds one to the number in **#count**. **Reset** sets it back to 0.',
+    html: `<p>Clicks: <span id="count">0</span></p>
+<button id="plus">+1</button>
+<button id="reset">Reset</button>`, css: '', js: '',
+    hint: 'Two listeners. Both end with `document.getElementById("count").textContent = count;`.',
+    sol: { js: `let count = 0;
+const shown = document.getElementById("count");
+
+document.getElementById("plus").addEventListener("click", function () {
+  count++;
+  shown.textContent = count;
+});
+
+document.getElementById("reset").addEventListener("click", function () {
+  count = 0;
+  shown.textContent = count;
+});` },
+    check: async t => {
+      const plus = t.$('#plus'), reset = t.$('#reset'), c = t.$('#count');
+      await t.click(plus); await t.click(plus); await t.click(plus);
+      t.eq(t.text(c), '3', 'Three clicks on +1 show 3');
+      await t.click(reset); t.eq(t.text(c), '0', 'Reset shows 0');
+      await t.click(plus); t.eq(t.text(c), '1', 'After Reset, +1 starts again from 1');
+    } },
+
+  { id: 'greet', stage: 4, title: 'Use what the user typed', files: ['js'],
+    learn: '`input.value` is the text typed in a box. Join text with `+`: `"Hello, " + name + "!"`. An empty box has the value `""`, so `if (name === "")` checks for it.',
+    example: { lang: 'js', src: `const name = document.getElementById("name").value;
+console.log("Hi " + name);` },
+    task: 'When **Greet** is clicked, show **Hello, NAME!** in **#greeting**, where NAME is what was typed. If the box is empty, show **Please enter your name**.',
+    html: `<input id="name" placeholder="Your name">
+<button id="greet">Greet</button>
+<p id="greeting"></p>`, css: '', js: '',
+    hint: 'Read `.value` inside the click function (not outside, or you only get the value from page load).',
+    sol: { js: `document.getElementById("greet").addEventListener("click", function () {
+  const name = document.getElementById("name").value;
+  const out = document.getElementById("greeting");
+  if (name === "") {
+    out.textContent = "Please enter your name";
+  } else {
+    out.textContent = "Hello, " + name + "!";
+  }
+});` },
+    check: async t => {
+      await t.type(t.$('#name'), 'Asha'); await t.click(t.$('#greet'));
+      t.eq(t.text(t.$('#greeting')), 'Hello, Asha!', 'Typing Asha and clicking shows "Hello, Asha!"');
+      await t.type(t.$('#name'), ''); await t.click(t.$('#greet'));
+      t.eq(t.text(t.$('#greeting')), 'Please enter your name', 'With an empty box it shows "Please enter your name"');
+    } },
+
+  { id: 'dark', stage: 4, title: 'Switch a class (dark mode)', files: ['js'],
+    learn: 'Instead of changing many styles one by one, keep them in a CSS class and switch the class: `el.classList.add("x")`, `.remove("x")`, `.toggle("x")` (add if missing, remove if there) and `.contains("x")`.',
+    example: { lang: 'js', src: `menu.classList.toggle("open");` },
+    task: 'style.css already has a **.dark** class. Make the **Dark mode** button switch the class **dark** on and off on the page body (`document.body`).',
+    html: `<h2>Settings</h2>
+<p>Choose how the page looks.</p>
+<button id="mode">Dark mode</button>`, css: `.dark {
+  background: #111;
+  color: #eee;
+}
+`, js: '',
+    hint: '`document.body.classList.toggle("dark");` inside a click listener on `#mode`.',
+    sol: { js: `document.getElementById("mode").addEventListener("click", function () {
+  document.body.classList.toggle("dark");
+});` },
+    check: async t => {
+      t.need(!t.body.classList.contains('dark'), 'The page starts light');
+      await t.click(t.$('#mode')); t.need(t.body.classList.contains('dark'), 'One click adds the class dark to the body');
+      await t.click(t.$('#mode')); t.need(!t.body.classList.contains('dark'), 'A second click removes it');
+    } },
+
+  { id: 'add-item', stage: 4, title: 'Add items to a list', files: ['js'],
+    learn: '`document.createElement("li")` makes a new element. Set its text, then `list.appendChild(li)` adds it at the end of the list. `input.value = ""` empties a box.',
+    example: { lang: 'js', src: `const li = document.createElement("li");
+li.textContent = "New item";
+document.getElementById("list").appendChild(li);` },
+    task: 'Clicking **Add** adds the typed task as a new item at the end of the list and empties the box. If the box is empty, add nothing.',
+    html: `<input id="task" placeholder="New task">
+<button id="add">Add</button>
+<ul id="list">
+  <li>Revise arrays</li>
+</ul>`, css: '', js: '',
+    hint: 'In the click function: read the value; `if (text === "") return;`; create the li, append it, then clear the box.',
+    sol: { js: `document.getElementById("add").addEventListener("click", function () {
+  const input = document.getElementById("task");
+  const text = input.value;
+  if (text === "") return;
+  const li = document.createElement("li");
+  li.textContent = text;
+  document.getElementById("list").appendChild(li);
+  input.value = "";
+});` },
+    check: async t => {
+      const list = t.$('#list');
+      await t.type(t.$('#task'), 'Mock test'); await t.click(t.$('#add'));
+      const items = list.querySelectorAll('li');
+      t.eq(items.length, 2, 'The list now has 2 items');
+      t.eq(t.text(items[1]), 'Mock test', 'The new item "Mock test" is last');
+      t.eq(t.$('#task').value, '', 'The box is empty again');
+      await t.click(t.$('#add'));
+      t.eq(list.querySelectorAll('li').length, 2, 'Clicking Add with an empty box adds nothing');
+    } },
+
+  /* ---------- Stage 5: date and time ---------- */
+  { id: 'date', stage: 5, title: 'Show today’s date', files: ['js'],
+    learn: '`new Date()` is the current date and time. Ask it for parts: `getDate()` is the day (1–31), `getMonth()` is the month **0–11** (January is 0, so add 1), `getFullYear()` is the year. `String(n).padStart(2, "0")` turns 7 into "07".',
+    example: { lang: 'js', src: `const now = new Date();
+const day = String(now.getDate()).padStart(2, "0");
+const month = String(now.getMonth() + 1).padStart(2, "0");
+console.log(day + "/" + month + "/" + now.getFullYear());` },
+    task: 'Show today’s date in **#today** as **DD/MM/YYYY**, for example 05/03/2026.',
+    html: `<p>Today: <span id="today"></span></p>`, css: '', js: '',
+    hint: 'The example in the note prints exactly this format; put it in `#today` instead of the console.',
+    sol: { js: `const now = new Date();
+const day = String(now.getDate()).padStart(2, "0");
+const month = String(now.getMonth() + 1).padStart(2, "0");
+document.getElementById("today").textContent = day + "/" + month + "/" + now.getFullYear();` },
+    check: async t => {
+      await t.rerun('2026-03-05T10:00:00');
+      t.eq(t.text(t.$('#today')), '05/03/2026', 'On 5 March 2026 it shows 05/03/2026', { '5/3/2026': 'Add the leading zeros with padStart(2, "0").', '05/02/2026': 'getMonth() counts from 0: add 1.', '5/2/2026': 'Add 1 to getMonth(), and pad with zeros.' });
+      await t.rerun('2026-11-23T18:00:00');
+      t.eq(t.text(t.$('#today')), '23/11/2026', 'On 23 November 2026 it shows 23/11/2026');
+    } },
+
+  { id: 'time', stage: 5, title: 'Show the current time', files: ['js'],
+    learn: '`getHours()` gives 0–23, `getMinutes()` and `getSeconds()` give 0–59. `toLocaleTimeString()` and `toLocaleDateString()` give ready-made text in the computer’s local format; when the task asks for an exact format, build it yourself.',
+    example: { lang: 'js', src: `const now = new Date();
+console.log(now.getHours(), now.getMinutes());
+console.log(now.toLocaleTimeString());` },
+    task: 'Show the current time in **#time** as **HH:MM** in 24-hour format, for example 09:05 or 18:30.',
+    html: `<p>Time now: <span id="time"></span></p>`, css: '', js: '',
+    hint: 'Pad both hours and minutes with `padStart(2, "0")` and join them with ":".',
+    sol: { js: `const now = new Date();
+const hh = String(now.getHours()).padStart(2, "0");
+const mm = String(now.getMinutes()).padStart(2, "0");
+document.getElementById("time").textContent = hh + ":" + mm;` },
+    check: async t => {
+      await t.rerun('2026-10-12T09:05:00');
+      t.eq(t.text(t.$('#time')), '09:05', 'At 9:05 in the morning it shows 09:05', { '9:5': 'Pad with zeros: padStart(2, "0").', '9:05': 'Pad the hours too.' });
+      await t.rerun('2026-10-12T18:30:00');
+      t.eq(t.text(t.$('#time')), '18:30', 'At 6:30 in the evening it shows 18:30');
+    } },
+
+  { id: 'clock', stage: 5, title: 'A live clock', files: ['js'],
+    learn: '`setInterval(fn, 1000)` runs the function fn every 1000 milliseconds (1 second). `setTimeout(fn, 2000)` runs it once, after 2 seconds. Also call your function once yourself, so the clock appears at once instead of after the first second.',
+    example: { lang: 'js', src: `function tick() {
+  console.log("tick");
+}
+tick();
+setInterval(tick, 1000);` },
+    task: 'Make **#clock** show the time as **HH:MM:SS** and update it every second.',
+    html: `<p>Clock: <span id="clock"></span></p>`, css: '', js: '',
+    hint: 'Put the code that writes the time in a function `showTime()`. Call `showTime();` once, then `setInterval(showTime, 1000);`.',
+    sol: { js: `function showTime() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+  document.getElementById("clock").textContent = hh + ":" + mm + ":" + ss;
+}
+
+showTime();
+setInterval(showTime, 1000);` },
+    check: async t => {
+      await t.rerun('2026-10-12T09:05:07');
+      const first = t.text(t.$('#clock'));
+      t.need(first !== '', 'The clock shows the time at once (call your function once before setInterval)', first);
+      t.eq(first, '09:05:07', 'At 9:05:07 it shows 09:05:07');
+      await t.wait(1150);
+      t.need(t.text(t.$('#clock')) !== first, 'One second later it shows the new time', t.text(t.$('#clock')));
+    } },
+
+  { id: 'weekday', stage: 5, title: 'Day and month names', files: ['js'],
+    learn: '`getDay()` gives the weekday as a number, 0 (Sunday) to 6 (Saturday). Look the name up in an array, or let the browser write it: `now.toLocaleDateString("en-US", { weekday: "long" })` gives "Monday", and `{ month: "long" }` gives "October".',
+    example: { lang: 'js', src: `const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const now = new Date();
+console.log(days[now.getDay()]);
+console.log(now.toLocaleDateString("en-US", { month: "long" }));` },
+    task: 'Show today’s weekday in **#day** (for example **Monday**) and today’s month in **#month** (for example **October**).',
+    html: `<p>Day: <span id="day"></span></p>
+<p>Month: <span id="month"></span></p>`, css: '', js: '',
+    hint: 'Both lines of the example are the answer; write them into the two spans.',
+    sol: { js: `const now = new Date();
+document.getElementById("day").textContent = now.toLocaleDateString("en-US", { weekday: "long" });
+document.getElementById("month").textContent = now.toLocaleDateString("en-US", { month: "long" });` },
+    check: async t => {
+      await t.rerun('2026-10-12T10:00:00');
+      t.eq(t.text(t.$('#day')), 'Monday', 'On 12 October 2026 the day is Monday');
+      t.eq(t.text(t.$('#month')), 'October', 'and the month is October');
+      await t.rerun('2026-02-01T10:00:00');
+      t.eq(t.text(t.$('#day')), 'Sunday', 'On 1 February 2026 the day is Sunday', { Monday: 'getDay() starts at 0 for Sunday: the array must start with "Sunday".' });
+      t.eq(t.text(t.$('#month')), 'February', 'and the month is February');
+    } },
+
+  { id: 'add-days', stage: 5, title: 'Move a date forward', files: ['js'],
+    learn: 'To move a date, change one part and let JavaScript fix the rest: `d.setDate(d.getDate() + 7)` moves 7 days ahead, and the month and year roll over by themselves (31 January + 1 day = 1 February).',
+    example: { lang: 'js', src: `const d = new Date();
+d.setDate(d.getDate() + 1);   // tomorrow
+console.log(d.toDateString());` },
+    task: 'Results come out **7 days** after today. Show that date in **#result-date** as **DD/MM/YYYY**.',
+    html: `<p>Results on: <span id="result-date"></span></p>`, css: '', js: '',
+    hint: 'Make the date with `setDate(d.getDate() + 7)`, then format it the same way as the "Show today’s date" task.',
+    sol: { js: `const d = new Date();
+d.setDate(d.getDate() + 7);
+const day = String(d.getDate()).padStart(2, "0");
+const month = String(d.getMonth() + 1).padStart(2, "0");
+document.getElementById("result-date").textContent = day + "/" + month + "/" + d.getFullYear();` },
+    check: async t => {
+      await t.rerun('2026-01-28T10:00:00');
+      t.eq(t.text(t.$('#result-date')), '04/02/2026', 'From 28 January 2026 it shows 04/02/2026', { '35/01/2026': 'Do not add 7 to the day number yourself; use setDate so the month rolls over.' });
+      await t.rerun('2026-12-29T10:00:00');
+      t.eq(t.text(t.$('#result-date')), '05/01/2027', 'From 29 December 2026 it shows 05/01/2027');
+    } },
+
+  { id: 'greeting', stage: 5, title: 'Greeting by time of day', files: ['js'],
+    learn: 'Choose text by time with `if / else if / else` and `getHours()`. Conditions are checked from top to bottom, and the first true one wins.',
+    example: { lang: 'js', src: `const h = new Date().getHours();
+if (h < 12) {
+  console.log("morning");
+} else if (h < 17) {
+  console.log("afternoon");
+} else {
+  console.log("evening");
+}` },
+    task: 'In **#hello** show **Good morning** before 12:00, **Good afternoon** from 12:00 until 16:59, and **Good evening** from 17:00.',
+    html: `<h2 id="hello"></h2>
+<p>Your test is ready.</p>`, css: '', js: '',
+    hint: 'Use the example and write the text into `#hello` with `textContent`.',
+    sol: { js: `const h = new Date().getHours();
+const hello = document.getElementById("hello");
+if (h < 12) {
+  hello.textContent = "Good morning";
+} else if (h < 17) {
+  hello.textContent = "Good afternoon";
+} else {
+  hello.textContent = "Good evening";
+}` },
+    check: async t => {
+      for (const [at, want, label] of [['09:15', 'Good morning', '9:15'], ['12:00', 'Good afternoon', '12:00'], ['16:59', 'Good afternoon', '16:59'], ['17:00', 'Good evening', '17:00']]) {
+        await t.rerun(`2026-10-12T${at}:00`);
+        t.eq(t.text(t.$('#hello')), want, `At ${label} it says "${want}"`);
+      }
+    } },
+
+  /* ---------- Stage 6: forms, bugs, mock ---------- */
+  { id: 'form', stage: 6, title: 'Check a form before it is sent', files: ['js'],
+    learn: 'A form fires a **submit** event when its button is pressed. In the listener, `event.preventDefault()` stops the page from reloading, so you can check the values. `.trim()` removes spaces from both ends of text.',
+    example: { lang: 'js', src: `form.addEventListener("submit", function (event) {
+  event.preventDefault();
+  // check the inputs here
+});` },
+    task: 'When the form is submitted: if the email box is empty, show **Email is required** in **#message**. Otherwise show **Registered: EMAIL** (the typed email). The page must not reload.',
+    html: `<form id="signup">
+  <input id="email" type="email" placeholder="Email">
+  <button type="submit">Sign up</button>
+</form>
+<p id="message"></p>`, css: '', js: '',
+    hint: 'Listen for "submit" on `#signup` (the form, not the button). Start with `event.preventDefault();`.',
+    sol: { js: `document.getElementById("signup").addEventListener("submit", function (event) {
+  event.preventDefault();
+  const email = document.getElementById("email").value.trim();
+  const message = document.getElementById("message");
+  if (email === "") {
+    message.textContent = "Email is required";
+  } else {
+    message.textContent = "Registered: " + email;
+  }
+});` },
+    check: async t => {
+      const btn = t.$('button'), msg = t.$('#message');
+      await t.type(t.$('#email'), ''); await t.click(btn);
+      t.eq(t.text(msg), 'Email is required', 'Submitting an empty box shows "Email is required"');
+      t.need(t.lastSubmitPrevented(), 'The listener calls event.preventDefault(), so the page does not reload');
+      await t.type(t.$('#email'), 'asha@example.com'); await t.click(btn);
+      t.eq(t.text(msg), 'Registered: asha@example.com', 'Submitting asha@example.com shows "Registered: asha@example.com"');
+    } },
+
+  { id: 'agree', stage: 6, title: 'Enable a button with a checkbox', files: ['js'],
+    learn: '`checkbox.checked` is `true` when ticked and `false` when not. `button.disabled = true` greys a button out so it cannot be clicked. The **change** event fires when a checkbox is ticked or unticked.',
+    example: { lang: 'js', src: `box.addEventListener("change", function () {
+  console.log(box.checked);
+});` },
+    task: 'The **Start** button begins disabled. Enable it only while **I agree** is ticked.',
+    html: `<label><input type="checkbox" id="agree"> I agree to the test rules</label>
+<button id="start" disabled>Start</button>`, css: '', js: '',
+    hint: 'In a change listener on `#agree`: `start.disabled = !agree.checked;` (`!` means "not").',
+    sol: { js: `const agree = document.getElementById("agree");
+const start = document.getElementById("start");
+
+agree.addEventListener("change", function () {
+  start.disabled = !agree.checked;
+});` },
+    check: async t => {
+      const box = t.$('#agree'), b = t.$('#start');
+      t.need(b.disabled, 'Start begins disabled');
+      await t.click(box); t.need(!b.disabled, 'Ticking "I agree" enables Start');
+      await t.click(box); t.need(b.disabled, 'Unticking it disables Start again');
+    } },
+
+  { id: 'count-chars', stage: 6, title: 'A live character counter', files: ['js'],
+    learn: 'The **input** event fires every time the text in a box changes. `text.length` is the number of characters in the text.',
+    example: { lang: 'js', src: `box.addEventListener("input", function () {
+  console.log(box.value.length);
+});` },
+    task: 'As the user types in the bio box, show how many characters are **left** in **#left**. The limit is **50**.',
+    html: `<textarea id="bio" maxlength="50" rows="3" cols="30"></textarea>
+<p><span id="left">50</span> characters left</p>`, css: '', js: '',
+    hint: 'In an input listener: `left.textContent = 50 - bio.value.length;`.',
+    sol: { js: `const bio = document.getElementById("bio");
+const left = document.getElementById("left");
+
+bio.addEventListener("input", function () {
+  left.textContent = 50 - bio.value.length;
+});` },
+    check: async t => {
+      await t.type(t.$('#bio'), 'Hello'); t.eq(t.text(t.$('#left')), '45', 'After typing "Hello" it shows 45');
+      await t.type(t.$('#bio'), 'Hello world'); t.eq(t.text(t.$('#left')), '39', 'After "Hello world" it shows 39');
+      await t.type(t.$('#bio'), ''); t.eq(t.text(t.$('#left')), '50', 'With an empty box it shows 50');
+    } },
+
+  { id: 'fix-1', stage: 6, title: 'Fix the bugs: nothing happens', files: ['js'],
+    learn: 'When nothing happens, look at the console under the preview: errors appear there. The usual causes are a wrong id (ids are case-sensitive: `"Show"` is not `"show"`), a misspelt property (`textContent`, not `textcontent`), or a function name in `onclick` that does not match.',
+    example: { lang: 'js', src: `document.getElementById("Score")   // null if the id is "score"` },
+    task: 'Clicking **Show score** should display **Score: 85** in **#score**, but nothing happens. Find and fix the **two** bugs in script.js.',
+    html: `<button id="show">Show score</button>
+<p id="score"></p>`, css: '', js: `const button = document.getElementById("Show");
+button.addEventListener("click", function () {
+  document.getElementById("score").textcontent = "Score: 85";
+});
+`,
+    hint: 'Press Run and read the console. Then compare each id and property name with the HTML and with the note.',
+    sol: { js: `const button = document.getElementById("show");
+button.addEventListener("click", function () {
+  document.getElementById("score").textContent = "Score: 85";
+});` },
+    check: async t => {
+      await t.click(t.$('#show'));
+      t.eq(t.text(t.$('#score')), 'Score: 85', 'Clicking Show score shows "Score: 85"');
+    } },
+
+  { id: 'fix-2', stage: 6, title: 'Fix the bugs: wrong total', files: ['html', 'js'],
+    learn: 'Three classic mistakes: the name in `onclick` must match the function exactly (capitals too); text values need quotes (`"green"`, not `green`); and text + number joins them (`"1000" + 100` is `"1000100"`), so convert with `Number(...)` first.',
+    example: { lang: 'js', src: `console.log("1000" + 100);          // 1000100
+console.log(Number("1000") + 100);  // 1100` },
+    task: 'Clicking **Add shipping** should add 100 to the price (1000 becomes **1100**) and turn the price **green**. Fix the three bugs.',
+    html: `<p>Price: Rs <span id="price">1000</span></p>
+<button onclick="addShipping()">Add shipping</button>`, css: '', js: `function addshipping() {
+  const price = document.getElementById("price");
+  const value = price.textContent;
+  price.textContent = value + 100;
+  price.style.color = green;
+}
+`,
+    hint: 'Run it and read the console after each fix: first the function name, then the colour, then the number.',
+    sol: { js: `function addShipping() {
+  const price = document.getElementById("price");
+  const value = Number(price.textContent);
+  price.textContent = value + 100;
+  price.style.color = "green";
+}` },
+    check: async t => {
+      await t.click(t.$('button'));
+      t.eq(t.text(t.$('#price')), '1100', 'After the click the price is 1100', { '1000100': 'Text + number joins them. Convert with Number(...) first.' });
+      t.eq(t.color(t.$('#price'), 'color'), 'green', 'The price is green');
+    } },
+
+  { id: 'mock', stage: 6, title: 'Mini mock: book a slot (15 minutes)', files: ['js'],
+    learn: 'A `<select>` is a drop-down list. `select.value` is the chosen option’s text (or its `value` attribute, if it has one). Everything else here you have already done: read a value, set text and colour, change the button.',
+    example: { lang: 'js', src: `const choice = document.getElementById("city").value;` },
+    task: 'When **Book slot** is clicked: show **Booked: SLOT** in **#confirm** (the chosen slot), make that text **green**, change the button text to **Booked**, and disable the button. Try it in 15 minutes without the hint.',
+    html: `<h2>Book your interview slot</h2>
+<select id="slot">
+  <option>09:30</option>
+  <option>10:30</option>
+  <option>14:00</option>
+</select>
+<button id="book">Book slot</button>
+<p id="confirm"></p>`, css: '', js: '',
+    hint: 'One click listener on `#book` with four lines: set `confirm.textContent`, `confirm.style.color`, `book.textContent` and `book.disabled`.',
+    sol: { js: `const book = document.getElementById("book");
+
+book.addEventListener("click", function () {
+  const slot = document.getElementById("slot").value;
+  const confirm = document.getElementById("confirm");
+  confirm.textContent = "Booked: " + slot;
+  confirm.style.color = "green";
+  book.textContent = "Booked";
+  book.disabled = true;
+});` },
+    check: async t => {
+      await t.select(t.$('#slot'), '10:30'); await t.click(t.$('#book'));
+      const c = t.$('#confirm'), b = t.$('#book');
+      t.eq(t.text(c), 'Booked: 10:30', 'With 10:30 chosen it shows "Booked: 10:30"');
+      t.eq(t.color(c, 'color'), 'green', 'The message is green');
+      t.eq(t.text(b), 'Booked', 'The button now says "Booked"');
+      t.need(b.disabled, 'The button is disabled');
+    } },
+  ];
+
+  /* ======================= Setup ======================= */
+  const LS_UI = 'web-round-ui-v1';
+  const LS_DATA = 'web-round-data-v1';
+  const BLOCKED = ['not_granted', 'capability_disabled', 'capability_removed', 'revoked'];
+  const FILES = [['html', 'index.html'], ['css', 'style.css'], ['js', 'script.js']];
+  const BYID = Object.fromEntries(TASKS.map((t, i) => { t.i = i; return [t.id, t]; }));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+  const clock = d => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const pad2 = n => String(n).padStart(2, '0');
+  const isoDay = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  const shortDate = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); };
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const stageTasks = n => TASKS.filter(t => t.stage === n);
+  const starter = t => ({ html: t.html, css: t.css, js: t.js });
+  const sameFiles = (a, b) => a.html === b.html && a.css === b.css && a.js === b.js;
+
+  /* ---------- State ---------- */
+  let store = { done: {}, code: {}, updatedAt: 0 };
+  let ui = { task: null, tab: null };
+  let buf = null, lastRunSig = null, notesQuery = '';
+  let db = null, mode = 'connecting', ready = false, readOnly = false;
+  let pending = false, inflight = false, again = false, editSeq = 0;
+  let lastSaved = null, lastError = null, retryTimer = null, flushTimer = null, flash = null;
+
+  function cleanStore(s) {
+    const out = { done: {}, code: {}, updatedAt: 0 };
+    if (!s || typeof s !== 'object') return out;
+    out.updatedAt = typeof s.updatedAt === 'number' ? s.updatedAt : 0;
+    const obj = x => (x && typeof x === 'object') ? x : {};
+    for (const [id, v] of Object.entries(obj(s.done))) if (v && BYID[id]) out.done[id] = (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) ? v : 1;
+    for (const [id, v] of Object.entries(obj(s.code))) {
+      if (!BYID[id] || !v || typeof v !== 'object') continue;
+      const f = {};
+      for (const k of ['html', 'css', 'js']) f[k] = typeof v[k] === 'string' ? v[k].slice(0, 40000) : BYID[id][k];
+      out.code[id] = f;
+    }
+    return out;
+  }
+
+  /* ---------- Saving (same approach as your other trackers) ---------- */
+  function cacheLocal() { try { localStorage.setItem(LS_DATA, JSON.stringify({ store, pending })); } catch (e) { /* blocked */ } }
+  function loadLocal() {
+    try { const raw = JSON.parse(localStorage.getItem(LS_DATA) || 'null'); if (raw) { store = cleanStore(raw.store); pending = !!raw.pending; } } catch (e) { /* ignore */ }
+    try { const u = JSON.parse(localStorage.getItem(LS_UI) || 'null'); if (u && typeof u === 'object') ui = { ...ui, ...u }; } catch (e) { /* ignore */ }
+  }
+  function saveUi() { try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch (e) { /* ignore */ } }
+  function withTimeout(p, ms) {
+    return new Promise((res, rej) => { const t = setTimeout(() => rej({ code: 'timeout' }), ms); p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); });
+  }
+  async function saveDoc(body) {
+    const once = () => withTimeout(db.doc('progress/main').set(body), 15000);
+    try { await once(); }
+    catch (e) {
+      if (e && ['unavailable', 'resource_exhausted', 'timeout'].includes(e.code)) { await wait(700 + Math.random() * 900); await once(); }
+      else throw e;
+    }
+  }
+  function noteError(e) {
+    lastError = (e && e.code) || 'unknown';
+    if (BLOCKED.includes(lastError)) mode = 'blocked';
+    else if (!['invalid_argument', 'quota_exceeded'].includes(lastError) && !retryTimer) retryTimer = setTimeout(() => { retryTimer = null; flush(); }, 15000);
+  }
+  async function flush() {
+    clearTimeout(flushTimer); flushTimer = null;
+    if (!(mode === 'db' && db && ready && !readOnly) || !pending) { updateSync(); return; }
+    if (inflight) { again = true; return; }
+    inflight = true; updateSync();
+    const seq = editSeq;
+    const body = JSON.parse(JSON.stringify(store));
+    let ok = false;
+    try { await saveDoc(body); ok = true; } catch (e) { noteError(e); }
+    inflight = false;
+    if (ok) { lastSaved = new Date(); lastError = null; if (editSeq === seq) pending = false; cacheLocal(); }
+    if (again || (ok && pending)) { again = false; flush(); return; }
+    updateSync();
+  }
+  function syncInfo() {
+    if (flash && Date.now() < flash.until) return [flash.state, flash.text];
+    if (readOnly) return ['readonly', 'View only. Your work here is not saved.'];
+    if (mode === 'connecting') return ['saving', pending ? 'Connecting to your account… your work is kept until then' : 'Connecting to your account…'];
+    if (mode === 'local') return ['local', 'Saved on this device only'];
+    if (mode === 'blocked') return ['error', 'Saving to your account is switched off for this page. Press Allow saving.'];
+    if (!ready) return ['saving', 'Loading your saved work…'];
+    if (pending && lastError === 'invalid_argument') return ['error', 'Not saved: this account cannot change this page.'];
+    if (pending && lastError) return ['error', `Not saved yet (${lastError}). Retrying soon, or press Save.`];
+    if (pending || inflight) return ['saving', 'Saving…'];
+    return ['synced', lastSaved ? `All work saved to your account · ${clock(lastSaved)}` : 'Your work is saved to your account'];
+  }
+  function updateSync() {
+    const [state, text] = syncInfo();
+    const el = $('sync'); el.dataset.state = state; el.textContent = text;
+    const b = $('saveBtn'); b.textContent = mode === 'blocked' ? 'Allow saving' : 'Save'; b.hidden = readOnly;
+  }
+  function showFlash(state, text) { flash = { state, text, until: Date.now() + 4000 }; updateSync(); setTimeout(updateSync, 4100); }
+  async function onSave() {
+    cacheLocal();
+    if (mode === 'blocked') {
+      let perms = null;
+      try { perms = await window.claude.use('permissions'); } catch (e) { perms = null; }
+      try { if (perms) await perms.manage(); } catch (e) { /* fall through */ }
+      let st = 'denied';
+      try { if (perms) st = await perms.state('db'); } catch (e) { st = 'denied'; }
+      if (st === 'granted') { mode = 'db'; lastError = null; subscribe(); } else showFlash('error', 'Turn saving on in the page’s Permissions menu, then reload.');
+      return;
+    }
+    if (mode === 'db') {
+      if (!ready) { showFlash('saving', 'Still loading your saved work. Your changes will upload in a moment.'); return; }
+      if (!pending) { showFlash('synced', `All work saved to your account · ${clock(lastSaved || new Date())}`); return; }
+      lastError = null; flush(); return;
+    }
+    if (mode === 'local') { showFlash('local', `Saved on this device · ${clock(new Date())}`); return; }
+    showFlash('saving', 'Still connecting. Your work is kept and will upload when it connects.');
+  }
+  function edit(fn, delay) {
+    if (readOnly) return;
+    fn();
+    store.updatedAt = Date.now(); editSeq++; pending = true;
+    cacheLocal();
+    clearTimeout(flushTimer); flushTimer = setTimeout(flush, delay || 900);
+    updateSync();
+  }
+
+  /* ======================= Code colouring ======================= */
+  const JS_KW = new Set('const let var function return if else for while do new true false null undefined this of in typeof break continue class switch case default'.split(' '));
+  const JS_B = new Set(['document', 'window', 'console', 'Math', 'Date', 'Number', 'String', 'JSON', 'Array']);
+  const JS_TOK = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|(`(?:\\[\s\S]|[^`\\])*`|'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*")|(\b\d+(?:\.\d+)?\b)|([A-Za-z_$][\w$]*)/g;
+  function hlJs(src) {
+    let out = '', last = 0, m;
+    JS_TOK.lastIndex = 0;
+    while ((m = JS_TOK.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      const w = m[0];
+      let cls = m[1] ? 'cm' : m[2] ? 's' : m[3] ? 'n' : '';
+      if (m[4]) {
+        const prevCh = src.slice(0, m.index).trimEnd().slice(-1);
+        if (JS_KW.has(w)) cls = 'kw';
+        else if (JS_B.has(w) && prevCh !== '.') cls = 'b';
+        else if (src[JS_TOK.lastIndex] === '(') cls = 'f';
+        else if (prevCh === '.') cls = 'p';
+      }
+      out += cls ? `<span class="t-${cls}">${esc(w)}</span>` : esc(w);
+      last = JS_TOK.lastIndex;
+    }
+    return out + esc(src.slice(last));
+  }
+  function hlCss(src) {
+    let depth = 0;
+    return src.split(/(\/\*[\s\S]*?\*\/|[{}])/).map(part => {
+      if (!part) return '';
+      if (part.startsWith('/*')) return `<span class="t-cm">${esc(part)}</span>`;
+      if (part === '{') { depth++; return '{'; }
+      if (part === '}') { depth = Math.max(0, depth - 1); return '}'; }
+      if (depth === 0) return `<span class="t-sel">${esc(part)}</span>`;
+      return esc(part).replace(/([\w-]+)(\s*:)([^;]*)/g, '<span class="t-pr">$1</span>$2<span class="t-v">$3</span>');
+    }).join('');
+  }
+  function hlHtml(src) {
+    return esc(src).replace(/(&lt;\/?)([a-zA-Z][\w-]*)([\s\S]*?)(\/?&gt;)/g, (m, a, name, attrs, end) =>
+      `${a}<span class="t-tag">${name}</span>${attrs.replace(/([\w:-]+)(=)(&quot;[\s\S]*?&quot;)/g, '<span class="t-at">$1</span>$2<span class="t-s">$3</span>')}${end}`);
+  }
+  const hl = (src, lang) => lang === 'html' ? hlHtml(src) : lang === 'css' ? hlCss(src) : hlJs(src);
+
+  /* ======================= Preview runner ======================= */
+  // The preview is a shadow root standing in for a page. Your JavaScript runs with
+  // document, window, alert and console pointed at it, so it cannot touch this app.
+  const BASE_PV = `:host { all: initial; display: block; }
+.pv-body { display: block; box-sizing: border-box; min-height: 100%; margin: 0; padding: 12px; background: #fff; color: #111; font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }`;
+  let RUNNER = 'unknown', progSeq = 0, compiling = false;
+  let shadow = null, pvBody = null, pv = null;
+
+  const mapSel = s => String(s).replace(/(^|[\s,>+~(])(html|body|:root)(?=$|[\s,.:#[>+~)])/gi, (m, a, b) => a + (b.toLowerCase() === 'body' ? '.pv-body' : ':host'));
+  const mapCss = css => String(css || '').replace(/<\/style/gi, '').replace(/([^{}]+)\{/g, (m, sel) => mapSel(sel) + '{');
+
+  function freshPreview() {
+    if (pv) { pv.timers.forEach(id => clearTimeout(id)); pv.intervals.forEach(id => clearInterval(id)); pv.winListeners.forEach(([t, f, o]) => window.removeEventListener(t, f, o)); }
+    pv = { timers: new Set(), intervals: new Set(), winListeners: [], loadQueue: [], submits: [] };
+    const slot = $('pvSlot');
+    if (!slot) return false;
+    const host = document.createElement('div');
+    host.className = 'pv-host';
+    slot.replaceChildren(host);
+    shadow = host.attachShadow({ mode: 'open' });
+    return true;
+  }
+
+  function prepareHtml(html) {
+    const d = new DOMParser().parseFromString(String(html || ''), 'text/html');
+    d.querySelectorAll('script, link, meta, title, base, iframe, frame, frameset, object, embed, noscript').forEach(e => e.remove());
+    const styles = [...d.querySelectorAll('style')].map(s => { const c = s.textContent; s.remove(); return c; });
+    const handlers = [];
+    let n = 0;
+    [d.body, ...d.body.querySelectorAll('*')].forEach(el => {
+      for (const a of [...el.attributes]) {
+        const name = a.name.toLowerCase();
+        let code = null, ev = null;
+        if (name.startsWith('on')) { code = a.value; ev = name.slice(2); el.removeAttribute(a.name); }
+        else if ((name === 'href' || name === 'src' || name === 'action') && /^\s*javascript:/i.test(a.value)) { code = a.value.replace(/^\s*javascript:/i, ''); ev = 'click'; el.setAttribute(a.name, '#'); }
+        if (code === null) continue;
+        let id = 'body';
+        if (el !== d.body) { if (!el.dataset.pvid) el.dataset.pvid = String(++n); id = el.dataset.pvid; }
+        handlers.push({ id, ev, code });
+      }
+    });
+    return { body: d.body.innerHTML, styles, handlers, bodyClass: d.body.getAttribute('class') || '', bodyStyle: d.body.getAttribute('style') || '' };
+  }
+
+  const PARAMS = 'document, window, console, alert, prompt, confirm, setTimeout, setInterval, clearTimeout, clearInterval, location, Date, __g, __h';
+  const LOOP_STOP = 'if (__g()) throw new RangeError("This loop ran 100,000 times without stopping, so it was stopped. Check that it can end.");';
+  const guardLoops = js => String(js || '')
+    .replace(/\b(for|while)\s*\(((?:[^()]|\((?:[^()]|\([^()]*\))*\))*)\)\s*\{/g, m => m + LOOP_STOP)
+    .replace(/\bdo\s*\{/g, m => m + LOOP_STOP);
+  let loopCount = 0;
+  const guard = () => { if (loopCount++ === 0) setTimeout(() => { loopCount = 0; }); return loopCount > 1e5; };
+  function buildProgram(js, handlers) {
+    const hs = handlers.map(h => `__h.push(function (event) {\n${h.code}\n});`).join('\n');
+    return `(function (${PARAMS}) {\n${hs}\n${guardLoops(js)}\n})`;
+  }
+
+  function injectScript(text, how) {
+    return new Promise(res => {
+      const s = document.createElement('script');
+      let url = null, finished = false;
+      const done = () => { if (finished) return; finished = true; if (url) URL.revokeObjectURL(url); s.remove(); res(); };
+      if (how === 'blob') {
+        try { url = URL.createObjectURL(new Blob([text], { type: 'text/javascript' })); } catch (e) { done(); return; }
+        s.onload = done; s.onerror = done; s.src = url;
+        document.head.appendChild(s);
+        setTimeout(done, 4000);
+      } else {
+        s.textContent = text;
+        try { document.head.appendChild(s); } catch (e) { /* reported through the error event */ }
+        done();
+      }
+    });
+  }
+  async function detectRunner() {
+    try { if (new Function('return 7')() === 7) return 'fn'; } catch (e) { /* eval is blocked here */ }
+    for (const how of ['blob', 'inline']) {
+      const k = '__pvProbe_' + how;
+      await injectScript(`window.${k} = 7;`, how);
+      const ok = window[k] === 7;
+      try { delete window[k]; } catch (e) { /* ignore */ }
+      if (ok) return how;
+    }
+    return 'none';
+  }
+  async function compile(prog) {
+    if (RUNNER === 'fn') {
+      try { return new Function('return ' + prog)(); } catch (e) { logError(e); return null; }
+    }
+    const key = '__pvProg' + (++progSeq);
+    let syntax = null;
+    const onErr = ev => {
+      const e = ev.error || { name: 'SyntaxError', message: String(ev.message || '') };
+      syntax = { name: e.name || 'SyntaxError', message: String(e.message || '').replace(/^Uncaught\s+/, '').replace(/^\w*Error:\s*/, '').replace(/^Failed to execute '[^']*' on '[^']*':\s*/, '') };
+      ev.preventDefault();
+    };
+    compiling = true;
+    window.addEventListener('error', onErr);
+    await injectScript(`window[${JSON.stringify(key)}] = ${prog};`, RUNNER);
+    window.removeEventListener('error', onErr);
+    compiling = false;
+    const fn = window[key];
+    try { delete window[key]; } catch (e) { /* ignore */ }
+    if (typeof fn !== 'function') { logError(syntax || { name: 'SyntaxError', message: 'Your code has a syntax error.' }); return null; }
+    return fn;
+  }
+
+  function makeFakeDate(at) {
+    const RealDate = Date;
+    const offset = new RealDate(at).getTime() - RealDate.now();
+    return class extends RealDate {
+      constructor(...a) { if (a.length) super(...a); else super(RealDate.now() + offset); }
+      static now() { return RealDate.now() + offset; }
+    };
+  }
+
+  function makeEnv(at) {
+    const con = {
+      log: (...a) => addConsole('log', a), info: (...a) => addConsole('log', a), debug: (...a) => addConsole('log', a),
+      warn: (...a) => addConsole('warn', a), error: (...a) => addConsole('error', a), table: (...a) => addConsole('log', a), clear: () => clearConsole(),
+    };
+    const alertFn = m => { const s = m === undefined ? '' : String(m); addConsole('alert', [s], 'alert'); showAlert(s); };
+    const confirmFn = m => { addConsole('alert', [`${m === undefined ? '' : m}  (this preview answers OK)`], 'confirm'); return true; };
+    const promptFn = (m, d) => { addConsole('alert', [`${m === undefined ? '' : m}  (this preview answers with the default value)`], 'prompt'); return d === undefined ? '' : String(d); };
+    const safe = f => function (...a) { try { return f.apply(this, a); } catch (e) { logError(e); } };
+    const st = (f, ms, ...a) => {
+      if (typeof f !== 'function') { logError(new TypeError('setTimeout needs a function, for example setTimeout(showTime, 1000)')); return 0; }
+      const g = safe(f);
+      const id = setTimeout(() => { pv.timers.delete(id); g(...a); }, ms);
+      pv.timers.add(id); return id;
+    };
+    const si = (f, ms, ...a) => {
+      if (typeof f !== 'function') { logError(new TypeError('setInterval needs a function, for example setInterval(showTime, 1000)')); return 0; }
+      const g = safe(f);
+      const id = setInterval(() => g(...a), Math.max(Number(ms) || 0, 10));
+      pv.intervals.add(id); return id;
+    };
+    const ct = id => { clearTimeout(id); pv.timers.delete(id); };
+    const ci = id => { clearInterval(id); pv.intervals.delete(id); };
+    const doc = {
+      getElementById: id => shadow.getElementById(String(id)),
+      querySelector: s => shadow.querySelector(mapSel(s)),
+      querySelectorAll: s => shadow.querySelectorAll(mapSel(s)),
+      getElementsByClassName: c => pvBody.getElementsByClassName(c),
+      getElementsByTagName: t => String(t).toLowerCase() === 'body' ? [pvBody] : pvBody.getElementsByTagName(t),
+      getElementsByName: n => shadow.querySelectorAll(`[name="${CSS.escape(String(n))}"]`),
+      createElement: t => document.createElement(t),
+      createTextNode: t => document.createTextNode(t),
+      createDocumentFragment: () => document.createDocumentFragment(),
+      addEventListener: (type, f, o) => { if (type === 'DOMContentLoaded' || type === 'load') pv.loadQueue.push(f); else shadow.addEventListener(type, f, o); },
+      removeEventListener: (type, f, o) => shadow.removeEventListener(type, f, o),
+      write: (...s) => pvBody.insertAdjacentHTML('beforeend', s.join('')),
+      writeln: (...s) => pvBody.insertAdjacentHTML('beforeend', s.join('') + '\n'),
+      get body() { return pvBody; },
+      get documentElement() { return pvBody; },
+      get forms() { return pvBody.querySelectorAll('form'); },
+      get activeElement() { return shadow.activeElement; },
+      title: 'Practice',
+    };
+    const loc = {
+      href: 'https://preview.local/index.html', pathname: '/index.html', search: '', hash: '',
+      reload: () => addConsole('warn', ['location.reload() does nothing in this preview. Press Run instead.']),
+      assign: u => addConsole('warn', [`The page would go to ${u}`]), replace: u => addConsole('warn', [`The page would go to ${u}`]),
+    };
+    const FakeDate = at ? makeFakeDate(at) : Date;
+    const own = {
+      document: doc, console: con, alert: alertFn, confirm: confirmFn, prompt: promptFn,
+      setTimeout: st, setInterval: si, clearTimeout: ct, clearInterval: ci, location: loc, Date: FakeDate,
+      addEventListener: (type, f, o) => { if (type === 'load' || type === 'DOMContentLoaded') pv.loadQueue.push(f); else { window.addEventListener(type, f, o); pv.winListeners.push([type, f, o]); } },
+      removeEventListener: (type, f, o) => window.removeEventListener(type, f, o),
+      open: u => { addConsole('warn', [`window.open(${u === undefined ? '' : u}) does nothing in this preview`]); return null; },
+    };
+    let win = null;
+    win = new Proxy(own, {
+      get(o, k) {
+        if (k === 'window' || k === 'self' || k === 'globalThis' || k === 'top' || k === 'parent') return win;
+        if (Object.prototype.hasOwnProperty.call(o, k)) return o[k];
+        const v = window[k];
+        return (typeof v === 'function' && typeof k === 'string' && !/^[A-Z]/.test(k)) ? v.bind(window) : v;
+      },
+      set(o, k, v) { if (k === 'onload') { if (typeof v === 'function') pv.loadQueue.push(v); return true; } o[k] = v; return true; },
+      has(o, k) { return k in o || k in window; },
+    });
+    return { doc, win, con, alertFn, promptFn, confirmFn, st, si, ct, ci, loc, FakeDate };
+  }
+
+  async function runCode(files, opts) {
+    const at = opts && opts.at;
+    if (!freshPreview()) return false;
+    clearConsole();
+    const prep = prepareHtml(files.html);
+    const css = [...prep.styles, files.css].map(c => `<style>${mapCss(c)}</style>`).join('');
+    shadow.innerHTML = `<style>${BASE_PV}</style>${css}<div class="pv-body">${prep.body}</div>`;
+    pvBody = shadow.querySelector('.pv-body');
+    if (prep.bodyClass) pvBody.className += ' ' + prep.bodyClass;
+    if (prep.bodyStyle) pvBody.setAttribute('style', prep.bodyStyle);
+    const cur = pv;
+    shadow.addEventListener('submit', e => {
+      cur.submits.push(e.defaultPrevented);
+      if (!e.defaultPrevented) addConsole('warn', ['The form was submitted, so a real page would reload here. Call event.preventDefault() in your submit listener.']);
+      e.preventDefault();
+    });
+    shadow.addEventListener('click', e => {
+      const a = e.target.closest && e.target.closest('a[href]');
+      if (!a || e.defaultPrevented) return;
+      e.preventDefault();
+      const href = a.getAttribute('href');
+      if (href && href !== '#') addConsole('log', [`Link clicked: ${href}${a.getAttribute('target') === '_blank' ? ' (opens in a new tab on a real page)' : ''}`], 'info');
+    });
+    const needsJs = String(files.js || '').trim() !== '' || prep.handlers.length > 0;
+    if (!needsJs) return true;
+    if (RUNNER === 'unknown') RUNNER = await detectRunner();
+    if (RUNNER === 'none') { addConsole('warn', ['JavaScript cannot run in this app view. Use "Copy as one file" and run it on your laptop.']); return false; }
+    const fn = await compile(buildProgram(files.js, prep.handlers));
+    if (!fn || cur !== pv) return false;
+    const env = makeEnv(at);
+    const hs = [];
+    try { fn(env.doc, env.win, env.con, env.alertFn, env.promptFn, env.confirmFn, env.st, env.si, env.ct, env.ci, env.loc, env.FakeDate, guard, hs); }
+    catch (e) { logError(e); }
+    prep.handlers.forEach((h, i) => {
+      const el = h.id === 'body' ? pvBody : shadow.querySelector(`[data-pvid="${h.id}"]`);
+      if (!el || !hs[i]) return;
+      const call = ev => { try { if (hs[i].call(el, ev) === false) ev.preventDefault(); } catch (e) { logError(e); } };
+      if (h.id === 'body' && h.ev === 'load') pv.loadQueue.push(call); else el.addEventListener(h.ev, call);
+    });
+    for (const f of pv.loadQueue.splice(0)) { try { f.call(env.win, new Event('load')); } catch (e) { logError(e); } }
+    return true;
+  }
+
+  /* ---------- Console ---------- */
+  const show = v => {
+    if (typeof v === 'string') return v;
+    if (v instanceof Element) return `<${v.tagName.toLowerCase()}${v.id ? ` id="${v.id}"` : ''}${v.className && typeof v.className === 'string' ? ` class="${v.className}"` : ''}>`;
+    if (v === undefined) return 'undefined';
+    if (typeof v === 'function') return `function ${v.name || ''}()`;
+    if (v && typeof v === 'object' && typeof v.length === 'number' && !Array.isArray(v)) return `[${[...v].map(show).join(', ')}]`;
+    try { return JSON.stringify(v); } catch (e) { return String(v); }
+  };
+  let consoleLines = 0, scrollQueued = false;
+  function clearConsole() {
+    consoleLines = 0;
+    const el = $('console'); if (!el) return;
+    el.innerHTML = '<li class="empty">Nothing yet. console.log, alert and errors show here.</li>';
+  }
+  function addConsole(kind, args, label, tip) {
+    const el = $('console'); if (!el) return;
+    consoleLines++;
+    if (consoleLines > 200) {
+      if (consoleLines === 201) { const more = document.createElement('li'); more.className = 'warn'; more.textContent = 'More output was hidden (over 200 lines). Is something running in a loop?'; el.appendChild(more); }
+      if (kind !== 'error') return;
+    }
+    const empty = el.querySelector('.empty'); if (empty) empty.remove();
+    const li = document.createElement('li');
+    li.className = kind === 'alert' ? 'alert' : kind;
+    const k = label || (kind === 'error' ? 'Error' : kind === 'warn' ? 'Note' : '›');
+    li.innerHTML = `<span class="k">${esc(k)}</span>${esc(args.map(show).join(' '))}${tip ? `<span class="tip">${esc(tip)}</span>` : ''}`;
+    el.appendChild(li);
+    if (!scrollQueued) { scrollQueued = true; requestAnimationFrame(() => { scrollQueued = false; el.scrollTop = el.scrollHeight; }); }
+  }
+  function tipFor(msg) {
+    let m;
+    if (/of null|of undefined/.test(msg)) return 'Something was not found, so it is null. Check the id or selector: ids are case-sensitive and must match index.html exactly.';
+    if ((m = msg.match(/^(\S+) is not defined/))) return `Check the spelling and capitals of ${m[1]}. If it is text, it needs quotes: "${m[1]}".`;
+    if ((m = msg.match(/(\S+) is not a function/))) return `Check the name before the brackets (${m[1]}). Names are case-sensitive: getElementById, addEventListener, querySelector.`;
+    if (/before initialization/.test(msg)) return 'A variable is used before the line that creates it. Move the const or let line higher.';
+    if (/Unexpected|missing|Invalid or unexpected|Unterminated/i.test(msg)) return 'A bracket, quote or brace is missing or extra. Check that every ( { [ " has its partner. Also check onclick="..." in index.html.';
+    if (/already been declared/.test(msg)) return 'Two variables have the same name. Rename one, or remove the second const/let.';
+    return '';
+  }
+  function logError(e) {
+    const name = (e && e.name) || 'Error', msg = (e && e.message) || String(e);
+    addConsole('error', [`${name}: ${msg}`], 'Error', tipFor(msg));
+  }
+  window.addEventListener('error', ev => { if (!compiling && pv) { logError(ev.error || { name: 'Error', message: String(ev.message || '').replace(/^Uncaught\s+/, '') }); } });
+  window.addEventListener('unhandledrejection', ev => { if (pv) logError(ev.reason || { message: 'A promise failed' }); });
+  let alertTimer = null;
+  function showAlert(text) {
+    const slot = $('pvSlot'); if (!slot) return;
+    let el = slot.querySelector('.pv-alert');
+    if (!el) { el = document.createElement('div'); el.className = 'pv-alert'; el.setAttribute('role', 'status'); slot.appendChild(el); }
+    el.textContent = 'alert: ' + text;
+    clearTimeout(alertTimer); alertTimer = setTimeout(() => el.remove(), 2600);
+  }
+
+  /* ======================= Checks ======================= */
+  class Stop extends Error {}
+  const NAMES = { 'rgb(17, 17, 17)': 'the default text colour', 'rgb(239, 239, 239)': 'the default button grey', 'rgb(0, 0, 255)': 'blue', 'rgb(255, 255, 255)': 'white', 'rgb(255, 0, 0)': 'red', 'rgb(0, 128, 0)': 'green', 'rgb(0, 0, 0)': 'black', 'rgba(0, 0, 0, 0)': 'transparent', 'rgb(255, 165, 0)': 'orange', 'rgb(128, 128, 128)': 'gray', 'rgb(211, 211, 211)': 'lightgray' };
+  function makeTester(task, files, results) {
+    const say = v => v === null || v === undefined ? 'nothing found' : typeof v === 'string' ? `"${v}"` : String(v);
+    const need = (cond, msg, got, hints) => {
+      if (cond) { results.push({ ok: true, msg }); return; }
+      const key = got === undefined ? undefined : String(got);
+      results.push({ ok: false, msg, got: got === undefined ? undefined : say(got), tip: hints && key !== undefined ? hints[key] : undefined });
+      throw new Stop(msg);
+    };
+    const colorName = v => NAMES[v] || v;
+    const rectOf = el => el.getBoundingClientRect();
+    const t = {
+      task, files,
+      get body() { return pvBody; },
+      $: s => shadow.querySelector(mapSel(s)),
+      $$: s => [...shadow.querySelectorAll(mapSel(s))],
+      text: el => el ? el.textContent.replace(/\s+/g, ' ').trim() : null,
+      css: (el, p) => el ? getComputedStyle(el).getPropertyValue(p) : null,
+      color: (el, p) => el ? colorName(getComputedStyle(el).getPropertyValue(p)) : null,
+      hoverColor: (el, p) => {
+        for (const sheet of shadow.styleSheets) {
+          let rules; try { rules = sheet.cssRules; } catch (e) { continue; }
+          for (const r of rules) {
+            if (!r.selectorText || !r.selectorText.includes(':hover')) continue;
+            const base = r.selectorText.replace(/:hover/g, '');
+            let hit = false; try { hit = el.matches(base); } catch (e) { hit = false; }
+            const v = r.style.getPropertyValue(p);
+            if (hit && v) { const probe = document.createElement('i'); probe.style.color = v; pvBody.appendChild(probe); const c = getComputedStyle(probe).color; probe.remove(); return colorName(c); }
+          }
+        }
+        return 'none';
+      },
+      visible: el => !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden',
+      rect: rectOf,
+      contentRect: el => { const r = rectOf(el), s = getComputedStyle(el); const n = p => parseFloat(s.getPropertyValue(p)) || 0; return { left: r.left + n('border-left-width') + n('padding-left'), right: r.right - n('border-right-width') - n('padding-right'), top: r.top + n('border-top-width') + n('padding-top'), bottom: r.bottom - n('border-bottom-width') - n('padding-bottom') }; },
+      paddingRect: el => { const r = rectOf(el), s = getComputedStyle(el); const n = p => parseFloat(s.getPropertyValue(p)) || 0; return { left: r.left + n('border-left-width'), right: r.right - n('border-right-width'), top: r.top + n('border-top-width'), bottom: r.bottom - n('border-bottom-width') }; },
+      textRect: el => { const rg = document.createRange(); rg.selectNodeContents(el); return rg.getBoundingClientRect(); },
+      need: (cond, msg, got) => need(!!cond, msg, got),
+      eq: (got, want, msg, hints) => need(got === want, msg, got, hints),
+      present: (el, msg) => { if (!el) need(false, msg); },
+      click: async el => { t.present(el, 'The element to click is missing from the page. Did its id change?'); el.click(); await wait(40); },
+      type: async (el, v) => { t.present(el, 'The box to type in is missing from the page. Did its id change?'); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); await wait(30); },
+      select: async (el, v) => { t.present(el, 'The list is missing from the page. Did its id change?'); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); await wait(30); },
+      wait,
+      rerun: async at => { await runCode(files, { at }); await wait(50); },
+      lastSubmitPrevented: () => pv.submits.length > 0 && pv.submits[pv.submits.length - 1] === true,
+    };
+    return t;
+  }
+
+  /* ======================= Rendering ======================= */
+  const curTask = () => BYID[ui.task];
+  const codeFor = t => store.code[t.id] ? { ...store.code[t.id] } : starter(t);
+  const sig = f => f.html + '\u0000' + f.css + '\u0000' + f.js;
+  const needsJs = f => f.js.trim() !== '' || /\son[a-z]+\s*=|javascript:/i.test(f.html);
+
+  function renderOverall() {
+    const n = Object.keys(store.done).length;
+    const t = isoDay(new Date());
+    const today = Object.values(store.done).filter(v => v === t).length;
+    $('overall').innerHTML = `<span>Solved <b>${n}</b> / ${TASKS.length}</span><span class="bar" aria-hidden="true"><i style="width:${n / TASKS.length * 100}%"></i></span><span>Today: <b>${today}</b></span>`;
+  }
+  function renderStages() {
+    const cur = ui.task === 'notes' ? 'notes' : (curTask() || TASKS[0]).stage;
+    $('stages').innerHTML = STAGES.map(s => {
+      const ts = stageTasks(s.n), d = ts.filter(t => store.done[t.id]).length;
+      return `<button type="button" class="stage${d === ts.length ? ' done' : ''}" data-stage="${s.n}" aria-current="${cur === s.n}"><span class="sn"><span>Stage ${s.n}</span><span>${d}/${ts.length}${d === ts.length ? ' ✓' : ''}</span></span><span class="st">${esc(s.title)}</span><span class="bar" aria-hidden="true"><i style="width:${d / ts.length * 100}%"></i></span></button>`;
+    }).join('') + `<button type="button" class="stage notes" data-stage="notes" aria-current="${cur === 'notes'}"><span class="sn"><span>All stages</span><span></span></span><span class="st">Notes to revise</span></button>`;
+  }
+  function renderPills() {
+    const t = curTask(); const el = $('pills'); if (!t || !el) return;
+    const ts = stageTasks(t.stage);
+    el.innerHTML = ts.map((x, i) => `<button type="button" class="pill${store.done[x.id] ? ' done' : ''}" data-task="${x.id}" aria-current="${x.id === t.id}" title="${esc(x.title)}" aria-label="Task ${i + 1}: ${esc(x.title)}${store.done[x.id] ? ', solved' : ''}">${i + 1}${store.done[x.id] ? ' ✓' : ''}</button>`).join('');
+    const tag = $('solvedTag');
+    if (tag) tag.textContent = store.done[t.id] ? ` · Solved${typeof store.done[t.id] === 'string' ? ' on ' + shortDate(store.done[t.id]) : ''}` : '';
+  }
+
+  function taskHtml(t) {
+    const ts = stageTasks(t.stage), k = ts.indexOf(t);
+    const prev = TASKS[t.i - 1], next = TASKS[t.i + 1];
+    const fileChips = t.files.map(f => { const fl = FILES.find(x => x[0] === f); return `<span class="fchip"><span class="dot ${f}"></span>${fl[1]}</span>`; }).join('');
+    const sol = Object.entries(t.sol).map(([f, src]) => `<div class="solfile"><span class="files"><span class="fchip"><span class="dot ${f}"></span>${FILES.find(x => x[0] === f)[1]}</span></span><pre class="snip"><code>${hl(src, f)}</code></pre></div>`).join('');
+    return `<div class="work">
+      <section class="brief" aria-labelledby="tt">
+        <div class="pills" id="pills" aria-label="Tasks in stage ${t.stage}"></div>
+        <span class="eyebrow">Stage ${t.stage} · Task ${k + 1} of ${ts.length}<span class="solved-tag" id="solvedTag"></span></span>
+        <h2 id="tt">${esc(t.title)}</h2>
+        <div class="taskbox"><span class="lab">Your task</span><p>${fmt(t.task)}</p><span class="files">Change: ${fileChips}</span></div>
+        <div class="learn"><h3>What you need</h3><p>${fmt(t.learn)}</p>${t.example ? `<pre class="snip"><code>${hl(t.example.src, t.example.lang)}</code></pre>` : ''}</div>
+        <details id="hintBox"><summary>Hint</summary><p>${fmt(t.hint)}</p></details>
+        <details id="solBox"><summary>Solution</summary>${sol}<button type="button" class="btn small" id="useSol">Put the solution in the editor</button></details>
+        <div class="prevnext">${prev ? `<button type="button" class="btn" data-task="${prev.id}">← Previous</button>` : '<span></span>'}${next ? `<button type="button" class="btn dark" data-task="${next.id}">Next task →</button>` : ''}</div>
+      </section>
+      <section class="bench" aria-label="Code and preview">
+        <div class="editor">
+          <div class="tabs" role="tablist" aria-label="Files">
+            ${FILES.map(([f, name]) => `<button type="button" class="tab" role="tab" id="tab-${f}" data-tab="${f}" aria-selected="false" aria-controls="code"><span class="dot ${f}"></span>${name}${t.files.includes(f) ? '<span class="edit">edit</span>' : ''}</button>`).join('')}
+            <span class="spacer"></span>
+            <button type="button" class="reset" id="resetBtn">Reset code</button>
+          </div>
+          <label class="sr" for="code" id="codeLabel">Code editor</label>
+          <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" role="tabpanel"></textarea>
+          <div class="actions">
+            <button type="button" class="btn run" id="runBtn">Run ▶</button>
+            <button type="button" class="btn go" id="checkBtn">Check</button>
+            <span class="dirty" id="dirty" aria-live="polite"></span>
+            <span class="spacer"></span>
+            <span class="kbd">Ctrl+Enter runs</span>
+            <button type="button" class="btn small" id="copyBtn">Copy as one file</button>
+          </div>
+        </div>
+        <div id="result" hidden></div>
+        <div class="pv">
+          <div class="pvbar"><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">index.html · preview</span></div>
+          <div class="pv-slot" id="pvSlot"></div>
+        </div>
+        <div class="console"><div class="cbar"><span>Console</span><button type="button" class="linkbtn" id="clearBtn">Clear</button></div><ol id="console" aria-live="polite"></ol></div>
+      </section>
+    </div>`;
+  }
+
+  function notesHtml() {
+    return `<div class="notes-view">
+      <div class="brief"><span class="eyebrow">Every note from the ${TASKS.length} tasks</span><h2 id="tt">Notes to revise</h2>
+        <p class="lede">Read these the night before the test. Search for anything, for example <code>flex</code>, <code>date</code> or <code>onclick</code>.</p>
+        <label class="sr" for="notesQ">Search the notes</label><input class="search" id="notesQ" type="search" placeholder="Search the notes" value="${esc(notesQuery)}"></div>
+      <div id="notesBody" style="display:grid;gap:26px">${notesBody()}</div>
+    </div>`;
+  }
+  function notesBody() {
+    const q = notesQuery.trim().toLowerCase();
+    const html = STAGES.map(s => {
+      const items = stageTasks(s.n).filter(t => !q || (t.title + ' ' + t.learn + ' ' + (t.example ? t.example.src : '')).toLowerCase().includes(q));
+      if (!items.length) return '';
+      return `<section class="nstage"><h3>Stage ${s.n} · ${esc(s.title)}</h3>${items.map(t => `<div class="nitem"><h4>${esc(t.title)}</h4><p>${fmt(t.learn)}</p>${t.example ? `<pre class="snip"><code>${hl(t.example.src, t.example.lang)}</code></pre>` : ''}<div><button type="button" class="btn small" data-task="${t.id}">Open this task</button></div></div>`).join('')}</section>`;
+    }).join('');
+    return html || '<p class="lede">Nothing matches. Try a shorter word.</p>';
+  }
+
+  function showTab(tab) {
+    ui.tab = tab; saveUi();
+    document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+    const ta = $('code');
+    ta.value = buf[tab];
+    ta.setAttribute('aria-labelledby', 'tab-' + tab);
+    ta.readOnly = readOnly;
+  }
+  function updateDirty() {
+    const el = $('dirty'); if (!el) return;
+    el.textContent = lastRunSig !== null && sig(buf) !== lastRunSig ? 'Changed. Press Run to see it.' : '';
+  }
+
+  async function openTask(id, opts) {
+    const t = BYID[id] || TASKS[0];
+    ui.task = t.id; saveUi();
+    buf = codeFor(t);
+    $('view').innerHTML = taskHtml(t);
+    renderStages(); renderPills(); renderOverall();
+    showTab(t.files[0]);
+    clearConsole();
+    if (opts && opts.scroll) { const top = $('view').getBoundingClientRect().top; if (top < 0) $('view').scrollIntoView({ block: 'start' }); }
+    await run();
+  }
+  function openNotes() {
+    ui.task = 'notes'; saveUi();
+    $('view').innerHTML = notesHtml();
+    renderStages(); renderOverall();
+    pv = pv && (freshPreviewCleanup(), null);
+  }
+  function freshPreviewCleanup() { if (pv) { pv.timers.forEach(id => clearTimeout(id)); pv.intervals.forEach(id => clearInterval(id)); pv.winListeners.forEach(([t, f, o]) => window.removeEventListener(t, f, o)); } }
+
+  async function run() {
+    lastRunSig = sig(buf);
+    updateDirty();
+    $('result').hidden = true;
+    await runCode({ ...buf });
+  }
+
+  async function check() {
+    const t = curTask(); if (!t) return;
+    const files = { ...buf };
+    const box = $('result');
+    if (RUNNER === 'unknown' && needsJs(files)) RUNNER = await detectRunner();
+    if (RUNNER === 'none' && needsJs(files)) {
+      box.hidden = false; box.className = 'result info';
+      box.innerHTML = `<h3>Check this one on your laptop</h3><p>This app view does not let typed JavaScript run. Press <b>Copy as one file</b>, paste it into <code>test.html</code>, open it in Chrome and try the task. When it works, mark it solved.</p><div class="row"><button type="button" class="btn go" id="markBtn">Mark as solved</button></div>`;
+      return;
+    }
+    $('checkBtn').disabled = true;
+    lastRunSig = sig(files); updateDirty();
+    await runCode(files);
+    await wait(60);
+    const results = [];
+    let pass = false;
+    try { await t.check(makeTester(t, files, results)); pass = true; }
+    catch (e) { if (!(e instanceof Stop)) results.push({ ok: false, msg: 'The page could not be checked because of an error', got: `${e.name}: ${e.message}`, tip: tipFor(e.message || '') }); }
+    if ($('checkBtn')) $('checkBtn').disabled = false;
+    if (curTask() !== t) return;
+    showResult(t, pass, results);
+    if (pass && !store.done[t.id]) { edit(() => { store.done[t.id] = isoDay(new Date()); }); renderStages(); renderPills(); renderOverall(); }
+  }
+  function showResult(t, pass, results) {
+    const box = $('result');
+    box.hidden = false;
+    box.className = 'result ' + (pass ? 'pass' : 'fail');
+    const next = TASKS[t.i + 1];
+    const items = results.map(r => `<li class="${r.ok ? 'ok' : 'no'}"><span>${esc(r.msg)}${r.got !== undefined ? `<span class="got">Found: ${esc(r.got)}</span>` : ''}${r.tip ? `<span class="tip">${esc(r.tip)}</span>` : ''}</span></li>`).join('');
+    box.innerHTML = `<h3>${pass ? 'Solved' : 'Not yet'}</h3><ul>${items}</ul>${pass ? `<div class="row">${next ? `<button type="button" class="btn dark" data-task="${next.id}">Next task →</button>` : '<span>That was the last task. Revise with the notes.</span>'}</div>` : '<p class="tip">Fix the first ✗, press Check again. The console under the preview shows any errors.</p>'}`;
+    box.scrollIntoView({ block: 'nearest' });
+  }
+
+  function saveCode() {
+    const t = curTask(); if (!t || readOnly) return;
+    edit(() => { if (sameFiles(buf, starter(t))) delete store.code[t.id]; else store.code[t.id] = { ...buf }; }, 1500);
+  }
+
+  function oneFile() {
+    const close = '<' + '/script>';
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>${esc((curTask() || {}).title || 'Practice')}</title>
+<style>
+${buf.css}
+</style>
+</head>
+<body>
+${buf.html}
+<script>
+${buf.js}
+${close}
+</body>
+</html>
+`;
+  }
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* try the older way */ }
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand('copy'); ta.remove(); return ok;
+    } catch (e) { return false; }
+  }
+
+  /* ======================= Events ======================= */
+  document.addEventListener('click', async e => {
+    const st = e.target.closest('[data-stage]');
+    if (st) {
+      if (st.dataset.stage === 'notes') { openNotes(); return; }
+      const n = Number(st.dataset.stage);
+      const first = stageTasks(n).find(t => !store.done[t.id]) || stageTasks(n)[0];
+      openTask(first.id, { scroll: true }); return;
+    }
+    const tk = e.target.closest('[data-task]');
+    if (tk) { openTask(tk.dataset.task, { scroll: true }); return; }
+    const tab = e.target.closest('[data-tab]');
+    if (tab) { showTab(tab.dataset.tab); $('code').focus(); return; }
+    const id = e.target.id;
+    if (id === 'runBtn') run();
+    else if (id === 'checkBtn') check();
+    else if (id === 'clearBtn') clearConsole();
+    else if (id === 'resetBtn') {
+      const t = curTask(); buf = starter(t); showTab(ui.tab); saveCode(); run();
+    } else if (id === 'useSol') {
+      const t = curTask(); buf = { ...starter(t), ...t.sol };
+      showTab(Object.keys(t.sol)[0]); saveCode(); run();
+      $('code').focus();
+    } else if (id === 'copyBtn') {
+      const b = e.target, ok = await copyText(oneFile());
+      b.textContent = ok ? 'Copied' : 'Copy failed';
+      setTimeout(() => { b.textContent = 'Copy as one file'; }, 1800);
+    } else if (id === 'markBtn') {
+      const t = curTask();
+      edit(() => { store.done[t.id] = isoDay(new Date()); });
+      renderStages(); renderPills(); renderOverall();
+      showResult(t, true, [{ ok: true, msg: 'Marked as solved' }]);
+    }
+  });
+  document.addEventListener('input', e => {
+    if (e.target.id === 'code') {
+      buf[ui.tab] = e.target.value;
+      updateDirty();
+      saveCode();
+    } else if (e.target.id === 'notesQ') {
+      notesQuery = e.target.value;
+      $('notesBody').innerHTML = notesBody();
+    }
+  });
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); onSave(); return; }
+    if (e.target.id !== 'code') return;
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(); return; }
+    if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      e.preventDefault();
+      const ta = e.target;
+      if (!document.execCommand || !document.execCommand('insertText', false, '  ')) {
+        ta.setRangeText('  ', ta.selectionStart, ta.selectionEnd, 'end');
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { cacheLocal(); flush(); } });
+  window.addEventListener('pagehide', () => { cacheLocal(); flush(); });
+  $('saveBtn').addEventListener('click', onSave);
+
+  /* ======================= Account ======================= */
+  function onProgress(s) {
+    const fromCache = !!(s.metadata && s.metadata.fromCache);
+    if (!ready && fromCache && !s.exists) return;
+    const srv = s.exists ? cleanStore(s.data()) : null;
+    let changed = false;
+    if (srv && (!pending || srv.updatedAt > store.updatedAt) && !inflight) {
+      changed = JSON.stringify([srv.done, srv.code]) !== JSON.stringify([store.done, store.code]);
+      store = srv; pending = false;
+    }
+    const first = !ready && !fromCache;
+    if (first) ready = true;
+    cacheLocal();
+    if (changed) {
+      renderOverall(); renderStages(); renderPills();
+      const t = curTask(), ta = $('code');
+      if (t && ta && document.activeElement !== ta) {
+        const fresh = codeFor(t);
+        if (!sameFiles(fresh, buf)) { buf = fresh; showTab(ui.tab || t.files[0]); run(); }
+      }
+    }
+    if (first) flush();
+    updateSync();
+  }
+  let subTries = 0;
+  function subscribe() {
+    db.doc('progress/main').onSnapshot(onProgress, e => {
+      const code = (e && e.code) || 'unknown'; lastError = code;
+      if (BLOCKED.includes(code)) mode = 'blocked';
+      else { ready = true; if (subTries++ < 3) setTimeout(subscribe, 4000); flush(); }
+      updateSync();
+    });
+    setTimeout(() => { if (mode === 'db' && !ready) { ready = true; flush(); } }, 12000);
+  }
+  async function connect() {
+    if (!window.claude || typeof window.claude.use !== 'function') { mode = 'local'; updateSync(); return; }
+    let ns = null;
+    try { ns = await window.claude.use('db'); } catch (e) { ns = null; }
+    if (!ns) { mode = 'local'; updateSync(); return; }
+    db = ns; mode = 'db';
+    subscribe(); updateSync();
+    try {
+      const user = await window.claude.use('user');
+      if (user && (await user.can('data.write')) === false) { readOnly = true; const ta = $('code'); if (ta) ta.readOnly = true; updateSync(); }
+    } catch (e) { /* a refused save will say so */ }
+  }
+
+  /* ======================= Start ======================= */
+  async function start() {
+    loadLocal();
+    updateSync();
+    RUNNER = await detectRunner();
+    if (RUNNER === 'none') {
+      const b = $('banner'); b.hidden = false;
+      b.innerHTML = 'This app view does not let typed JavaScript run. The HTML and CSS stages work fully here. For the JavaScript stages, write your code here, press <b>Copy as one file</b>, and run it on your laptop in Chrome.';
+    }
+    if (ui.task === 'notes') openNotes();
+    else openTask(BYID[ui.task] ? ui.task : (TASKS.find(t => !store.done[t.id]) || TASKS[0]).id);
+    connect();
+  }
+  start();
+})();
+</script>
