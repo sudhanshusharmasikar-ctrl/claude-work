@@ -1,0 +1,30 @@
+/* Frontend practice guide: appended after the main notes' styles (see make.sh) */
+img.shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 4pt 0 8pt 0;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+p:has(> img.shot) { margin: 0; break-inside: avoid; }
+.toc { line-height: 1.34; }
+.toc-ch { margin-top: 6pt; padding: 3pt 6pt; }
+.toc-sec { padding: 0.5pt 6pt 0.5pt 26pt; }
+/* keep a lead-in line on the same page as its list, table or code */
+p:has(+ ul), p:has(+ ol), p:has(+ table), p:has(+ .code) { break-after: avoid; page-break-after: avoid; }
+h4 { break-after: avoid; page-break-after: avoid; }
+.cv-badge { font-size: 15pt; padding: 0 1.4mm 1.4mm 0; }
+.cols:has(> .col:nth-child(3)) { grid-template-columns: 1fr 1fr 1fr; }
+p.h4 {
+  font-size: 10.8pt;
+  font-weight: 700;
+  margin: 13pt 0 4pt 0;
+  color: #4c1d95;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+p.h4 + p, p.h4 + .code, p.h4 + figure, p.h4 + table { break-before: avoid; page-break-before: avoid; }
+p.h4 code { background: #efe9ff; border-color: #ddd0ff; color: #5b21b6; }
+figure.diagram svg text { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+.opener::before { content: "JS"; }

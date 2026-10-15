@@ -8,6 +8,7 @@ Study guides for a student who already knows C++:
 | **[Projects-Explained-PaperRAG-SchemaMind.pdf](Projects-Explained-PaperRAG-SchemaMind.pdf)** | A beginner's picture guide to the PaperRAG and SchemaMind projects as they are after build sessions 1–12: 16 diagrams and charts, each step tied to its file in the code, both projects' real evaluation results before and after their fixes, and 95 how / why / what-if / why-not questions with answers | 45 |
 | **[Lecture-QA-Interview-Practice.pdf](Lecture-QA-Interview-Practice.pdf)** | 52 interview questions with answers for the STRIKE GenAI lectures finished so far: Lectures 8–16 (embeddings, vector search, RAG, advanced RAG, graph databases) and 20–21 (LangGraph) | 12 |
 | **[JavaScript-Explained-Simply.pdf](JavaScript-Explained-Simply.pdf)** | JavaScript Lectures 12 and 17–22 of the MERN course, plus the Day 17–22 code | 166 |
+| **[Frontend-Practice-Explained-Simply.pdf](Frontend-Practice-Explained-Simply.pdf)** | A 10-day plan, 2 hours a day, for 14 of the 20 exercises in [dexterhere04/accenture-frontend-practice](https://github.com/dexterhere04/accenture-frontend-practice) (the Accenture frontend round): setup, every idea from zero, plans, hints, tested solutions line by line, mistakes, interview questions, a mock round and cheat sheets | 116 |
 
 ## GenAI, RAG & Agents — Explained Simply
 
@@ -151,3 +152,44 @@ cd notes-source
 `make.sh` renders the HTML with Chromium three times so that the page numbers in the table of contents are
 correct. It then adds the running headers and page numbers. The diagrams are inline SVG, drawn in `diagrams.py`.
 `tools/layout_check.py` scans a built PDF for text that overlaps other text or crosses the page margins.
+
+## Frontend Practice — Explained Simply
+
+**[Frontend-Practice-Explained-Simply.pdf](Frontend-Practice-Explained-Simply.pdf)** is a step-by-step guide for a beginner
+to 14 of the 20 exercises in [dexterhere04/accenture-frontend-practice](https://github.com/dexterhere04/accenture-frontend-practice),
+which are modelled on the Accenture frontend round (change a pre-built `index.html`, `style.css` and `script.js`).
+It is planned as **10 days of 2 hours**.
+
+| Day | Exercises | New ideas |
+|---|---|---|
+| 0 | Setup | Node.js, VS Code, cloning the repo, running the grader, the DOM, the console |
+| 1 | 03 Click Counter | variables, functions, select → listen → change, CSS specificity |
+| 2 | 01 Fix the Form · 08 Show / Hide Password | labels, input types, `submit` + `preventDefault`, `if` / `else`, attributes |
+| 3 | 02 Profile Card · 04 Center It | box model, flexbox, grid, absolute positioning |
+| 4 | 05 E-commerce Search Box (reported from the real round) | arrays, `filter`, `createElement`, the render function |
+| 5 | 06 To-Do List · 09 Dark Mode | nested elements, `classList`, closures, CSS variables |
+| 6 | 07 Form Validation | `else if`, a regex for emails, a "valid" flag |
+| 7 | 13 Accordion · 14 Tab Switcher | `querySelectorAll`, all off then one on, `data-*` |
+| 8 | 16 Image Carousel · 17 Live Clock (reported from the real round) | wrap-around with `%`, `Date`, `padStart`, `setInterval` |
+| 9 | 15 Dynamic Table | objects, filter + sort, state + render |
+| 10 | Mock round and revision | a timed 60-minute round, three patterns, cheat sheets, 22 rapid-fire questions |
+| Bonus | 10, 11, 12, 19, 20, 18 | media queries, grid `auto-fill`, `@keyframes`, `localStorage`, quiz state, `fetch` |
+
+Each exercise has a before/after picture, the grader's checks in plain English, the new ideas with real outputs,
+a plan, three hints, the solution line by line, beginners' mistakes, interview questions and a practice twist.
+
+**What was checked.** Every solution in the guide is in [`frontend-practice-source/verify/`](frontend-practice-source/verify/)
+and passes the practice repo's own Playwright tests (57 of 57); `tools/check_snippets.py` confirms that the code printed
+in the guide is the code that was tested. The pictures are screenshots of the starter files and of those solutions.
+
+### Rebuilding the frontend guide
+
+It uses the GenAI notes' toolchain (same requirements as above). Its Markdown is in `frontend-practice-source/content/`
+and its diagrams are in `frontend-practice-source/figures.py`.
+
+```bash
+cd genai-notes-source && ./fonts/get_fonts.sh && cd ..   # once
+frontend-practice-source/make.sh                          # writes Frontend-Practice-Explained-Simply.pdf
+frontend-practice-source/verify/run.sh                    # grade the guide's solutions
+python3 frontend-practice-source/tools/check_snippets.py ~/accenture-frontend-practice
+```
