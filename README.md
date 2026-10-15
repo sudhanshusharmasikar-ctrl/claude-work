@@ -64,6 +64,42 @@ Progress is saved to your account. The content lives in `python-dsa/build/lesson
 quiz and drill with Python and stops if any answer is wrong. To rebuild:
 `cd python-dsa/build && python3 build.py && python3 make_page.py`.
 
+## Python DSA Lab (Accenture prep)
+
+**`python-lab/python-lab.html`** (published as a private claude.ai artifact, with `py-worker.js` and the `pyodide/`
+files) is a 7-day course plus a mock test for a C++ DSA coder who needs to solve problems in Python. Real Python
+(CPython 3.12 via Pyodide) runs in a web worker inside the page, so code that loops forever is stopped without freezing
+the page.
+
+| Day | Topic |
+|---|---|
+| 1 | Variables, loops, functions, returning two values, pass by value or reference, reading input |
+| 2 | Strings and characters (`ord`/`chr`, char to number) |
+| 3 | Lists as vectors, 2D lists, sorting, pairs as tuples |
+| 4 | dict, sorted order like `map`, sets, Counter and defaultdict |
+| 5 | Stack, queue (`deque`) and heap (`heapq`) |
+| 6 | Two pointers and sliding window |
+| 7 | Recursion and DP, including House Robber |
+| Mock | Two "read input and print" questions and one "complete the function" question |
+
+Each day has a C++ → Python table, examples you can edit and run, and 6–7 problems. **Submit** judges a problem against
+hidden tests. There are 49 problems and 206 tests in all. A playground and a cheat sheet are included, and progress and
+code are saved to your account.
+
+The content is in `python-lab/build/content.py`. `build.py` runs every example and checks every reference solution
+(and that every starter fails) using `harness.py`, the same judge the browser uses.
+
+To rebuild:
+
+```bash
+cd python-lab/build
+sh fetch_pyodide.sh    # downloads Pyodide 0.26.4 from npm and checks it
+python3 build.py
+```
+
+`fetch_pyodide.sh` also turns the standard-library zip into JSON, because artifacts don't serve zip files. The worker
+rebuilds the zip in memory.
+
 ## Web Round Drills (HTML, CSS, JavaScript)
 
 **`web-round/web-round-drills.html`** (published as a private claude.ai artifact) has 73 small tasks of the kind asked

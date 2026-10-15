@@ -1,0 +1,1006 @@
+<title>Python DSA Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header with Python status and progress, a strip of days, then either a lesson (table, runnable examples)
+   or a two-column problem bench (statement left, editor and test results right) */
+:root {
+  --bg: #F3F5F8;
+  --surface: #FFFFFF;
+  --ink: #141820;
+  --muted: #5B6472;
+  --line: #D8DDE5;
+  --accent: #2B5F95;
+  --accent-soft: #E3ECF6;
+  --yellow: #E9B949;
+  --good: #1E7A4C;
+  --good-soft: #E3F3EA;
+  --bad: #B3362A;
+  --bad-soft: #F9E6E3;
+  --warn: #9A6200;
+  --code-bg: #141922;
+  --code-line: #283040;
+  --code-ink: #E4E8EE;
+  --out-bg: #1C222C;
+  --f-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --f-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1115; --surface: #161A20; --ink: #E7EAEE; --muted: #99A1AB; --line: #2A3039;
+    --accent: #7FB0E6; --accent-soft: #1B2A3B; --yellow: #F2CC60; --good: #5BD394; --good-soft: #13261C;
+    --bad: #FF8270; --bad-soft: #2D1714; --warn: #F2B042; --code-bg: #0A0D11; --code-line: #232A35; --code-ink: #E4E8EE; --out-bg: #12161C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1115; --surface: #161A20; --ink: #E7EAEE; --muted: #99A1AB; --line: #2A3039;
+  --accent: #7FB0E6; --accent-soft: #1B2A3B; --yellow: #F2CC60; --good: #5BD394; --good-soft: #13261C;
+  --bad: #FF8270; --bad-soft: #2D1714; --warn: #F2B042; --code-bg: #0A0D11; --code-line: #232A35; --code-ink: #E4E8EE; --out-bg: #12161C;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; font-variant-ligatures: none !important; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.55 var(--f-body); -webkit-font-smoothing: antialiased; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: inherit; }
+code { font-family: var(--f-mono); font-size: .88em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { margin: 0; }
+pre code { background: none; padding: 0; border-radius: 0; font-size: inherit; overflow-wrap: normal; }
+
+.page { max-width: 1240px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 32px); padding-block: 24px 72px; }
+.eyebrow { font: 500 11.5px/1.4 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+
+/* Header */
+.top { display: grid; gap: 14px; padding-bottom: 18px; }
+.title-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+h1 { margin: 6px 0 0; font: 800 clamp(34px, 5.4vw, 56px)/0.98 var(--f-display); letter-spacing: -.035em; }
+h1 em { font-style: normal; color: var(--accent); }
+.lede { margin: 0; max-width: 74ch; color: var(--muted); }
+.lede b { color: var(--ink); font-weight: 600; }
+.savebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.sync { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--f-mono); color: var(--muted); max-width: 100%; }
+.sync::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync[data-state="synced"]::before { background: var(--good); }
+.sync[data-state="saving"]::before, .sync[data-state="local"]::before { background: var(--warn); }
+.sync[data-state="error"]::before, .sync[data-state="readonly"]::before { background: var(--bad); }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 14.5px; line-height: 1.2; }
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn.dark { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 600; }
+.btn.go { background: var(--good); color: #fff; border-color: var(--good); font-weight: 600; }
+.btn.small { padding: 5px 10px; font-size: 13px; }
+.statusrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font: 500 13.5px var(--f-mono); color: var(--muted); }
+.statusrow b { color: var(--ink); font-size: 17px; }
+#overall { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
+.pypill { display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.pypill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
+.pypill[data-state="ready"]::before { background: var(--good); }
+.pypill[data-state="failed"]::before { background: var(--bad); }
+.pypill[data-state="loading"]::before, .pypill[data-state="restarting"]::before { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+.nextstep { color: var(--ink); }
+.bar { position: relative; display: inline-block; width: 140px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; vertical-align: middle; }
+.bar i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--good); }
+
+/* Day strip */
+.days { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.day { display: grid; gap: 2px; text-align: left; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); cursor: pointer; min-width: 0; }
+.day .dn { display: flex; justify-content: space-between; gap: 4px; font: 500 11px var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.day .dt { font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day.done { background: var(--good-soft); border-color: transparent; }
+.day.done .dn span:last-child { color: var(--good); }
+.day[aria-current="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.day.tool { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.day.tool .dn { color: inherit; opacity: .7; }
+.day.tool[aria-current="true"] { box-shadow: 0 0 0 2px var(--yellow); }
+
+.banner { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--bad-soft); font-size: 14.5px; }
+.banner a { color: var(--accent); }
+
+/* Day header and tabs */
+.dayhead { display: grid; gap: 8px; padding-top: 22px; }
+h2 { margin: 0; font: 800 clamp(26px, 3.6vw, 36px)/1.08 var(--f-display); letter-spacing: -.025em; text-wrap: balance; }
+.goal { margin: 0; max-width: 72ch; font-size: 17px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tabbtn { padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); cursor: pointer; font-weight: 500; }
+.tabbtn[aria-selected="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+/* Learn */
+.learn { display: grid; gap: 18px; padding-top: 18px; max-width: 980px; }
+.learn > * { min-width: 0; }
+h3 { margin: 10px 0 0; display: flex; align-items: center; gap: 10px; font: 800 21px/1.2 var(--f-display); }
+.step { display: inline-grid; place-items: center; flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--yellow); color: #141820; font: 500 13px var(--f-mono); }
+.hint { margin: 0; font-size: 14px; color: var(--muted); max-width: 74ch; }
+.plan { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.plan li { padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; font-size: 14px; }
+.plan b { font-weight: 600; }
+.plan .mins { font: 500 12px var(--f-mono); color: var(--muted); margin-right: 6px; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.map { width: 100%; border-collapse: collapse; font: 400 13.5px/1.5 var(--f-mono); }
+.map th { text-align: left; font: 500 11px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.map td { padding: 7px 12px; border-bottom: 1px solid var(--line); vertical-align: top; white-space: pre-wrap; overflow-wrap: anywhere; }
+.map tr:last-child td { border-bottom: 0; }
+.map td:first-child { color: var(--muted); width: 42%; }
+.map td:last-child { font-weight: 500; }
+.map .cm { color: var(--muted); font-weight: 400; }
+.excard { margin: 0; border-radius: 12px; overflow: hidden; background: var(--code-bg); color: var(--code-ink); }
+.excard figcaption, .edbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--code-line); font: 500 13.5px var(--f-body); color: #F3F5F8; }
+.excard figcaption .t { flex: 1; min-width: 0; }
+.dbtn { border: 1px solid #3A4250; background: transparent; color: #C9D1DB; border-radius: 6px; padding: 4px 10px; font: 500 12px var(--f-mono); cursor: pointer; }
+.dbtn:hover:not(:disabled) { border-color: #8A95A3; color: #fff; }
+.dbtn.run { background: #E4E8EE; color: #141820; border-color: #E4E8EE; font-weight: 600; }
+.dbtn:disabled { opacity: .5; cursor: default; }
+textarea.pyed { display: block; width: 100%; margin: 0; border: 0; outline: none; resize: vertical; background: var(--code-bg); color: var(--code-ink); font: 400 14px/1.6 var(--f-mono); tab-size: 4; white-space: pre; overflow: auto; caret-color: var(--yellow); }
+textarea.pyed:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+.exed { padding: 12px 14px; min-height: 60px; overflow-y: hidden; }
+.io { background: var(--out-bg); border-top: 1px solid var(--code-line); }
+.io .lab { display: block; padding: 8px 14px 0; font: 500 10.5px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: #F2CC60; }
+.io.in .lab { color: #8FB8E8; }
+.io pre { padding: 6px 14px 12px; color: #D6DCE4; font: 400 13.5px/1.55 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.io pre.err { color: #FF9D8F; }
+.io .tip { display: block; padding: 0 14px 12px; font: 400 13.5px var(--f-body); color: #E9EDF2; }
+.watch { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.watch li { position: relative; padding: 10px 12px 10px 36px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--yellow); border-radius: 8px; font-size: 15px; }
+.watch li::before { content: "!"; position: absolute; left: 13px; top: 10px; font: 600 14px var(--f-mono); color: var(--warn); }
+.finish { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 16px; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); }
+.finish p { margin: 0; color: var(--muted); }
+
+/* Problems */
+.work { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 22px; align-items: start; padding-top: 18px; }
+.work > * { min-width: 0; }
+.brief, .bench { display: grid; gap: 14px; }
+.brief > *, .bench > * { min-width: 0; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { min-width: 36px; height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: 500 13px var(--f-mono); cursor: pointer; }
+.pill.done { background: var(--good-soft); border-color: transparent; color: var(--good); }
+.pill[aria-current="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); color: var(--ink); }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.diff { font: 500 12px var(--f-mono); padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.diff.E { color: var(--good); } .diff.M { color: var(--warn); } .diff.H { color: var(--bad); }
+.lclink { font: 500 12.5px var(--f-mono); color: var(--accent); }
+.solved { font: 500 12.5px var(--f-mono); color: var(--good); }
+.statement { padding: 14px 16px; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); font-size: 16.5px; }
+.statement p { margin: 0; }
+.samples { display: grid; gap: 8px; }
+.sample { padding: 10px 12px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); font: 400 13.5px/1.55 var(--f-mono); overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.sample b { font-family: var(--f-body); font-weight: 600; font-size: 13px; color: var(--muted); }
+details { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 10px 14px; }
+details summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+details[open] summary { margin-bottom: 10px; }
+details p { margin: 0; }
+.snip { padding: 12px 14px; border-radius: 8px; background: var(--code-bg); color: var(--code-ink); font: 400 13.5px/1.6 var(--f-mono); overflow-x: auto; margin-bottom: 10px; }
+.prevnext { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.editor { border-radius: 12px; overflow: hidden; background: var(--code-bg); }
+.edbar .fname { flex: 1; font-family: var(--f-mono); font-size: 13px; }
+.ed { display: grid; grid-template-columns: auto minmax(0, 1fr); }
+.gutter { padding: 12px 8px 12px 12px; text-align: right; color: #5D6878; font: 400 14px/1.6 var(--f-mono); user-select: none; overflow: hidden; border-right: 1px solid var(--code-line); }
+.mained { height: 340px; padding: 12px 14px; }
+.stdinbox { border-top: 1px solid var(--code-line); }
+.stdinbox label { display: block; padding: 8px 14px 0; font: 500 10.5px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: #8FB8E8; }
+.stdinbox textarea { display: block; width: 100%; height: 76px; padding: 6px 14px 10px; border: 0; outline: none; resize: vertical; background: var(--out-bg); color: var(--code-ink); font: 400 13.5px/1.5 var(--f-mono); }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 12px; border-top: 1px solid var(--code-line); }
+.actions .btn { border-color: #3A4250; background: #222A35; color: #E4E8EE; }
+.actions .btn.run { background: #E4E8EE; border-color: #E4E8EE; color: #141820; font-weight: 600; }
+.actions .btn.go { background: var(--good); border-color: var(--good); color: #fff; }
+.actions .spacer { flex: 1; }
+.kbd { font: 500 11px var(--f-mono); color: #9AA4B2; }
+.pstatus { font: 500 12px var(--f-mono); color: #FDE68A; }
+
+.res { display: grid; gap: 10px; padding: 14px 16px; border-radius: 12px; border: 2px solid var(--bad); background: var(--bad-soft); }
+.res.pass { border-color: var(--good); background: var(--good-soft); }
+.res.info { border-color: var(--line); background: var(--surface); }
+.res h3 { margin: 0; font-size: 19px; }
+.res.pass h3 { color: var(--good); } .res.fail h3 { color: var(--bad); }
+.res .tip { margin: 0; font-size: 14.5px; }
+.res pre.out { padding: 10px 12px; border-radius: 8px; background: var(--code-bg); color: var(--code-ink); font: 400 13px/1.55 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.res pre.out.err { color: #FF9D8F; }
+.tests { display: grid; gap: 6px; }
+.test { padding: 8px 12px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); }
+.test summary { color: var(--ink); font-weight: 500; font-size: 14.5px; }
+.test summary::marker { color: var(--muted); }
+.test.ok summary .mark { color: var(--good); } .test.no summary .mark { color: var(--bad); }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin-top: 6px; font: 400 13px/1.5 var(--f-mono); }
+.kv span:nth-child(odd) { color: var(--muted); font-family: var(--f-body); font-size: 13px; }
+.kv span:nth-child(even) { white-space: pre-wrap; overflow-wrap: anywhere; }
+.kv .bad { color: var(--bad); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* Playground and cheat sheet */
+.solo { display: grid; gap: 14px; padding-top: 22px; max-width: 980px; }
+.solo > * { min-width: 0; }
+.search { width: 100%; max-width: 420px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.sheet-block { display: grid; gap: 8px; }
+.sheet-block h3 { font-size: 19px; }
+.foot { margin-top: 40px; font-size: 13px; color: var(--muted); max-width: 90ch; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Python colours (on dark code backgrounds) */
+.tk-kw { color: #C792EA; } .tk-c { color: #F78C6C; } .tk-s { color: #C3E88D; } .tk-n { color: #F78C6C; }
+.tk-cm { color: #7D8896; font-style: italic; } .tk-b { color: #82AAFF; } .tk-f { color: #FFCB6B; } .tk-d { color: #FFCB6B; }
+
+@media (min-width: 1100px) {
+  .days { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+}
+@media (max-width: 980px) {
+  .work { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .days { display: flex; overflow-x: auto; }
+  .day { flex: none; width: 128px; }
+  textarea.pyed, .gutter, .stdinbox textarea { font-size: 16px; }
+  .mained { height: 300px; }
+  .kbd { display: none; }
+  .map, .map tbody, .map tr, .map td { display: block; width: 100%; }
+  .map thead { display: none; }
+  .map tr { padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  .map td { padding: 0; border: 0; }
+  .map td:first-child { width: 100%; font-size: 12.5px; }
+  .map td:first-child::before { content: "C++  "; color: var(--accent); font-weight: 500; }
+  .map td:last-child::before { content: "Py   "; color: var(--accent); }
+}
+@media (prefers-reduced-motion: reduce) { .pypill::before { animation: none !important; } }
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="title-row">
+      <div>
+        <span class="eyebrow">Accenture prep · DSA in Python for C++ coders · 7 days</span>
+        <h1>Python <em>DSA</em> Lab</h1>
+      </div>
+      <div class="savebar">
+        <span class="sync" id="sync" data-state="saving" role="status">Connecting to your account…</span>
+        <button class="btn dark" id="saveBtn" type="button">Save</button>
+      </div>
+    </div>
+    <p class="lede">Real Python runs inside this page. Each day has two parts: <b>Learn</b> (the C++ → Python mapping and examples you can edit and run, about 40 minutes) and <b>Problems</b> (write the solution; <b>Submit</b> runs hidden tests, like LeetCode). Go one day at a time.</p>
+    <div class="statusrow">
+      <span class="pypill" id="pypill" data-state="loading" role="status">Starting Python…</span>
+      <span id="overall"></span>
+    </div>
+  </header>
+
+  <nav class="days" id="nav" aria-label="Days"></nav>
+  <div class="banner" id="banner" hidden></div>
+  <main id="view"></main>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const DATA = {"days":[{"id":"d1","n":1,"title":"Basics: variables, loops, functions","goal":"Write loops, conditions and functions in Python, and read input the way a test gives it.","map":[["int x = 5; double d = 2.5;","x = 5\nd = 2.5          # no types"],["long long big = 1e18;","big = 10**18     # ints never overflow"],["a / b   (both int)","a // b           # a / b gives a float"],["x++;   x += 2;","x += 1;  x += 2  # there is no ++"],["&&   ||   !","and   or   not"],["if (a) {...} else if (b) {...} else {...}","if a:\n    ...\nelif b:\n    ...\nelse:\n    ..."],["for (int i = 0; i \u003c n; i++)","for i in range(n):"],["for (int i = a; i \u003c= b; i++)","for i in range(a, b + 1):"],["for (int i = n - 1; i >= 0; i--)","for i in range(n - 1, -1, -1):"],["for (int i = 0; i \u003c n; i += 2)","for i in range(0, n, 2):"],["for (auto x : v)","for x in v:"],["while (n > 0) {...}","while n > 0:"],["cin >> n;","n = int(input())"],["cout \u003c\u003c a \u003c\u003c \" \" \u003c\u003c b \u003c\u003c endl;","print(a, b)"],["int add(int a, int b) { return a + b; }","def add(a, b):\n    return a + b"],["return {lo, hi};   // a pair","return lo, hi    # caller: lo, hi = f()"],["INT_MAX   INT_MIN","float('inf')   float('-inf')"],["true   false   nullptr","True   False   None"]],"examples":[{"title":"Variables, maths and printing","src":"a, b = 17, 5\nprint(a // b, a % b, a / b)        # floor division, remainder, true division\nprint(2 ** 10, 10 ** 18 + 1)       # powers; no overflow ever\nx = 5\nx += 1                             # there is no x++\nprint(\"x is\", x)\nprint(f\"{a} = {b} * {a // b} + {a % b}\")   # f-string: values inside {}\nprint(max(3, 9, 4), min(3, 9, 4), abs(-7))\n","out":"3 2 3.4\n1024 1000000000000000001\nx is 6\n17 = 5 * 3 + 2\n9 3 7"},{"title":"Loops written like C++","src":"for i in range(5):            # 0 1 2 3 4\n    print(i, end=\" \")\nprint()\nfor i in range(2, 11, 2):     # 2 4 6 8 10\n    print(i, end=\" \")\nprint()\nfor i in range(5, 0, -1):     # 5 down to 1\n    print(i, end=\" \")\nprint()\nn = 1234\nwhile n > 0:                  # digits from the right\n    print(n % 10, end=\" \")\n    n //= 10\nprint()\nfor x in [10, 20, 30]:        # like for (auto x : v)\n    print(x, end=\" \")\nprint()\n","out":"0 1 2 3 4 \n2 4 6 8 10 \n5 4 3 2 1 \n4 3 2 1 \n10 20 30 "},{"title":"Functions and returning two values","src":"def add(a, b):\n    return a + b\n\ndef min_max(nums):\n    return min(nums), max(nums)      # returns a tuple, like a pair\n\nlo, hi = min_max([4, 9, 1])          # like auto [lo, hi] = ...\nprint(add(2, 3), lo, hi)\n\ndef greet(name=\"friend\"):            # a default value\n    print(\"Hello,\", name)\n\ngreet()\ngreet(\"Asha\")\n","out":"5 1 9\nHello, friend\nHello, Asha"},{"title":"Pass by value or by reference?","src":"def change(num, nums):\n    num += 100        # numbers can't change: only the local copy changes\n    nums.append(4)    # lists are shared: the caller sees this (like vector\u003cint>&)\n    nums = [0]        # this only points the local name somewhere else\n\nx = 1\nv = [1, 2, 3]\nchange(x, v)\nprint(x, v)\n","out":"1 [1, 2, 3, 4]"},{"title":"Reading input like cin","stdin":"5\n3 1 4 1 5\n","src":"n = int(input())                        # first line: 5\nnums = list(map(int, input().split()))   # second line: 3 1 4 1 5\nprint(n, nums, sum(nums))\n","out":"5 [3, 1, 4, 1, 5] 14"}],"traps":["Indentation is the block. Use 4 spaces, the same for every line in the block; a wrong indent is an error.","`/` always gives a float: `7 / 2` is `3.5`. Use `//` for integer division.","`range(a, b)` stops before `b`, exactly like `i \u003c b`.","Numbers and strings behave like pass-by-value; lists, dicts and sets behave like pass-by-reference. Return results with `return`."],"problems":[{"id":"sum-digits","kind":"func","title":"Sum of digits","statement":"Return the sum of the digits of a non-negative integer `n`. For example, `1234` gives `10`.","func":"sum_digits","starter":"def sum_digits(n):\n    # write your code here\n    pass\n","solution":"def sum_digits(n):\n    total = 0\n    while n > 0:\n        total += n % 10\n        n //= 10\n    return total\n","mode":"exact","hint":"Take the last digit with `n % 10`, then remove it with `n //= 10`. Repeat while `n > 0`.","lc":null,"slug":null,"diff":"E","tests":[{"args":[1234],"expected":10},{"args":[0],"expected":0},{"args":[9],"expected":9},{"args":[1000000],"expected":1},{"args":[987654321],"expected":45}]},{"id":"count-evens","kind":"func","title":"Count the even numbers","statement":"Return how many numbers in the list `nums` are even.","func":"count_evens","starter":"def count_evens(nums):\n    # write your code here\n    pass\n","solution":"def count_evens(nums):\n    count = 0\n    for x in nums:\n        if x % 2 == 0:\n            count += 1\n    return count\n","mode":"exact","hint":"`for x in nums:` and `if x % 2 == 0:`. Keep a counter and return it.","lc":null,"slug":null,"diff":"E","tests":[{"args":[[1,2,3,4,6]],"expected":3},{"args":[[]],"expected":0},{"args":[[1,3,5]],"expected":0},{"args":[[0,-2,7]],"expected":2}]},{"id":"reverse-number","kind":"func","title":"Reverse a number","statement":"Return the digits of the non-negative integer `n` in reverse order: `123` gives `321`, and `1200` gives `21`.","func":"reverse_number","starter":"def reverse_number(n):\n    # write your code here\n    pass\n","solution":"def reverse_number(n):\n    rev = 0\n    while n > 0:\n        rev = rev * 10 + n % 10\n        n //= 10\n    return rev\n","mode":"exact","hint":"Build the answer digit by digit: `rev = rev * 10 + n % 10`, then `n //= 10`.","lc":null,"slug":null,"diff":"E","tests":[{"args":[123],"expected":321},{"args":[1200],"expected":21},{"args":[0],"expected":0},{"args":[7],"expected":7},{"args":[90817],"expected":71809}]},{"id":"fizz-buzz","kind":"func","title":"Fizz Buzz","statement":"Return a list of strings for 1 to `n`: \"FizzBuzz\" for multiples of 15, \"Fizz\" for multiples of 3, \"Buzz\" for multiples of 5, otherwise the number as a string.","func":"fizz_buzz","starter":"def fizz_buzz(n):\n    # write your code here\n    pass\n","solution":"def fizz_buzz(n):\n    out = []\n    for i in range(1, n + 1):\n        if i % 15 == 0:\n            out.append(\"FizzBuzz\")\n        elif i % 3 == 0:\n            out.append(\"Fizz\")\n        elif i % 5 == 0:\n            out.append(\"Buzz\")\n        else:\n            out.append(str(i))\n    return out\n","mode":"exact","hint":"Loop `for i in range(1, n + 1)`, check 15 first, and use `str(i)` for the number.","lc":412,"slug":"fizz-buzz","diff":"E","tests":[{"args":[3],"expected":["1","2","Fizz"]},{"args":[5],"expected":["1","2","Fizz","4","Buzz"]},{"args":[15],"expected":["1","2","Fizz","4","Buzz","Fizz","7","8","Fizz","Buzz","11","Fizz","13","14","FizzBuzz"]},{"args":[1],"expected":["1"]}]},{"id":"min-max","kind":"func","title":"Smallest and largest (return a pair)","statement":"Return the smallest and the largest number of the non-empty list `nums` as a pair: `return lo, hi`. Try it with a loop instead of `min()` and `max()`.","func":"min_max","starter":"def min_max(nums):\n    # write your code here\n    pass\n","solution":"def min_max(nums):\n    lo = hi = nums[0]\n    for x in nums:\n        if x \u003c lo:\n            lo = x\n        if x > hi:\n            hi = x\n    return lo, hi\n","mode":"exact","hint":"Start both with `nums[0]` (not 0, or negative lists break), update in one loop, and `return lo, hi`.","lc":null,"slug":null,"diff":"E","tests":[{"args":[[4,9,1]],"expected":[1,9]},{"args":[[5]],"expected":[5,5]},{"args":[[-3,-1,-7]],"expected":[-7,-1]},{"args":[[2,2,2]],"expected":[2,2]}]},{"id":"stdin-sum-max","kind":"stdin","title":"Read input, print two answers","statement":"The first line has `n`. The second line has `n` numbers separated by spaces. Print their sum on the first line and the largest number on the second line.","starter":"# Read the input with input() and print the answer.\n","solution":"n = int(input())\nnums = list(map(int, input().split()))\nprint(sum(nums))\nprint(max(nums))\n","hint":"`n = int(input())`, then `nums = list(map(int, input().split()))`, then two `print` lines.","lc":null,"slug":null,"diff":"E","tests":[{"stdin":"4\n3 9 1 5\n","expected":"18\n9"},{"stdin":"1\n-5\n","expected":"-5\n-5"},{"stdin":"3\n10 20 30\n","expected":"60\n30"}]}]},{"id":"d2","n":2,"title":"Strings and characters","goal":"Build and change strings, and convert between characters and numbers (the ASCII tricks).","map":[["string s = \"abc\";","s = \"abc\"        # 'abc' works too"],["s.size()","len(s)"],["s[i]   s.back()","s[i]   s[-1]"],["s += 'a';   s.push_back(c);","s += 'a'   s += c      # works the same"],["s.substr(i, k)","s[i:i + k]"],["reverse(s.begin(), s.end());","s = s[::-1]"],["s[i] = 'x';","not allowed: chars = list(s); chars[i] = 'x'; s = ''.join(chars)"],["c - 'a'   (letter position)","ord(c) - ord('a')"],["c - '0'   (char to number)","int(c)   or   ord(c) - ord('0')"],["(char)('a' + k)","chr(ord('a') + k)"],["d + '0'   (number to char)","str(d)   or   chr(ord('0') + d)"],["to_string(n)   stoi(s)","str(n)   int(s)"],["isalpha(c) isdigit(c) isalnum(c)","c.isalpha() c.isdigit() c.isalnum()"],["toupper(c)   tolower(c)","c.upper()   c.lower()"],["s.find(\"ab\")","s.find(\"ab\")     # -1 if missing"],["int cnt[26] = {0};","cnt = [0] * 26"],["split by spaces (stringstream)","s.split()   and back: \" \".join(words)"]],"examples":[{"title":"Building and slicing strings","src":"s = \"hello\"\ns += \"!\"                  # like s += \"!\" in C++\ns += 'a'                  # one character\nprint(s, len(s), s[0], s[-1])\nprint(s[1:4], s[::-1])    # a slice, and the string reversed\nprint(s.upper(), \"Hello World\".lower())\nwords = \"the sky is blue\".split()\nprint(words, \" \".join(reversed(words)))\nchars = list(\"cat\")\nchars[0] = \"b\"            # strings can't change; lists can\nprint(\"\".join(chars))\n","out":"hello!a 7 h a\nell a!olleh\nHELLO!A hello world\n['the', 'sky', 'is', 'blue'] blue is sky the\nbat"},{"title":"Characters and numbers (ASCII)","src":"print(ord('a'), ord('A'), ord('0'))      # 97 65 48\nprint(chr(97), chr(ord('a') + 2))        # a c\nc = '7'\nprint(int(c) + 1, ord(c) - ord('0'))     # char to number: 8 7\nd = 5\nprint(str(d), chr(ord('0') + d))         # number to char: '5'\nprint(ord('e') - ord('a'))               # position in the alphabet: 4\ncnt = [0] * 26\nfor ch in \"banana\":\n    cnt[ord(ch) - ord('a')] += 1\nprint(cnt[0], cnt[ord('n') - ord('a')])  # a appears 3 times, n twice\n","out":"97 65 48\na c\n8 7\n5 5\n4\n3 2"},{"title":"Looping over a string","src":"s = \"a1b2c3\"\ntotal = 0\nfor ch in s:\n    if ch.isdigit():\n        total += int(ch)\nprint(total)\nfor i, ch in enumerate(\"abc\"):     # index and character together\n    print(i, ch)\nprint(\"an\" in \"banana\", \"banana\".count(\"a\"), \"banana\".find(\"n\"))\n","out":"6\n0 a\n1 b\n2 c\nTrue 3 2"},{"title":"Building a long string quickly","src":"parts = []\nfor i in range(5):\n    parts.append(str(i))\nprint(\"-\".join(parts))       # collect pieces, join once at the end\n","out":"0-1-2-3-4"}],"traps":["Strings can't be changed: `s[0] = 'x'` is an error. Make a list, change it, and `''.join(...)` it back.","`'9' + '1'` is `'91'`. Convert with `int()` before adding.","`'a' + 1` is an error. Use `chr(ord('a') + 1)`.","`s += c` in a very long loop is slower than collecting pieces in a list and joining once."],"problems":[{"id":"reverse-words","kind":"func","title":"Reverse the words","statement":"Return the words of `s` in reverse order, separated by single spaces. `s` may have extra spaces anywhere.","func":"reverse_words","starter":"def reverse_words(s):\n    # write your code here\n    pass\n","solution":"def reverse_words(s):\n    return \" \".join(s.split()[::-1])\n","mode":"exact","hint":"`s.split()` with no argument drops extra spaces. Reverse the list with `[::-1]` and join with `\" \"`.","lc":151,"slug":"reverse-words-in-a-string","diff":"M","tests":[{"args":["the sky is blue"],"expected":"blue is sky the"},{"args":["  hello world  "],"expected":"world hello"},{"args":["a good   example"],"expected":"example good a"},{"args":["one"],"expected":"one"}]},{"id":"valid-palindrome","kind":"func","title":"Valid palindrome","statement":"Return `True` if `s` reads the same forwards and backwards after keeping only letters and digits and ignoring capitals.","func":"is_palindrome","starter":"def is_palindrome(s):\n    # write your code here\n    pass\n","solution":"def is_palindrome(s):\n    clean = \"\".join(ch.lower() for ch in s if ch.isalnum())\n    return clean == clean[::-1]\n","mode":"exact","hint":"Keep `ch.lower()` for each `ch` where `ch.isalnum()`, join them, and compare with the reversed string.","lc":125,"slug":"valid-palindrome","diff":"E","tests":[{"args":["A man, a plan, a canal: Panama"],"expected":true},{"args":["race a car"],"expected":false},{"args":[" "],"expected":true},{"args":["0P"],"expected":false},{"args":["Madam"],"expected":true}]},{"id":"first-unique","kind":"func","title":"First unique character","statement":"Return the index of the first character that appears only once in `s`, or `-1` if there is none. `s` has only lowercase letters.","func":"first_uniq_char","starter":"def first_uniq_char(s):\n    # write your code here\n    pass\n","solution":"def first_uniq_char(s):\n    cnt = [0] * 26\n    for ch in s:\n        cnt[ord(ch) - ord('a')] += 1\n    for i, ch in enumerate(s):\n        if cnt[ord(ch) - ord('a')] == 1:\n            return i\n    return -1\n","mode":"exact","hint":"Count with `cnt = [0] * 26` and `ord(ch) - ord(\"a\")`. Then loop again with `enumerate` and return the first index whose count is 1.","lc":387,"slug":"first-unique-character-in-a-string","diff":"E","tests":[{"args":["leetcode"],"expected":0},{"args":["loveleetcode"],"expected":2},{"args":["aabb"],"expected":-1},{"args":["z"],"expected":0}]},{"id":"caesar","kind":"func","title":"Shift the letters (Caesar cipher)","statement":"Shift every lowercase letter of `s` forward by `k` places, wrapping from `z` back to `a`. Leave every other character unchanged.","func":"caesar_cipher","starter":"def caesar_cipher(s, k):\n    # write your code here\n    pass\n","solution":"def caesar_cipher(s, k):\n    out = []\n    for ch in s:\n        if 'a' \u003c= ch \u003c= 'z':\n            out.append(chr((ord(ch) - ord('a') + k) % 26 + ord('a')))\n        else:\n            out.append(ch)\n    return \"\".join(out)\n","mode":"exact","hint":"Position: `ord(ch) - ord(\"a\")`. Add k, wrap with `% 26`, and turn it back into a letter with `chr(... + ord(\"a\"))`.","lc":null,"slug":null,"diff":"E","tests":[{"args":["abc xyz",3],"expected":"def abc"},{"args":["hello",26],"expected":"hello"},{"args":["a-z",1],"expected":"b-a"},{"args":["python",13],"expected":"clguba"}]},{"id":"digits-in-string","kind":"func","title":"Add the digits in a string","statement":"Return the sum of all the digit characters in `s`: `\"a1b2c3\"` gives `6`.","func":"sum_digits_in_string","starter":"def sum_digits_in_string(s):\n    # write your code here\n    pass\n","solution":"def sum_digits_in_string(s):\n    total = 0\n    for ch in s:\n        if ch.isdigit():\n            total += int(ch)\n    return total\n","mode":"exact","hint":"`if ch.isdigit(): total += int(ch)`.","lc":null,"slug":null,"diff":"E","tests":[{"args":["a1b2c3"],"expected":6},{"args":["abc"],"expected":0},{"args":["9z9"],"expected":18},{"args":["1234"],"expected":10}]},{"id":"compress","kind":"func","title":"Compress a string","statement":"Replace each run of the same character by the character and the run length: `\"aaabccdd\"` gives `\"a3b1c2d2\"`.","func":"compress","starter":"def compress(s):\n    # write your code here\n    pass\n","solution":"def compress(s):\n    out = \"\"\n    i = 0\n    while i \u003c len(s):\n        j = i\n        while j \u003c len(s) and s[j] == s[i]:\n            j += 1\n        out += s[i] + str(j - i)\n        i = j\n    return out\n","mode":"exact","hint":"Two pointers: `j` walks forward while `s[j] == s[i]`. Add `s[i] + str(j - i)` to the answer, then jump `i = j`.","lc":null,"slug":null,"diff":"E","tests":[{"args":["aaabccdd"],"expected":"a3b1c2d2"},{"args":["a"],"expected":"a1"},{"args":[""],"expected":""},{"args":["zzzz"],"expected":"z4"}]},{"id":"valid-anagram","kind":"func","title":"Valid anagram (count with 26 slots)","statement":"Return `True` if `t` uses exactly the same letters as `s`, the same number of times. Both have only lowercase letters. Use `cnt = [0] * 26`.","func":"is_anagram","starter":"def is_anagram(s, t):\n    # write your code here\n    pass\n","solution":"def is_anagram(s, t):\n    if len(s) != len(t):\n        return False\n    cnt = [0] * 26\n    for ch in s:\n        cnt[ord(ch) - ord('a')] += 1\n    for ch in t:\n        cnt[ord(ch) - ord('a')] -= 1\n    return all(c == 0 for c in cnt)\n","mode":"exact","hint":"Add 1 for each letter of `s`, subtract 1 for each letter of `t`; every slot must end at 0.","lc":242,"slug":"valid-anagram","diff":"E","tests":[{"args":["anagram","nagaram"],"expected":true},{"args":["rat","car"],"expected":false},{"args":["a","ab"],"expected":false},{"args":["listen","silent"],"expected":true}]}]},{"id":"d3","n":3,"title":"Lists (vector), 2D lists, sorting, pairs","goal":"Use lists like vectors, build 2D grids correctly, and sort anything, including pairs.","map":[["vector\u003cint> v;","v = []"],["vector\u003cint> v(n, 0);","v = [0] * n"],["v.push_back(x);   v.pop_back();","v.append(x)   v.pop()"],["v.back()   v.front()","v[-1]   v[0]"],["v.size()   v.empty()","len(v)   not v"],["v.insert(v.begin() + i, x);","v.insert(i, x)"],["v.erase(v.begin() + i);","v.pop(i)   or   del v[i]"],["sort(v.begin(), v.end());","v.sort()           # new sorted list: sorted(v)"],["sort(..., greater\u003cint>());","v.sort(reverse=True)"],["reverse(v.begin(), v.end());","v.reverse()        # new reversed list: v[::-1]"],["vector\u003cvector\u003cint>> g(n, vector\u003cint>(m, 0));","g = [[0] * m for _ in range(n)]"],["pair\u003cint,int> p = {1, 2};","p = (1, 2)         # a tuple: p[0], p[1]"],["pair\u003cchar,int> p = {'a', 3};","p = ('a', 3)"],["auto [a, b] = p;","a, b = p"],["vector\u003cpair\u003cint,int>> v; v.push_back({x, y});","v = []; v.append((x, y))"],["sort by .second (comparator)","v.sort(key=lambda p: p[1])"],["*max_element   accumulate","max(v)   min(v)   sum(v)"],["find(...) != v.end()","x in v             # v.index(x) gives the position"],["vector\u003cint> b = a;   // a copy","b = a[:]   or   b = a.copy()      # b = a is NOT a copy"]],"examples":[{"title":"Everyday list work","src":"v = [5, 2, 9]\nv.append(4)\nv.insert(0, 7)\nprint(v, len(v), v[0], v[-1])\nx = v.pop()              # removes and returns the last item\nprint(x, v)\nv.sort()\nprint(v, sorted(v, reverse=True))\nv.reverse()\nprint(v, v[::-1])\nprint(9 in v, v.index(9), sum(v), max(v))\nprint([i * i for i in range(5)])          # a list comprehension\n","out":"[7, 5, 2, 9, 4] 5 7 4\n4 [7, 5, 2, 9]\n[2, 5, 7, 9] [9, 7, 5, 2]\n[9, 7, 5, 2] [2, 5, 7, 9]\nTrue 0 23 9\n[0, 1, 4, 9, 16]"},{"title":"2D lists (the right way and the wrong way)","src":"n, m = 3, 4\ngrid = [[0] * m for _ in range(n)]   # 3 separate rows\ngrid[0][1] = 5\nprint(grid)\nbad = [[0] * m] * n                  # WRONG: the same row 3 times\nbad[0][1] = 5\nprint(bad)\nfor row in grid:\n    print(\" \".join(map(str, row)))\nprint(len(grid), len(grid[0]))       # rows, columns\n","out":"[[0, 5, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]\n[[0, 5, 0, 0], [0, 5, 0, 0], [0, 5, 0, 0]]\n0 5 0 0\n0 0 0 0\n0 0 0 0\n3 4"},{"title":"Pairs are tuples; sorting them","src":"p = (3, 'x')\na, b = p\nprint(p[0], p[1], a, b)\npairs = [('b', 2), ('a', 5), ('c', 2)]\npairs.sort()                               # by first, then second\nprint(pairs)\npairs.sort(key=lambda q: q[1])             # by the number\nprint(pairs)\npairs.sort(key=lambda q: (-q[1], q[0]))    # number high to low, then letter\nprint(pairs)\n","out":"3 x 3 x\n[('a', 5), ('b', 2), ('c', 2)]\n[('b', 2), ('c', 2), ('a', 5)]\n[('a', 5), ('b', 2), ('c', 2)]"},{"title":"Copies, and lists passed to functions","src":"a = [1, 2, 3]\nb = a          # the same list with two names\nc = a[:]       # a real copy\nb.append(4)\nprint(a, c)\n\ndef fill(arr):\n    arr[0] = 99      # changes the caller's list (like vector\u003cint>&)\n\nnums = [1, 2]\nfill(nums)\nprint(nums)\n","out":"[1, 2, 3, 4] [1, 2, 3]\n[99, 2]"}],"traps":["`[[0] * m] * n` copies one row n times; changing one cell changes the whole column. Use `[[0] * m for _ in range(n)]`.","`v.sort()` changes the list and returns `None`. Never write `v = v.sort()`.","`b = a` does not copy a list. Use `a[:]`.","Tuples cannot be changed: `p[0] = 5` is an error. Make a new tuple instead."],"problems":[{"id":"move-zeroes","kind":"func","title":"Move zeroes","statement":"Move all `0`s in `nums` to the end **in place**, keeping the order of the other numbers.","func":"move_zeroes","starter":"def move_zeroes(nums):\n    # change the list in place; you do not need to return anything\n    # write your code here\n    pass\n","solution":"def move_zeroes(nums):\n    k = 0\n    for i in range(len(nums)):\n        if nums[i] != 0:\n            nums[k], nums[i] = nums[i], nums[k]\n            k += 1\n","mode":"inplace","hint":"Keep `k`, the place for the next non-zero. For each non-zero, swap it to position `k` and do `k += 1`.","lc":283,"slug":"move-zeroes","diff":"E","tests":[{"args":[[0,1,0,3,12]],"expected":[1,3,12,0,0]},{"args":[[0]],"expected":[0]},{"args":[[1,2]],"expected":[1,2]},{"args":[[0,0,1]],"expected":[1,0,0]}]},{"id":"rotate-image","kind":"func","title":"Rotate a matrix 90 degrees","statement":"Rotate the n × n `matrix` 90 degrees clockwise **in place**.","func":"rotate","starter":"def rotate(matrix):\n    # change the list in place; you do not need to return anything\n    # write your code here\n    pass\n","solution":"def rotate(matrix):\n    n = len(matrix)\n    for i in range(n):\n        for j in range(i + 1, n):\n            matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]\n    for row in matrix:\n        row.reverse()\n","mode":"inplace","hint":"Transpose (swap `matrix[i][j]` with `matrix[j][i]` for `j > i`), then reverse every row.","lc":48,"slug":"rotate-image","diff":"M","tests":[{"args":[[[1,2,3],[4,5,6],[7,8,9]]],"expected":[[7,4,1],[8,5,2],[9,6,3]]},{"args":[[[1]]],"expected":[[1]]},{"args":[[[1,2],[3,4]]],"expected":[[3,1],[4,2]]},{"args":[[[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]],"expected":[[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]}]},{"id":"sort-pairs","kind":"func","title":"Sort pairs by their number","statement":"Each item of `pairs` is a pair `[letter, count]`. Return them sorted by count from high to low; when counts are equal, by letter from a to z.","func":"sort_pairs","starter":"def sort_pairs(pairs):\n    # write your code here\n    pass\n","solution":"def sort_pairs(pairs):\n    return sorted(pairs, key=lambda p: (-p[1], p[0]))\n","mode":"exact","hint":"`sorted(pairs, key=lambda p: (-p[1], p[0]))`: a minus sign makes numbers go high to low.","lc":null,"slug":null,"diff":"E","tests":[{"args":[[["a",2],["b",5],["c",2]]],"expected":[["b",5],["a",2],["c",2]]},{"args":[[["x",1]]],"expected":[["x",1]]},{"args":[[["d",3],["a",3],["b",4]]],"expected":[["b",4],["a",3],["d",3]]},{"args":[[]],"expected":[]}]},{"id":"merge-intervals","kind":"func","title":"Merge intervals","statement":"Merge all overlapping intervals `[start, end]` and return the merged list, sorted by start.","func":"merge","starter":"def merge(intervals):\n    # write your code here\n    pass\n","solution":"def merge(intervals):\n    intervals.sort()\n    out = []\n    for s, e in intervals:\n        if out and s \u003c= out[-1][1]:\n            out[-1][1] = max(out[-1][1], e)\n        else:\n            out.append([s, e])\n    return out\n","mode":"exact","hint":"Sort by start. Walk through; if a start is at most the last end, stretch the last interval, otherwise append a new one.","lc":56,"slug":"merge-intervals","diff":"M","tests":[{"args":[[[1,3],[2,6],[8,10],[15,18]]],"expected":[[1,6],[8,10],[15,18]]},{"args":[[[1,4],[4,5]]],"expected":[[1,5]]},{"args":[[[1,4],[0,4]]],"expected":[[0,4]]},{"args":[[[1,4],[2,3]]],"expected":[[1,4]]},{"args":[[[5,7]]],"expected":[[5,7]]}]},{"id":"pascal","kind":"func","title":"Pascal's triangle","statement":"Return the first `num_rows` rows of Pascal's triangle as a list of lists.","func":"generate","starter":"def generate(num_rows):\n    # write your code here\n    pass\n","solution":"def generate(num_rows):\n    rows = []\n    for i in range(num_rows):\n        row = [1] * (i + 1)\n        for j in range(1, i):\n            row[j] = rows[i - 1][j - 1] + rows[i - 1][j]\n        rows.append(row)\n    return rows\n","mode":"exact","hint":"Each row starts as `[1] * (i + 1)`. Each inner value is the sum of the two values above it.","lc":118,"slug":"pascals-triangle","diff":"E","tests":[{"args":[5],"expected":[[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]},{"args":[1],"expected":[[1]]},{"args":[2],"expected":[[1],[1,1]]}]},{"id":"spiral","kind":"func","title":"Spiral order","statement":"Return all the values of the `m × n` matrix in spiral order (right, down, left, up, and repeat).","func":"spiral_order","starter":"def spiral_order(matrix):\n    # write your code here\n    pass\n","solution":"def spiral_order(matrix):\n    out = []\n    top, bottom, left, right = 0, len(matrix) - 1, 0, len(matrix[0]) - 1\n    while top \u003c= bottom and left \u003c= right:\n        for j in range(left, right + 1):\n            out.append(matrix[top][j])\n        top += 1\n        for i in range(top, bottom + 1):\n            out.append(matrix[i][right])\n        right -= 1\n        if top \u003c= bottom:\n            for j in range(right, left - 1, -1):\n                out.append(matrix[bottom][j])\n            bottom -= 1\n        if left \u003c= right:\n            for i in range(bottom, top - 1, -1):\n                out.append(matrix[i][left])\n            left += 1\n    return out\n","mode":"exact","hint":"Keep four borders: top, bottom, left, right. Walk one side, then move that border in. Check `top \u003c= bottom` and `left \u003c= right` before the last two sides.","lc":54,"slug":"spiral-matrix","diff":"M","tests":[{"args":[[[1,2,3],[4,5,6],[7,8,9]]],"expected":[1,2,3,6,9,8,7,4,5]},{"args":[[[1,2,3,4],[5,6,7,8],[9,10,11,12]]],"expected":[1,2,3,4,8,12,11,10,9,5,6,7]},{"args":[[[1]]],"expected":[1]},{"args":[[[1,2],[3,4],[5,6]]],"expected":[1,2,4,6,5,3]}]}]},{"id":"d4","n":4,"title":"Hash maps (dict) and sets","goal":"Use dict as unordered_map, get sorted order like map, and use sets, Counter and defaultdict.","map":[["unordered_map\u003cstring,int> m;","m = {}"],["m[key] = 5;","m[key] = 5"],["m[key]++;   // missing key starts at 0","m[key] = m.get(key, 0) + 1"],["m.count(key)   m.find(key) != m.end()","key in m"],["m[key]   (key exists)","m[key]      # KeyError if missing; m.get(key) gives None"],["m.erase(key);","del m[key]   or   m.pop(key, None)"],["for (auto& [k, v] : m)","for k, v in m.items():"],["m.size()   m.empty()","len(m)   not m"],["map\u003cint,int>   (keys in sorted order)","use a dict, then loop over sorted(m)"],["unordered_set\u003cint> s;   s.insert(x);","s = set();   s.add(x)"],["s.count(x)","x in s"],["s.erase(x);","s.discard(x)     # s.remove(x) errors if x is missing"],["map\u003cpair\u003cint,int>,int>","m[(r, c)] = 1    # tuples can be keys, lists cannot"],["counting frequencies","from collections import Counter;  cnt = Counter(nums)"],["map\u003cint, vector\u003cint>>","from collections import defaultdict;  g = defaultdict(list)"]],"examples":[{"title":"dict is your unordered_map","src":"m = {}\nm[\"apple\"] = 3\nm[\"mango\"] = 5\nm[\"apple\"] += 1\nprint(m, len(m))\nprint(m[\"apple\"], m.get(\"kiwi\"), m.get(\"kiwi\", 0))\nprint(\"mango\" in m, \"kiwi\" in m)\ndel m[\"mango\"]                # erase\nprint(m)\nprint(m.pop(\"apple\"), m)      # pop removes and returns the value\n","out":"{'apple': 4, 'mango': 5} 2\n4 None 0\nTrue False\n{'apple': 4}\n4 {}"},{"title":"Counting, looping, and sorted order like map","src":"nums = [3, 1, 3, 2, 3, 1]\nfreq = {}\nfor x in nums:\n    freq[x] = freq.get(x, 0) + 1\nprint(freq)\nfor k, v in freq.items():\n    print(k, \"->\", v)\nfor k in sorted(freq):            # like std::map: keys in order\n    print(k, freq[k], end=\" | \")\nprint()\nprint(max(freq, key=freq.get))    # the key with the biggest count\n","out":"{3: 3, 1: 2, 2: 1}\n3 -> 3\n1 -> 2\n2 -> 1\n1 2 | 2 1 | 3 3 | \n3"},{"title":"Counter and defaultdict","src":"from collections import Counter, defaultdict\ncnt = Counter(\"mississippi\")\nprint(cnt[\"s\"], cnt[\"z\"], cnt.most_common(2))\ngroups = defaultdict(list)\nfor w in [\"eat\", \"tea\", \"tan\", \"ate\"]:\n    groups[\"\".join(sorted(w))].append(w)\nprint(dict(groups))\n","out":"4 0 [('i', 4), ('s', 4)]\n{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan']}"},{"title":"Sets","src":"s = set()\ns.add(3)\ns.add(1)\ns.add(3)                 # already there\nprint(s, len(s), 3 in s)\ns.discard(10)            # no error when missing\ns.remove(3)              # error when missing\nprint(s)\na, b = {1, 2, 3}, {2, 3, 4}\nprint(a & b, a | b, a - b)\nprint(sorted({5, 1, 4}))\n","out":"{1, 3} 2 True\n{1}\n{2, 3} {1, 2, 3, 4} {1}\n[1, 4, 5]"}],"traps":["`m[k]` on a missing key is a KeyError. Use `m.get(k, 0)`, check `k in m` first, or use `defaultdict`.","Lists cannot be keys. Use a tuple like `(r, c)` or a string.","A dict keeps insertion order, but it is not sorted. When you need sorted keys, loop over `sorted(m)`.","Don't add or delete keys while looping over a dict; loop over `list(m)` instead."],"problems":[{"id":"two-sum","kind":"func","title":"Two sum","statement":"Return the indexes of the two numbers in `nums` that add up to `target`. There is exactly one answer; you may return the indexes in any order.","func":"two_sum","starter":"def two_sum(nums, target):\n    # write your code here\n    pass\n","solution":"def two_sum(nums, target):\n    pos = {}\n    for i, x in enumerate(nums):\n        if target - x in pos:\n            return [pos[target - x], i]\n        pos[x] = i\n","mode":"any_order","hint":"Keep `pos = {}` from value to index. For each `x`, check whether `target - x` is already in `pos`.","lc":1,"slug":"two-sum","diff":"E","tests":[{"args":[[2,7,11,15],9],"expected":[0,1]},{"args":[[3,2,4],6],"expected":[1,2]},{"args":[[3,3],6],"expected":[0,1]},{"args":[[-1,-2,-3,-4,-5],-8],"expected":[2,4]}]},{"id":"contains-duplicate","kind":"func","title":"Contains duplicate","statement":"Return `True` if any value appears at least twice in `nums`.","func":"contains_duplicate","starter":"def contains_duplicate(nums):\n    # write your code here\n    pass\n","solution":"def contains_duplicate(nums):\n    seen = set()\n    for x in nums:\n        if x in seen:\n            return True\n        seen.add(x)\n    return False\n","mode":"exact","hint":"A set remembers what you have seen: `if x in seen: return True`, else `seen.add(x)`. Or compare `len(set(nums))` with `len(nums)`.","lc":217,"slug":"contains-duplicate","diff":"E","tests":[{"args":[[1,2,3,1]],"expected":true},{"args":[[1,2,3,4]],"expected":false},{"args":[[]],"expected":false},{"args":[[1,1,1,3,3,4,3,2,4,2]],"expected":true}]},{"id":"group-anagrams","kind":"func","title":"Group anagrams","statement":"Group the words of `strs` that are anagrams of each other. The groups, and the words inside them, may be in any order.","func":"group_anagrams","starter":"def group_anagrams(strs):\n    # write your code here\n    pass\n","solution":"from collections import defaultdict\n\ndef group_anagrams(strs):\n    groups = defaultdict(list)\n    for w in strs:\n        groups[\"\".join(sorted(w))].append(w)\n    return list(groups.values())\n","mode":"groups","hint":"Words that are anagrams have the same sorted letters. Use `\"\".join(sorted(w))` as the key of a `defaultdict(list)`.","lc":49,"slug":"group-anagrams","diff":"M","tests":[{"args":[["eat","tea","tan","ate","nat","bat"]],"expected":[["bat"],["nat","tan"],["ate","eat","tea"]]},{"args":[[""]],"expected":[[""]]},{"args":[["a"]],"expected":[["a"]]},{"args":[["ab","ba","abc"]],"expected":[["ab","ba"],["abc"]]}]},{"id":"top-k","kind":"func","title":"Top k frequent elements","statement":"Return the `k` most frequent values in `nums`, in any order.","func":"top_k_frequent","starter":"def top_k_frequent(nums, k):\n    # write your code here\n    pass\n","solution":"from collections import Counter\n\ndef top_k_frequent(nums, k):\n    return [x for x, _ in Counter(nums).most_common(k)]\n","mode":"any_order","hint":"Count with `Counter(nums)`. `most_common(k)` gives the k most common `(value, count)` pairs.","lc":347,"slug":"top-k-frequent-elements","diff":"M","tests":[{"args":[[1,1,1,2,2,3],2],"expected":[1,2]},{"args":[[1],1],"expected":[1]},{"args":[[4,4,5,5,5,6],1],"expected":[5]},{"args":[[3,0,1,0],1],"expected":[0]}]},{"id":"longest-consecutive","kind":"func","title":"Longest consecutive sequence","statement":"Return the length of the longest run of consecutive numbers (like 1, 2, 3, 4) that can be made from the values in `nums`, in O(n).","func":"longest_consecutive","starter":"def longest_consecutive(nums):\n    # write your code here\n    pass\n","solution":"def longest_consecutive(nums):\n    s = set(nums)\n    best = 0\n    for x in s:\n        if x - 1 not in s:\n            y = x\n            while y + 1 in s:\n                y += 1\n            best = max(best, y - x + 1)\n    return best\n","mode":"exact","hint":"Put everything in a set. Only start counting at numbers where `x - 1` is not in the set, then walk `x + 1, x + 2, ...`.","lc":128,"slug":"longest-consecutive-sequence","diff":"M","tests":[{"args":[[100,4,200,1,3,2]],"expected":4},{"args":[[0,3,7,2,5,8,4,6,0,1]],"expected":9},{"args":[[]],"expected":0},{"args":[[1,2,0,1]],"expected":3}]},{"id":"subarray-sum-k","kind":"func","title":"Subarray sum equals k","statement":"Return how many continuous subarrays of `nums` add up to exactly `k`.","func":"subarray_sum","starter":"def subarray_sum(nums, k):\n    # write your code here\n    pass\n","solution":"def subarray_sum(nums, k):\n    seen = {0: 1}\n    total = count = 0\n    for x in nums:\n        total += x\n        count += seen.get(total - k, 0)\n        seen[total] = seen.get(total, 0) + 1\n    return count\n","mode":"exact","hint":"Prefix sums: keep how many times each running total has appeared, starting with `{0: 1}`. Each time, add the count of `total - k`.","lc":560,"slug":"subarray-sum-equals-k","diff":"M","tests":[{"args":[[1,1,1],2],"expected":2},{"args":[[1,2,3],3],"expected":2},{"args":[[1,-1,0],0],"expected":3},{"args":[[3],3],"expected":1}]},{"id":"word-count","kind":"func","title":"Word counts in sorted order (like map)","statement":"Return a list of `[word, count]` pairs for the words in `text`, sorted by word.","func":"word_count_sorted","starter":"def word_count_sorted(text):\n    # write your code here\n    pass\n","solution":"def word_count_sorted(text):\n    cnt = {}\n    for w in text.split():\n        cnt[w] = cnt.get(w, 0) + 1\n    return [[w, cnt[w]] for w in sorted(cnt)]\n","mode":"exact","hint":"Count into a dict, then loop over `sorted(cnt)`. Returning `(w, count)` tuples is fine too.","lc":null,"slug":null,"diff":"E","tests":[{"args":["b a b c a b"],"expected":[["a",2],["b",3],["c",1]]},{"args":["one"],"expected":[["one",1]]},{"args":[""],"expected":[]},{"args":["x y x"],"expected":[["x",2],["y",1]]}]}]},{"id":"d5","n":5,"title":"Stack, queue and heap","goal":"Use a list as a stack, deque as a queue, and heapq as a priority queue.","map":[["stack\u003cint> st;","st = []"],["st.push(x);","st.append(x)"],["st.top()","st[-1]"],["st.pop();","st.pop()           # also returns the value"],["st.empty()","not st             # True when empty"],["queue\u003cint> q;","from collections import deque;   q = deque()"],["q.push(x);","q.append(x)"],["q.front();   q.pop();","q[0]   q.popleft()"],["deque: push_front / pop_back","q.appendleft(x)   q.pop()"],["priority_queue\u003cint, vector\u003cint>, greater\u003cint>>   (min-heap)","import heapq;   h = []"],["pq.push(x);","heapq.heappush(h, x)"],["pq.top()","h[0]               # the smallest"],["pq.pop();","heapq.heappop(h)   # returns the smallest"],["priority_queue\u003cint>   (max-heap)","push -x; the top is -h[0]"],["priority_queue\u003cpair\u003cint,int>>","heapq.heappush(h, (dist, node))   # compares the first item first"],["make_heap(v.begin(), v.end());","heapq.heapify(v)"]],"examples":[{"title":"Stack","src":"st = []\nst.append(1)\nst.append(2)\nst.append(3)\nprint(st[-1], len(st))     # top and size\nprint(st.pop(), st)        # pop gives back the top\nif not st:\n    print(\"empty\")\nelse:\n    print(\"not empty\")\nwhile st:                  # pop until empty\n    st.pop()\nprint(not st)\n","out":"3 3\n3 [1, 2]\nnot empty\nTrue"},{"title":"Queue with deque","src":"from collections import deque\nq = deque([1, 2])\nq.append(3)               # push at the back\nq.appendleft(0)           # push at the front\nprint(q, q[0], q[-1])\nprint(q.popleft(), q.pop(), q)   # remove from the front and from the back\nprint(len(q), not q)\n","out":"deque([0, 1, 2, 3]) 0 3\n0 3 deque([1, 2])\n2 False"},{"title":"Heaps (priority queue)","src":"import heapq\nh = []\nfor x in [5, 1, 8, 3]:\n    heapq.heappush(h, x)\nprint(h[0], heapq.heappop(h), heapq.heappop(h))   # smallest first\nmaxh = []\nfor x in [5, 1, 8, 3]:\n    heapq.heappush(maxh, -x)                       # max-heap trick\nprint(-maxh[0], -heapq.heappop(maxh))\ntasks = []\nheapq.heappush(tasks, (2, \"write\"))\nheapq.heappush(tasks, (1, \"read\"))\nprint(heapq.heappop(tasks))                        # (priority, value) pairs\nnums = [4, 1, 7, 3]\nheapq.heapify(nums)\nprint(nums[0], heapq.nlargest(2, nums))\n","out":"1 1 3\n8 8\n(1, 'read')\n1 [7, 4]"},{"title":"BFS on a grid (a queue at work)","src":"from collections import deque\ngrid = [\"..#\",\n        \".#.\",\n        \"...\"]\nn, m = len(grid), len(grid[0])\ndist = [[-1] * m for _ in range(n)]\ndist[0][0] = 0\nq = deque([(0, 0)])\nwhile q:\n    r, c = q.popleft()\n    for dr, dc in [(1, 0), (-1, 0), (0, 1), (0, -1)]:\n        nr, nc = r + dr, c + dc\n        if 0 \u003c= nr \u003c n and 0 \u003c= nc \u003c m and grid[nr][nc] == '.' and dist[nr][nc] == -1:\n            dist[nr][nc] = dist[r][c] + 1\n            q.append((nr, nc))\nprint(dist[n - 1][m - 1])      # steps to the bottom-right corner\n","out":"4"}],"traps":["`st.pop()` and `st[-1]` on an empty list are IndexErrors. Check `if st:` first.","Never use `list.pop(0)` as a queue: it moves every element. Use `deque.popleft()`.","heapq is always a min-heap. For a max-heap push `-x` and negate when you read.","Python lets you write `0 \u003c= r \u003c n` for the bounds check."],"problems":[{"id":"valid-parentheses","kind":"func","title":"Valid parentheses","statement":"Return `True` if every bracket in `s` (`()[]{}`) is closed by the same type, in the right order.","func":"is_valid","starter":"def is_valid(s):\n    # write your code here\n    pass\n","solution":"def is_valid(s):\n    pair = {')': '(', ']': '[', '}': '{'}\n    st = []\n    for ch in s:\n        if ch in pair:\n            if not st or st.pop() != pair[ch]:\n                return False\n        else:\n            st.append(ch)\n    return not st\n","mode":"exact","hint":"Push opening brackets. For a closing one, the stack must not be empty and its top must be the matching opener. At the end the stack must be empty.","lc":20,"slug":"valid-parentheses","diff":"E","tests":[{"args":["()"],"expected":true},{"args":["()[]{}"],"expected":true},{"args":["(]"],"expected":false},{"args":["([)]"],"expected":false},{"args":["{[]}"],"expected":true},{"args":["("],"expected":false},{"args":["]"],"expected":false}]},{"id":"next-greater","kind":"func","title":"Next greater element","statement":"For each number, return the first larger number to its right, or `-1` if there is none.","func":"next_greater","starter":"def next_greater(nums):\n    # write your code here\n    pass\n","solution":"def next_greater(nums):\n    ans = [-1] * len(nums)\n    st = []\n    for i, x in enumerate(nums):\n        while st and nums[st[-1]] \u003c x:\n            ans[st.pop()] = x\n        st.append(i)\n    return ans\n","mode":"exact","hint":"Monotonic stack of indexes still waiting for an answer. When a bigger `x` arrives, pop them and set their answer to `x`.","lc":null,"slug":null,"diff":"E","tests":[{"args":[[2,1,2,4,3]],"expected":[4,2,4,-1,-1]},{"args":[[1,2,3]],"expected":[2,3,-1]},{"args":[[3,2,1]],"expected":[-1,-1,-1]},{"args":[[5]],"expected":[-1]}]},{"id":"daily-temperatures","kind":"func","title":"Daily temperatures","statement":"For each day, return how many days you wait for a warmer temperature, or `0` if it never comes.","func":"daily_temperatures","starter":"def daily_temperatures(temperatures):\n    # write your code here\n    pass\n","solution":"def daily_temperatures(temperatures):\n    ans = [0] * len(temperatures)\n    st = []\n    for i, t in enumerate(temperatures):\n        while st and temperatures[st[-1]] \u003c t:\n            j = st.pop()\n            ans[j] = i - j\n        st.append(i)\n    return ans\n","mode":"exact","hint":"Same stack as \"Next greater element\", but store the distance `i - j`.","lc":739,"slug":"daily-temperatures","diff":"M","tests":[{"args":[[73,74,75,71,69,72,76,73]],"expected":[1,1,4,2,1,1,0,0]},{"args":[[30,40,50,60]],"expected":[1,1,1,0]},{"args":[[30,60,90]],"expected":[1,1,0]}]},{"id":"kth-largest","kind":"func","title":"Kth largest element (heap)","statement":"Return the `k`-th largest number in `nums`. Use a min-heap that keeps only `k` numbers.","func":"find_kth_largest","starter":"def find_kth_largest(nums, k):\n    # write your code here\n    pass\n","solution":"import heapq\n\ndef find_kth_largest(nums, k):\n    h = []\n    for x in nums:\n        heapq.heappush(h, x)\n        if len(h) > k:\n            heapq.heappop(h)\n    return h[0]\n","mode":"exact","hint":"Push each number; when the heap holds more than k, pop the smallest. The top `h[0]` is the answer.","lc":215,"slug":"kth-largest-element-in-an-array","diff":"M","tests":[{"args":[[3,2,1,5,6,4],2],"expected":5},{"args":[[3,2,3,1,2,4,5,5,6],4],"expected":4},{"args":[[1],1],"expected":1},{"args":[[7,7,7],2],"expected":7}]},{"id":"last-stone","kind":"func","title":"Last stone weight (max-heap)","statement":"Each turn, smash the two heaviest stones. Equal stones both break; otherwise the heavier one becomes the difference. Return the last stone's weight, or `0`.","func":"last_stone_weight","starter":"def last_stone_weight(stones):\n    # write your code here\n    pass\n","solution":"import heapq\n\ndef last_stone_weight(stones):\n    h = [-s for s in stones]\n    heapq.heapify(h)\n    while len(h) > 1:\n        a = -heapq.heappop(h)\n        b = -heapq.heappop(h)\n        if a != b:\n            heapq.heappush(h, -(a - b))\n    return -h[0] if h else 0\n","mode":"exact","hint":"Max-heap trick: store `-s`. Pop two, push back the difference (negated) when it is not zero.","lc":1046,"slug":"last-stone-weight","diff":"E","tests":[{"args":[[2,7,4,1,8,1]],"expected":1},{"args":[[1]],"expected":1},{"args":[[2,2]],"expected":0},{"args":[[10,4,4,2]],"expected":0}]},{"id":"num-islands","kind":"func","title":"Number of islands (BFS)","statement":"`grid` is a list of rows of \"1\" (land) and \"0\" (water). Return the number of islands; land cells join up, down, left and right.","func":"num_islands","starter":"def num_islands(grid):\n    # write your code here\n    pass\n","solution":"from collections import deque\n\ndef num_islands(grid):\n    n, m = len(grid), len(grid[0])\n    seen = [[False] * m for _ in range(n)]\n    count = 0\n    for r in range(n):\n        for c in range(m):\n            if grid[r][c] == \"1\" and not seen[r][c]:\n                count += 1\n                seen[r][c] = True\n                q = deque([(r, c)])\n                while q:\n                    x, y = q.popleft()\n                    for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:\n                        nx, ny = x + dx, y + dy\n                        if 0 \u003c= nx \u003c n and 0 \u003c= ny \u003c m and grid[nx][ny] == \"1\" and not seen[nx][ny]:\n                            seen[nx][ny] = True\n                            q.append((nx, ny))\n    return count\n","mode":"exact","hint":"For each unseen \"1\", count an island and BFS from it with a deque, marking cells as seen.","lc":200,"slug":"number-of-islands","diff":"M","tests":[{"args":[[["1","1","1","1","0"],["1","1","0","1","0"],["1","1","0","0","0"],["0","0","0","0","0"]]],"expected":1},{"args":[[["1","1","0","0","0"],["1","1","0","0","0"],["0","0","1","0","0"],["0","0","0","1","1"]]],"expected":3},{"args":[[["0"]]],"expected":0},{"args":[[["1","0","1"]]],"expected":2}]}]},{"id":"d6","n":6,"title":"Two pointers and sliding window","goal":"Write the two-pointer and sliding-window patterns you know from C++ in Python.","map":[["int l = 0, r = n - 1;","l, r = 0, len(nums) - 1"],["while (l \u003c r) { ...; l++; r--; }","while l \u003c r:\n    ...\n    l += 1\n    r -= 1"],["for (int r = 0; r \u003c n; r++) { while (bad) l++; }","l = 0\nfor r in range(len(nums)):\n    while bad:\n        l += 1"],["ans = max(ans, r - l + 1);","ans = max(ans, r - l + 1)"],["unordered_map\u003cchar,int> window;","window = {}   or   Counter()"],["int best = INT_MAX;","best = float('inf')"],["swap(a[l], a[r]);","a[l], a[r] = a[r], a[l]"]],"examples":[{"title":"Two pointers on a sorted list","src":"def pair_with_sum(nums, target):\n    l, r = 0, len(nums) - 1\n    while l \u003c r:\n        s = nums[l] + nums[r]\n        if s == target:\n            return l, r\n        if s \u003c target:\n            l += 1\n        else:\n            r -= 1\n    return -1, -1\n\nprint(pair_with_sum([1, 3, 4, 6, 9], 10))\nprint(pair_with_sum([1, 2], 10))\n","out":"(0, 4)\n(-1, -1)"},{"title":"Fixed-size window","src":"def max_window_sum(nums, k):\n    window = sum(nums[:k])\n    best = window\n    for r in range(k, len(nums)):\n        window += nums[r] - nums[r - k]    # add the new one, drop the old one\n        best = max(best, window)\n    return best\n\nprint(max_window_sum([2, 1, 5, 1, 3, 2], 3))\n","out":"9"},{"title":"Growing window: longest with no repeats","src":"def longest_unique(s):\n    last = {}              # character -> its last index\n    l = best = 0\n    for r, ch in enumerate(s):\n        if ch in last and last[ch] >= l:\n            l = last[ch] + 1\n        last[ch] = r\n        best = max(best, r - l + 1)\n    return best\n\nprint(longest_unique(\"abcabcbb\"), longest_unique(\"bbbbb\"))\n","out":"3 1"},{"title":"Shrinking window: shortest with sum at least target","src":"def min_len(target, nums):\n    l = total = 0\n    best = float('inf')\n    for r in range(len(nums)):\n        total += nums[r]\n        while total >= target:\n            best = min(best, r - l + 1)\n            total -= nums[l]\n            l += 1\n    return 0 if best == float('inf') else best\n\nprint(min_len(7, [2, 3, 1, 2, 4, 3]))\n","out":"2"}],"traps":["The window length is `r - l + 1`.","Update the answer when the window is valid: after shrinking (for \"longest\") or inside the shrink loop (for \"shortest\").","For a minimum, start with `float('inf')` and turn it into the required value (often 0) when nothing was found.","`while l \u003c r:` needs `l += 1` or `r -= 1` on every path, or it loops forever (the lab stops it after a few seconds)."],"problems":[{"id":"two-sum-sorted","kind":"func","title":"Two sum on a sorted list","statement":"`numbers` is sorted. Return the **1-based** positions `[i, j]` (i \u003c j) of the two numbers that add up to `target`.","func":"two_sum_sorted","starter":"def two_sum_sorted(numbers, target):\n    # write your code here\n    pass\n","solution":"def two_sum_sorted(numbers, target):\n    l, r = 0, len(numbers) - 1\n    while l \u003c r:\n        s = numbers[l] + numbers[r]\n        if s == target:\n            return [l + 1, r + 1]\n        if s \u003c target:\n            l += 1\n        else:\n            r -= 1\n","mode":"exact","hint":"Start at both ends. Sum too small: move `l` right. Too big: move `r` left.","lc":167,"slug":"two-sum-ii-input-array-is-sorted","diff":"M","tests":[{"args":[[2,7,11,15],9],"expected":[1,2]},{"args":[[2,3,4],6],"expected":[1,3]},{"args":[[-1,0],-1],"expected":[1,2]},{"args":[[1,2,3,4,4,9,56,90],8],"expected":[4,5]}]},{"id":"max-sum-k","kind":"func","title":"Maximum sum of k in a row","statement":"Return the largest sum of `k` consecutive numbers in `nums`.","func":"max_sum_k","starter":"def max_sum_k(nums, k):\n    # write your code here\n    pass\n","solution":"def max_sum_k(nums, k):\n    window = sum(nums[:k])\n    best = window\n    for r in range(k, len(nums)):\n        window += nums[r] - nums[r - k]\n        best = max(best, window)\n    return best\n","mode":"exact","hint":"Sum the first k, then slide: add `nums[r]`, subtract `nums[r - k]`. Start `best` at the first window, not at 0.","lc":null,"slug":null,"diff":"E","tests":[{"args":[[2,1,5,1,3,2],3],"expected":9},{"args":[[1,2,3],3],"expected":6},{"args":[[5,-1,3],1],"expected":5},{"args":[[-2,-3,-1],2],"expected":-4}]},{"id":"longest-unique","kind":"func","title":"Longest substring without repeating characters","statement":"Return the length of the longest substring of `s` with no repeated characters.","func":"length_of_longest_substring","starter":"def length_of_longest_substring(s):\n    # write your code here\n    pass\n","solution":"def length_of_longest_substring(s):\n    last = {}\n    l = best = 0\n    for r, ch in enumerate(s):\n        if ch in last and last[ch] >= l:\n            l = last[ch] + 1\n        last[ch] = r\n        best = max(best, r - l + 1)\n    return best\n","mode":"exact","hint":"Remember the last index of each character. If it is inside the window, move `l` just past it.","lc":3,"slug":"longest-substring-without-repeating-characters","diff":"M","tests":[{"args":["abcabcbb"],"expected":3},{"args":["bbbbb"],"expected":1},{"args":["pwwkew"],"expected":3},{"args":[""],"expected":0},{"args":["dvdf"],"expected":3},{"args":["abba"],"expected":2}]},{"id":"max-ones","kind":"func","title":"Max consecutive ones with k flips","statement":"`nums` has only 0s and 1s. You may flip at most `k` zeros. Return the longest run of 1s you can get.","func":"longest_ones","starter":"def longest_ones(nums, k):\n    # write your code here\n    pass\n","solution":"def longest_ones(nums, k):\n    l = zeros = best = 0\n    for r in range(len(nums)):\n        if nums[r] == 0:\n            zeros += 1\n        while zeros > k:\n            if nums[l] == 0:\n                zeros -= 1\n            l += 1\n        best = max(best, r - l + 1)\n    return best\n","mode":"exact","hint":"Grow the window and count its zeros. While there are more than k zeros, shrink from the left.","lc":1004,"slug":"max-consecutive-ones-iii","diff":"M","tests":[{"args":[[1,1,1,0,0,0,1,1,1,1,0],2],"expected":6},{"args":[[0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,1,1,1,1],3],"expected":10},{"args":[[0,0],0],"expected":0},{"args":[[1,1],0],"expected":2}]},{"id":"min-subarray-len","kind":"func","title":"Shortest subarray with a big enough sum","statement":"All numbers are positive. Return the length of the shortest continuous subarray whose sum is at least `target`, or `0` if there is none.","func":"min_sub_array_len","starter":"def min_sub_array_len(target, nums):\n    # write your code here\n    pass\n","solution":"def min_sub_array_len(target, nums):\n    l = total = 0\n    best = float('inf')\n    for r in range(len(nums)):\n        total += nums[r]\n        while total >= target:\n            best = min(best, r - l + 1)\n            total -= nums[l]\n            l += 1\n    return 0 if best == float('inf') else best\n","mode":"exact","hint":"Add `nums[r]`. While the sum is at least target, record the length and shrink from the left. Start with `float('inf')`.","lc":209,"slug":"minimum-size-subarray-sum","diff":"M","tests":[{"args":[7,[2,3,1,2,4,3]],"expected":2},{"args":[4,[1,4,4]],"expected":1},{"args":[11,[1,1,1,1,1,1,1,1]],"expected":0},{"args":[15,[1,2,3,4,5]],"expected":5}]},{"id":"container-water","kind":"func","title":"Container with most water","statement":"Choose two lines; the water between them is `min(height) * distance`. Return the most water.","func":"max_area","starter":"def max_area(height):\n    # write your code here\n    pass\n","solution":"def max_area(height):\n    l, r = 0, len(height) - 1\n    best = 0\n    while l \u003c r:\n        best = max(best, min(height[l], height[r]) * (r - l))\n        if height[l] \u003c height[r]:\n            l += 1\n        else:\n            r -= 1\n    return best\n","mode":"exact","hint":"Start at both ends and always move the shorter line inwards.","lc":11,"slug":"container-with-most-water","diff":"M","tests":[{"args":[[1,8,6,2,5,4,8,3,7]],"expected":49},{"args":[[1,1]],"expected":1},{"args":[[4,3,2,1,4]],"expected":16},{"args":[[1,2,1]],"expected":2}]},{"id":"longest-limit","kind":"func","title":"Longest continuous subarray within a limit","statement":"Return the length of the longest continuous subarray in which the difference between the largest and smallest number is at most `limit`.","func":"longest_subarray","starter":"def longest_subarray(nums, limit):\n    # write your code here\n    pass\n","solution":"from collections import deque\n\ndef longest_subarray(nums, limit):\n    mx, mn = deque(), deque()\n    l = best = 0\n    for r, x in enumerate(nums):\n        while mx and mx[-1] \u003c x:\n            mx.pop()\n        mx.append(x)\n        while mn and mn[-1] > x:\n            mn.pop()\n        mn.append(x)\n        while mx[0] - mn[0] > limit:\n            if nums[l] == mx[0]:\n                mx.popleft()\n            if nums[l] == mn[0]:\n                mn.popleft()\n            l += 1\n        best = max(best, r - l + 1)\n    return best\n","mode":"exact","hint":"Sliding window plus two deques: one keeps the window maximum at the front (decreasing), one keeps the minimum (increasing). Shrink while max - min > limit.","lc":1438,"slug":"longest-continuous-subarray-with-absolute-diff-less-than-or-equal-to-limit","diff":"M","tests":[{"args":[[8,2,4,7],4],"expected":2},{"args":[[10,1,2,4,7,2],5],"expected":4},{"args":[[4,2,2,2,4,4,2,2],0],"expected":3},{"args":[[1],0],"expected":1}]}]},{"id":"d7","n":7,"title":"Recursion and dynamic programming","goal":"Write DP tables and memoised recursion in Python, including House Robber.","map":[["vector\u003cint> dp(n + 1, 0);","dp = [0] * (n + 1)"],["vector\u003cvector\u003cint>> dp(n, vector\u003cint>(m, -1));","dp = [[-1] * m for _ in range(n)]"],["memset(dp, -1, sizeof dp);","build the table with -1 as above"],["memo map + recursion","from functools import cache;   put @cache above the function"],["INT_MAX in a min-DP","float('inf')"],["a global counter used in recursion","nonlocal counter   inside a nested function"],["max({a, b, c})","max(a, b, c)"],["res.push_back(path);   // copies","res.append(path[:])   # copy it yourself"]],"examples":[{"title":"Bottom-up 1D DP","src":"def climb(n):\n    dp = [0] * (n + 1)\n    dp[0] = 1\n    for i in range(1, n + 1):\n        dp[i] = dp[i - 1] + (dp[i - 2] if i >= 2 else 0)\n    return dp[n]\n\nprint([climb(n) for n in range(1, 8)])\n","out":"[1, 2, 3, 5, 8, 13, 21]"},{"title":"Top-down with @cache (memoisation)","src":"from functools import cache\n\ndef min_coins(coins, amount):\n    @cache\n    def go(a):\n        if a == 0:\n            return 0\n        best = float('inf')\n        for c in coins:\n            if c \u003c= a:\n                best = min(best, go(a - c) + 1)\n        return best\n    ans = go(amount)\n    return ans if ans != float('inf') else -1\n\nprint(min_coins([1, 2, 5], 11), min_coins([2], 3))\n","out":"3 -1"},{"title":"A 2D DP table","src":"def lcs(a, b):\n    n, m = len(a), len(b)\n    dp = [[0] * (m + 1) for _ in range(n + 1)]\n    for i in range(1, n + 1):\n        for j in range(1, m + 1):\n            if a[i - 1] == b[j - 1]:\n                dp[i][j] = dp[i - 1][j - 1] + 1\n            else:\n                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])\n    return dp[n][m]\n\nprint(lcs(\"abcde\", \"ace\"))\n","out":"3"},{"title":"Recursion helpers: copying the path, and nonlocal","src":"def subsets(nums):\n    res, path = [], []\n    def dfs(i):\n        if i == len(nums):\n            res.append(path[:])     # copy: path keeps changing\n            return\n        path.append(nums[i])\n        dfs(i + 1)\n        path.pop()\n        dfs(i + 1)\n    dfs(0)\n    return res\n\nprint(subsets([1, 2]))\n\ndef count_calls(n):\n    total = 0\n    def go(k):\n        nonlocal total              # change the outer variable\n        total += 1\n        if k > 0:\n            go(k - 1)\n    go(n)\n    return total\n\nprint(count_calls(4))\n","out":"[[1, 2], [1], [2], []]\n5"}],"traps":["Build 2D tables with `[[0] * m for _ in range(n)]`, never `[[0] * m] * n`.","`@cache` needs arguments that can be dictionary keys: numbers, strings, tuples. Not lists.","Deep recursion (more than about 1000 calls) fails in Python. When n can be large, write the DP bottom-up.","`res.append(path)` stores the same list again and again; append `path[:]`."],"problems":[{"id":"climb-stairs","kind":"func","title":"Climbing stairs","statement":"You can climb 1 or 2 steps at a time. Return the number of different ways to reach step `n`.","func":"climb_stairs","starter":"def climb_stairs(n):\n    # write your code here\n    pass\n","solution":"def climb_stairs(n):\n    a, b = 1, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n","mode":"exact","hint":"`ways(n) = ways(n - 1) + ways(n - 2)`: Fibonacci. Two variables are enough.","lc":70,"slug":"climbing-stairs","diff":"E","tests":[{"args":[2],"expected":2},{"args":[3],"expected":3},{"args":[5],"expected":8},{"args":[1],"expected":1},{"args":[10],"expected":89}]},{"id":"house-robber","kind":"func","title":"House robber","statement":"You cannot rob two houses next to each other. Return the most money you can rob from `nums`.","func":"rob","starter":"def rob(nums):\n    # write your code here\n    pass\n","solution":"def rob(nums):\n    prev2 = prev1 = 0\n    for x in nums:\n        prev2, prev1 = prev1, max(prev1, prev2 + x)\n    return prev1\n","mode":"exact","hint":"For each house: skip it (`prev1`) or rob it (`prev2 + x`). Keep the best of the two.","lc":198,"slug":"house-robber","diff":"M","tests":[{"args":[[1,2,3,1]],"expected":4},{"args":[[2,7,9,3,1]],"expected":12},{"args":[[5]],"expected":5},{"args":[[2,1,1,2]],"expected":4},{"args":[[0]],"expected":0}]},{"id":"max-subarray","kind":"func","title":"Maximum subarray (Kadane)","statement":"Return the largest sum of a non-empty continuous subarray.","func":"max_sub_array","starter":"def max_sub_array(nums):\n    # write your code here\n    pass\n","solution":"def max_sub_array(nums):\n    best = cur = nums[0]\n    for x in nums[1:]:\n        cur = max(x, cur + x)\n        best = max(best, cur)\n    return best\n","mode":"exact","hint":"Either start fresh at `x` or extend: `cur = max(x, cur + x)`. Start with `nums[0]`, not 0.","lc":53,"slug":"maximum-subarray","diff":"M","tests":[{"args":[[-2,1,-3,4,-1,2,1,-5,4]],"expected":6},{"args":[[1]],"expected":1},{"args":[[5,4,-1,7,8]],"expected":23},{"args":[[-3,-1,-2]],"expected":-1}]},{"id":"coin-change","kind":"func","title":"Coin change","statement":"Return the fewest coins needed to make `amount`, or `-1` if it cannot be made.","func":"coin_change","starter":"def coin_change(coins, amount):\n    # write your code here\n    pass\n","solution":"def coin_change(coins, amount):\n    dp = [0] + [float('inf')] * amount\n    for a in range(1, amount + 1):\n        for c in coins:\n            if c \u003c= a:\n                dp[a] = min(dp[a], dp[a - c] + 1)\n    return dp[amount] if dp[amount] != float('inf') else -1\n","mode":"exact","hint":"`dp[a]` = fewest coins for amount a. `dp[0] = 0`, others start at `float('inf')`; try every coin.","lc":322,"slug":"coin-change","diff":"M","tests":[{"args":[[1,2,5],11],"expected":3},{"args":[[2],3],"expected":-1},{"args":[[1],0],"expected":0},{"args":[[2,5,10,1],27],"expected":4},{"args":[[186,419,83,408],6249],"expected":20}]},{"id":"unique-paths","kind":"func","title":"Unique paths (2D DP)","statement":"A robot moves only right or down in an `m × n` grid. Return the number of paths from the top-left to the bottom-right.","func":"unique_paths","starter":"def unique_paths(m, n):\n    # write your code here\n    pass\n","solution":"def unique_paths(m, n):\n    dp = [[1] * n for _ in range(m)]\n    for i in range(1, m):\n        for j in range(1, n):\n            dp[i][j] = dp[i - 1][j] + dp[i][j - 1]\n    return dp[m - 1][n - 1]\n","mode":"exact","hint":"First row and first column are all 1. Every other cell is the cell above plus the cell to the left.","lc":62,"slug":"unique-paths","diff":"M","tests":[{"args":[3,7],"expected":28},{"args":[3,2],"expected":3},{"args":[1,1],"expected":1},{"args":[10,10],"expected":48620}]},{"id":"lcs","kind":"func","title":"Longest common subsequence","statement":"Return the length of the longest subsequence that both strings share.","func":"longest_common_subsequence","starter":"def longest_common_subsequence(text1, text2):\n    # write your code here\n    pass\n","solution":"def longest_common_subsequence(text1, text2):\n    n, m = len(text1), len(text2)\n    dp = [[0] * (m + 1) for _ in range(n + 1)]\n    for i in range(1, n + 1):\n        for j in range(1, m + 1):\n            if text1[i - 1] == text2[j - 1]:\n                dp[i][j] = dp[i - 1][j - 1] + 1\n            else:\n                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])\n    return dp[n][m]\n","mode":"exact","hint":"A `(n + 1) × (m + 1)` table. Same letters: diagonal + 1. Otherwise the max of up and left.","lc":1143,"slug":"longest-common-subsequence","diff":"M","tests":[{"args":["abcde","ace"],"expected":3},{"args":["abc","abc"],"expected":3},{"args":["abc","def"],"expected":0},{"args":["bsbininm","jmjkbkjkv"],"expected":1}]},{"id":"house-robber-2","kind":"func","title":"House robber II (houses in a circle)","statement":"Same as House robber, but the first and last houses are neighbours.","func":"rob_circle","starter":"def rob_circle(nums):\n    # write your code here\n    pass\n","solution":"def rob_circle(nums):\n    def line(arr):\n        prev2 = prev1 = 0\n        for x in arr:\n            prev2, prev1 = prev1, max(prev1, prev2 + x)\n        return prev1\n    if len(nums) == 1:\n        return nums[0]\n    return max(line(nums[1:]), line(nums[:-1]))\n","mode":"exact","hint":"Run normal House Robber twice: without the first house, and without the last house. Take the max. One house is a special case.","lc":213,"slug":"house-robber-ii","diff":"M","tests":[{"args":[[2,3,2]],"expected":3},{"args":[[1,2,3,1]],"expected":4},{"args":[[1,2,3]],"expected":3},{"args":[[5]],"expected":5},{"args":[[1,2]],"expected":2}]}]},{"id":"mock","n":8,"title":"Mock test","goal":"Three questions in the two styles you may meet: read input and print, or complete a function. Give yourself 45 minutes, no hints.","map":[["read n, then n numbers","n = int(input())\nnums = list(map(int, input().split()))"],["read until the end of input","import sys\ndata = sys.stdin.read().split()"],["print numbers with spaces","print(*nums)   or   print(\" \".join(map(str, nums)))"],["print with 2 decimals","print(f\"{x:.2f}\")"]],"examples":[{"title":"Reading everything at once (fast input)","stdin":"3\n4 5 6\n","src":"import sys\ndata = sys.stdin.read().split()\nn = int(data[0])\nnums = list(map(int, data[1:1 + n]))\nprint(*nums)\nprint(f\"{sum(nums) / n:.2f}\")\n","out":"4 5 6\n5.00"}],"traps":["Read the question twice: is it \"complete the function\" (return the answer) or \"read input and print\"?","Print exactly what is asked: no extra words, no extra spaces.","Check the edge cases: one element, all equal, negative numbers, empty answers."],"problems":[{"id":"above-average","kind":"stdin","title":"Above average","statement":"The first line has `n`, the second line `n` numbers. Print how many numbers are strictly greater than their average.","starter":"# Read the input with input() and print the answer.\n","solution":"n = int(input())\nnums = list(map(int, input().split()))\navg = sum(nums) / n\nprint(sum(1 for x in nums if x > avg))\n","hint":"Average is `sum(nums) / n`. Count the numbers `x > avg`.","lc":null,"slug":null,"diff":"E","tests":[{"stdin":"5\n1 2 3 4 5\n","expected":"2"},{"stdin":"3\n5 5 5\n","expected":"0"},{"stdin":"4\n10 -10 3 1\n","expected":"2"},{"stdin":"1\n7\n","expected":"0"}]},{"id":"best-day","kind":"stdin","title":"Best day to sell","statement":"The first line has `n`, the second line the share price on each of `n` days. Buy on one day and sell on a later day. Print the largest profit, or `0`.","starter":"# Read the input with input() and print the answer.\n","solution":"n = int(input())\nprices = list(map(int, input().split()))\nlow = prices[0]\nbest = 0\nfor p in prices:\n    low = min(low, p)\n    best = max(best, p - low)\nprint(best)\n","hint":"Keep the lowest price so far; the best profit today is `price - lowest`.","lc":null,"slug":null,"diff":"E","tests":[{"stdin":"6\n7 1 5 3 6 4\n","expected":"5"},{"stdin":"5\n7 6 4 3 1\n","expected":"0"},{"stdin":"2\n1 2\n","expected":"1"},{"stdin":"1\n5\n","expected":"0"}]},{"id":"count-pairs","kind":"func","title":"Count pairs with a given sum","statement":"Return how many index pairs `i \u003c j` have `nums[i] + nums[j] == k`.","func":"count_pairs","starter":"def count_pairs(nums, k):\n    # write your code here\n    pass\n","solution":"def count_pairs(nums, k):\n    seen = {}\n    count = 0\n    for x in nums:\n        count += seen.get(k - x, 0)\n        seen[x] = seen.get(x, 0) + 1\n    return count\n","mode":"exact","hint":"For each x, every earlier number equal to `k - x` makes a pair. Count earlier numbers in a dict.","lc":null,"slug":null,"diff":"M","tests":[{"args":[[1,5,7,-1],6],"expected":2},{"args":[[1,1,1,1],2],"expected":6},{"args":[[1,2,3],10],"expected":0},{"args":[[3,3,3],6],"expected":3}]}]}]};
+  const DAYS = DATA.days;
+  const SHORT = { d1: 'Basics', d2: 'Strings & chars', d3: 'Lists & sorting', d4: 'Hash maps & sets', d5: 'Stack, queue, heap', d6: 'Two pointers', d7: 'Recursion & DP', mock: 'Mock test' };
+  const DIFF = { E: 'Easy', M: 'Medium', H: 'Hard' };
+  const LS_UI = 'py-lab-ui-v1';
+  const LS_DATA = 'py-lab-data-v1';
+  const BLOCKED = ['not_granted', 'capability_disabled', 'capability_removed', 'revoked'];
+  const BYDAY = Object.fromEntries(DAYS.map(d => [d.id, d]));
+  const PROB = {};
+  DAYS.forEach(d => d.problems.forEach((p, i) => { p.day = d.id; p.k = i; PROB[p.id] = p; }));
+  const ALLP = DAYS.flatMap(d => d.problems);
+  const LESSON_DAYS = DAYS.filter(d => d.id !== 'mock');
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+  const clock = d => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const pad2 = n => String(n).padStart(2, '0');
+  const isoDay = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  const shortDate = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); };
+  const pyRepr = v => v === null ? 'None' : v === true ? 'True' : v === false ? 'False'
+    : typeof v === 'string' ? `'${v.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`
+    : Array.isArray(v) ? `[${v.map(pyRepr).join(', ')}]`
+    : typeof v === 'object' ? `{${Object.entries(v).map(([k, x]) => `${pyRepr(k)}: ${pyRepr(x)}`).join(', ')}}` : String(v);
+  const paramsOf = p => { const m = /^def \w+\((.*?)\)/.exec(p.starter); return m ? m[1].split(',').map(s => s.trim()).filter(Boolean) : []; };
+
+  /* ---------- Python highlighting ---------- */
+  const KW = new Set('def class return if elif else for while in not and or is import from as lambda nonlocal global pass break continue try except finally raise with yield del assert'.split(' '));
+  const CONST = new Set(['None', 'True', 'False', 'self']);
+  const BUILTIN = new Set('print len range int str list dict set tuple sorted sum max min abs enumerate zip map filter ord chr bin hex input float bool any all reversed iter next round divmod format isinstance'.split(' '));
+  const TOK = /(#[^\n]*)|([rbfRBF]{0,2}(?:'''[\s\S]*?'''|"""[\s\S]*?"""|'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"))|(@[A-Za-z_]\w*)|(\b\d[\d_]*(?:\.\d+)?(?:e[+-]?\d+)?\b)|([A-Za-z_]\w*)/g;
+  function hl(src) {
+    let out = '', last = 0, prev = '', m;
+    TOK.lastIndex = 0;
+    while ((m = TOK.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      const t = m[0];
+      let cls = '';
+      if (m[1]) cls = 'cm';
+      else if (m[2]) cls = 's';
+      else if (m[3]) cls = 'd';
+      else if (m[4]) cls = 'n';
+      else if (KW.has(t)) cls = 'kw';
+      else if (CONST.has(t)) cls = 'c';
+      else if (prev === 'def' || prev === 'class') cls = 'f';
+      else if (BUILTIN.has(t) && src[TOK.lastIndex] === '(') cls = 'b';
+      out += cls ? `<span class="tk-${cls}">${esc(t)}</span>` : esc(t);
+      if (m[5]) prev = t;
+      last = TOK.lastIndex;
+    }
+    return out + esc(src.slice(last));
+  }
+  const pyCell = s => s.split('\n').map(line => { const k = line.indexOf('  #'); return k < 0 ? esc(line) : `${esc(line.slice(0, k))}<span class="cm">${esc(line.slice(k))}</span>`; }).join('\n');
+
+  /* ---------- State ---------- */
+  let store = { solved: {}, read: {}, code: {}, play: '', updatedAt: 0 };
+  let ui = { view: null, tab: 'learn', pick: {}, playStdin: '' };
+  let sheetQuery = '';
+  let db = null, mode = 'connecting', ready = false, readOnly = false;
+  let pending = false, inflight = false, again = false, editSeq = 0;
+  let lastSaved = null, lastError = null, retryTimer = null, flushTimer = null, flash = null;
+
+  function cleanStore(s) {
+    const out = { solved: {}, read: {}, code: {}, play: '', updatedAt: 0 };
+    if (!s || typeof s !== 'object') return out;
+    out.updatedAt = typeof s.updatedAt === 'number' ? s.updatedAt : 0;
+    const obj = x => (x && typeof x === 'object') ? x : {};
+    const day = v => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) ? v : 1;
+    for (const [id, v] of Object.entries(obj(s.solved))) if (v && PROB[id]) out.solved[id] = day(v);
+    for (const [id, v] of Object.entries(obj(s.read))) if (v && BYDAY[id]) out.read[id] = day(v);
+    for (const [id, v] of Object.entries(obj(s.code))) if (PROB[id] && typeof v === 'string') out.code[id] = v.slice(0, 30000);
+    if (typeof s.play === 'string') out.play = s.play.slice(0, 30000);
+    return out;
+  }
+
+  /* ---------- Saving (same approach as your other trackers) ---------- */
+  function cacheLocal() { try { localStorage.setItem(LS_DATA, JSON.stringify({ store, pending })); } catch (e) { /* blocked */ } }
+  function loadLocal() {
+    try { const raw = JSON.parse(localStorage.getItem(LS_DATA) || 'null'); if (raw) { store = cleanStore(raw.store); pending = !!raw.pending; } } catch (e) { /* ignore */ }
+    try { const u = JSON.parse(localStorage.getItem(LS_UI) || 'null'); if (u && typeof u === 'object') ui = { ...ui, ...u, pick: { ...(u.pick || {}) } }; } catch (e) { /* ignore */ }
+  }
+  function saveUi() { try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch (e) { /* ignore */ } }
+  function withTimeout(p, ms) {
+    return new Promise((res, rej) => { const t = setTimeout(() => rej({ code: 'timeout' }), ms); p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); });
+  }
+  async function saveDoc(body) {
+    const once = () => withTimeout(db.doc('progress/main').set(body), 15000);
+    try { await once(); }
+    catch (e) {
+      if (e && ['unavailable', 'resource_exhausted', 'timeout'].includes(e.code)) { await new Promise(r => setTimeout(r, 700 + Math.random() * 900)); await once(); }
+      else throw e;
+    }
+  }
+  function noteError(e) {
+    lastError = (e && e.code) || 'unknown';
+    if (BLOCKED.includes(lastError)) mode = 'blocked';
+    else if (!['invalid_argument', 'quota_exceeded'].includes(lastError) && !retryTimer) retryTimer = setTimeout(() => { retryTimer = null; flush(); }, 15000);
+  }
+  async function flush() {
+    clearTimeout(flushTimer); flushTimer = null;
+    if (!(mode === 'db' && db && ready && !readOnly) || !pending) { updateSync(); return; }
+    if (inflight) { again = true; return; }
+    inflight = true; updateSync();
+    const seq = editSeq;
+    const body = JSON.parse(JSON.stringify(store));
+    let ok = false;
+    try { await saveDoc(body); ok = true; } catch (e) { noteError(e); }
+    inflight = false;
+    if (ok) { lastSaved = new Date(); lastError = null; if (editSeq === seq) pending = false; cacheLocal(); }
+    if (again || (ok && pending)) { again = false; flush(); return; }
+    updateSync();
+  }
+  function syncInfo() {
+    if (flash && Date.now() < flash.until) return [flash.state, flash.text];
+    if (readOnly) return ['readonly', 'View only. Your work here is not saved.'];
+    if (mode === 'connecting') return ['saving', pending ? 'Connecting to your account… your work is kept until then' : 'Connecting to your account…'];
+    if (mode === 'local') return ['local', 'Saved on this device only'];
+    if (mode === 'blocked') return ['error', 'Saving to your account is switched off for this page. Press Allow saving.'];
+    if (!ready) return ['saving', 'Loading your saved work…'];
+    if (pending && lastError === 'invalid_argument') return ['error', 'Not saved: this account cannot change this page.'];
+    if (pending && lastError) return ['error', `Not saved yet (${lastError}). Retrying soon, or press Save.`];
+    if (pending || inflight) return ['saving', 'Saving…'];
+    return ['synced', lastSaved ? `All work saved to your account · ${clock(lastSaved)}` : 'Your work is saved to your account'];
+  }
+  function updateSync() {
+    const [state, text] = syncInfo();
+    const el = $('sync'); el.dataset.state = state; el.textContent = text;
+    const b = $('saveBtn'); b.textContent = mode === 'blocked' ? 'Allow saving' : 'Save'; b.hidden = readOnly;
+  }
+  function showFlash(state, text) { flash = { state, text, until: Date.now() + 4000 }; updateSync(); setTimeout(updateSync, 4100); }
+  async function onSave() {
+    cacheLocal();
+    if (mode === 'blocked') {
+      let perms = null;
+      try { perms = await window.claude.use('permissions'); } catch (e) { perms = null; }
+      try { if (perms) await perms.manage(); } catch (e) { /* fall through */ }
+      let st = 'denied';
+      try { if (perms) st = await perms.state('db'); } catch (e) { st = 'denied'; }
+      if (st === 'granted') { mode = 'db'; lastError = null; subscribe(); } else showFlash('error', 'Turn saving on in the page’s Permissions menu, then reload.');
+      return;
+    }
+    if (mode === 'db') {
+      if (!ready) { showFlash('saving', 'Still loading your saved work. Your changes will upload in a moment.'); return; }
+      if (!pending) { showFlash('synced', `All work saved to your account · ${clock(lastSaved || new Date())}`); return; }
+      lastError = null; flush(); return;
+    }
+    if (mode === 'local') { showFlash('local', `Saved on this device · ${clock(new Date())}`); return; }
+    showFlash('saving', 'Still connecting. Your work is kept and will upload when it connects.');
+  }
+  function edit(fn, delay) {
+    if (readOnly) return;
+    fn();
+    store.updatedAt = Date.now(); editSeq++; pending = true;
+    cacheLocal();
+    clearTimeout(flushTimer); flushTimer = setTimeout(flush, delay || 900);
+    updateSync();
+  }
+
+  /* ======================= Python engine =======================
+     Python (Pyodide) runs in py-worker.js. A run that takes too long is stopped by
+     ending the worker and starting a fresh one. */
+  const PY = { state: 'idle', version: '', error: '', worker: null, seq: 0, pending: new Map(), waiters: [] };
+  const RUN_MS = 6000, CHECK_MS = 12000;
+  function pyStart() {
+    PY.state = PY.state === 'restarting' ? 'restarting' : 'loading';
+    renderPy();
+    let w;
+    try { w = new Worker('py-worker.js'); }
+    catch (e) { pyFail('This app view does not allow a Python worker (' + (e.message || e) + ').'); return; }
+    PY.worker = w;
+    w.onmessage = ev => {
+      const m = ev.data || {};
+      if (m.fatal) { if (PY.state !== 'ready') pyFail(m.error); return; }
+      const p = PY.pending.get(m.id);
+      if (!p) return;
+      PY.pending.delete(m.id); clearTimeout(p.timer); p.resolve(m);
+    };
+    w.onerror = ev => { if (ev.preventDefault) ev.preventDefault(); if (PY.state !== 'ready') pyFail(ev.message || 'The Python worker could not start.'); };
+    const limit = setTimeout(() => { if (PY.worker === w && PY.state !== 'ready') pyFail('Python did not start within 90 seconds.'); }, 90000);
+    pyCall({ type: 'init' }, 0).then(m => {
+      clearTimeout(limit);
+      if (PY.worker !== w) return;
+      if (m.ok) { PY.state = 'ready'; PY.version = m.version; renderPy(); PY.waiters.splice(0).forEach(f => f(true)); report('ready', m.version); }
+      else pyFail(m.error);
+    });
+  }
+  function pyFail(msg) {
+    PY.state = 'failed'; PY.error = String(msg || 'unknown error');
+    try { if (PY.worker) PY.worker.terminate(); } catch (e) { /* already gone */ }
+    PY.worker = null;
+    for (const p of PY.pending.values()) { clearTimeout(p.timer); p.resolve({ ok: false, failed: true, error: PY.error }); }
+    PY.pending.clear();
+    PY.waiters.splice(0).forEach(f => f(false));
+    renderPy(); report('failed', PY.error);
+  }
+  function pyRestart() {
+    try { if (PY.worker) PY.worker.terminate(); } catch (e) { /* ignore */ }
+    PY.worker = null;
+    for (const p of PY.pending.values()) { clearTimeout(p.timer); p.resolve({ ok: false, timeout: true }); }
+    PY.pending.clear();
+    PY.state = 'restarting';
+    pyStart();
+  }
+  function pyCall(msg, timeoutMs) {
+    return new Promise(resolve => {
+      if (!PY.worker) { resolve({ ok: false, failed: true, error: PY.error || 'Python is not running.' }); return; }
+      const id = ++PY.seq;
+      const entry = { resolve, timer: null };
+      if (timeoutMs) entry.timer = setTimeout(() => { if (!PY.pending.has(id)) return; PY.pending.delete(id); resolve({ ok: false, timeout: true }); pyRestart(); }, timeoutMs);
+      PY.pending.set(id, entry);
+      PY.worker.postMessage({ ...msg, id });
+    });
+  }
+  function whenReady() {
+    if (PY.state === 'ready') return Promise.resolve(true);
+    if (PY.state === 'failed') return Promise.resolve(false);
+    return new Promise(r => PY.waiters.push(r));
+  }
+  async function pyRun(code, stdin) {
+    if (!(await whenReady())) return { failed: true, error: PY.error };
+    const m = await pyCall({ type: 'run', req: { code, stdin: stdin || '' } }, RUN_MS);
+    return m.ok ? m.result : m;
+  }
+  async function pyCheck(p, code, tests, limitMs) {
+    if (!(await whenReady())) return { failed: true, error: PY.error };
+    const m = await pyCall({ type: 'check', req: { code, kind: p.kind, func: p.func, mode: p.mode || 'exact', tests } }, limitMs || CHECK_MS);
+    return m.ok ? m.result : m;
+  }
+  function renderPy() {
+    const el = $('pypill');
+    el.dataset.state = PY.state;
+    el.textContent = PY.state === 'ready' ? `Python ${PY.version} ready` : PY.state === 'restarting' ? 'Restarting Python…'
+      : PY.state === 'failed' ? 'Python cannot run here' : 'Starting Python… (about 14 MB the first time)';
+    const b = $('banner');
+    if (PY.state === 'failed') {
+      b.hidden = false;
+      b.innerHTML = `<b>Python could not start in this app view.</b> ${esc(PY.error)} You can still read every lesson and solution here. To run code, paste it into an online Python such as <a href="https://www.online-python.com/" target="_blank" rel="noopener">online-python.com</a>, or open this page in Chrome on a laptop.`;
+    } else b.hidden = true;
+    document.querySelectorAll('[data-needs-py]').forEach(x => { x.disabled = PY.state === 'failed'; });
+  }
+  // Remember whether Python started on this device, so problems can be diagnosed.
+  let diag = null;
+  function report(state, detail) {
+    diag = { state, detail: String(detail || '').slice(0, 300), ua: navigator.userAgent.slice(0, 200), at: Date.now() };
+    sendDiag();
+  }
+  function sendDiag() {
+    if (!diag || !db || mode !== 'db' || readOnly) return;
+    const d = diag; diag = null;
+    try { db.doc('diag/python').set(d).catch(() => {}); } catch (e) { /* not important */ }
+  }
+
+  /* ---------- Error tips ---------- */
+  function tipFor(err) {
+    const s = String(err || '');
+    if (/IndentationError|unindent|expected an indented block/.test(s)) return 'Indent every line of a block with the same number of spaces (4 is standard), and indent after every line that ends with ":".';
+    if (/SyntaxError/.test(s)) return 'Check for a missing ":" after if/for/while/def, a missing bracket or quote, or "=" where you meant "==".';
+    let m;
+    if ((m = /NameError: name '(\w+)' is not defined/.exec(s))) return `"${m[1]}" is unknown here: check the spelling and capitals, and make sure it is created (or imported) before this line.`;
+    if (/NoneType/.test(s)) return 'Something is None. A function without "return" gives None, and so does list.sort() — use sorted() if you need the result.';
+    if (/IndexError/.test(s)) return 'An index is outside the list. range(n) stops at n - 1, and an empty list has no [0] or [-1].';
+    if (/KeyError/.test(s)) return 'That key is not in the dict. Use d.get(key, 0), or check "key in d" first.';
+    if (/RecursionError|maximum recursion/.test(s)) return 'The recursion went too deep: check the base case, or write the DP bottom-up.';
+    if (/UnboundLocalError/.test(s)) return 'You assign to an outer variable inside a nested function: add "nonlocal name" at the top of that function.';
+    if (/TypeError: can only concatenate str/.test(s)) return 'You added text and a number. Convert with str(x) or int(s) first.';
+    if (/TypeError/.test(s)) return 'A value has the wrong type for this operation, or a function got the wrong number of arguments.';
+    if (/ZeroDivisionError/.test(s)) return 'Division by zero: check for an empty list or a zero count before dividing.';
+    if (/EOFError/.test(s)) return 'input() found no more input. Check how many lines you read.';
+    if (/ValueError: invalid literal for int/.test(s)) return 'int() got text that is not a whole number. For a line with several numbers use list(map(int, input().split())).';
+    return '';
+  }
+  const TIMEOUT_TXT = 'Stopped: your code ran too long (over 6 seconds for Run, 12 for Submit). Check every while loop: does its condition become False? Does the loop variable change?';
+
+  /* ======================= Rendering ======================= */
+  function solvedIn(d) { return d.problems.filter(p => store.solved[p.id]).length; }
+  function nextStep() {
+    for (const d of DAYS) {
+      if (d.id !== 'mock' && !store.read[d.id]) return { d, tab: 'learn', text: `Day ${d.n} · Learn` };
+      const p = d.problems.find(x => !store.solved[x.id]);
+      if (p) return { d, tab: 'problems', p, text: `${d.id === 'mock' ? 'Mock' : 'Day ' + d.n} · ${p.title}` };
+    }
+    return null;
+  }
+  function renderOverall() {
+    const n = Object.keys(store.solved).length, r = Object.keys(store.read).length;
+    const t = isoDay(new Date());
+    const today = Object.values(store.solved).filter(v => v === t).length;
+    const nx = nextStep();
+    $('overall').innerHTML = `<span>Solved <b>${n}</b> / ${ALLP.length} <span class="bar" aria-hidden="true"><i style="width:${n / ALLP.length * 100}%"></i></span></span>`
+      + `<span>Lessons <b>${r}</b> / ${LESSON_DAYS.length}</span><span>Today <b>${today}</b></span>`
+      + (nx ? `<span class="nextstep">Next: <button type="button" class="btn small" data-next="1">${esc(nx.text)} →</button></span>` : '<span class="nextstep">Everything done. Redo problems from Reset to keep it fresh.</span>');
+  }
+  function renderNav() {
+    const cur = ui.view;
+    $('nav').innerHTML = DAYS.map(d => {
+      const s = solvedIn(d), all = s === d.problems.length && (d.id === 'mock' || store.read[d.id]);
+      return `<button type="button" class="day${all ? ' done' : ''}" data-view="${d.id}" aria-current="${cur === d.id}"><span class="dn"><span>${d.id === 'mock' ? 'Final' : 'Day ' + d.n}</span><span>${s}/${d.problems.length}${all ? ' ✓' : ''}</span></span><span class="dt">${esc(SHORT[d.id] || d.title)}</span></button>`;
+    }).join('')
+      + `<button type="button" class="day tool" data-view="play" aria-current="${cur === 'play'}"><span class="dn"><span>Any code</span><span></span></span><span class="dt">Playground</span></button>`
+      + `<button type="button" class="day tool" data-view="sheet" aria-current="${cur === 'sheet'}"><span class="dn"><span>All days</span><span></span></span><span class="dt">Cheat sheet</span></button>`;
+  }
+
+  function dayHtml(d) {
+    const s = solvedIn(d);
+    return `<div class="dayhead">
+        <span class="eyebrow">${d.id === 'mock' ? 'After day 7' : `Day ${d.n} of ${LESSON_DAYS.length}`}${store.read[d.id] ? ' · lesson read' : ''}</span>
+        <h2 id="vt">${esc(d.title)}</h2>
+        <p class="goal">${fmt(d.goal)}</p>
+        <div class="tabs" role="tablist" aria-label="Parts of this day">
+          <button type="button" class="tabbtn" role="tab" data-tab="learn" aria-selected="${ui.tab === 'learn'}">1 · Learn</button>
+          <button type="button" class="tabbtn" role="tab" data-tab="problems" aria-selected="${ui.tab === 'problems'}">2 · Problems (${s}/${d.problems.length})</button>
+        </div>
+      </div>
+      <div id="dayBody">${ui.tab === 'learn' ? learnHtml(d) : problemHtml(d, currentProblem(d))}</div>`;
+  }
+
+  function learnHtml(d) {
+    const ex = d.examples.map((e, i) => `<figure class="excard" data-edhost="1">
+        <figcaption><span class="t">${esc(e.title)}</span><button type="button" class="dbtn" data-act="ex-reset" data-ex="${d.id}:${i}">Reset</button><button type="button" class="dbtn run" data-act="ex-run" data-ex="${d.id}:${i}" data-run="1" data-needs-py="1">Run ▶</button></figcaption>
+        <label class="sr" for="exed-${d.id}-${i}">Example code: ${esc(e.title)}</label>
+        <textarea class="pyed exed" id="exed-${d.id}-${i}" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off"></textarea>
+        ${e.stdin ? `<div class="io in"><span class="lab">Input (stdin)</span><pre>${esc(e.stdin.replace(/\n$/, ''))}</pre></div>` : ''}
+        <div class="io" id="exout-${d.id}-${i}"><span class="lab">Output</span><pre>${esc(e.out)}</pre></div>
+      </figure>`).join('');
+    const isMock = d.id === 'mock';
+    return `<section class="learn" aria-labelledby="vt">
+      ${isMock ? '' : `<ul class="plan">
+        <li><span class="mins">40m</span><b>Learn:</b> read the table, run and change each example</li>
+        <li><span class="mins">90m</span><b>Problems:</b> solve them in order; Submit until Accepted</li>
+        <li><span class="mins">15m</span><b>Redo:</b> press Reset on one problem and solve it again from memory</li>
+      </ul>`}
+      <h3><span class="step">1</span>${isMock ? 'Quick reminders' : 'C++ → Python'}</h3>
+      <div class="tablewrap"><table class="map"><thead><tr><th scope="col">C++</th><th scope="col">Python</th></tr></thead>
+        <tbody>${d.map.map(([c, p]) => `<tr><td>${esc(c)}</td><td>${pyCell(p)}</td></tr>`).join('')}</tbody></table></div>
+      <h3><span class="step">2</span>Run the examples</h3>
+      <p class="hint">Change anything and press Run (or Ctrl+Enter). The output shown first is what the original code prints. Reset brings the original back.</p>
+      ${ex}
+      <h3><span class="step">3</span>Watch out</h3>
+      <ul class="watch">${d.traps.map(t => `<li>${fmt(t)}</li>`).join('')}</ul>
+      <div class="finish">
+        <p>${store.read[d.id] ? `You marked this lesson as read${typeof store.read[d.id] === 'string' ? ' on ' + shortDate(store.read[d.id]) : ''}.` : 'Done with the lesson? Mark it, then start the problems.'}</p>
+        <div class="row">
+          ${readOnly ? '' : `<button type="button" class="btn ${store.read[d.id] ? '' : 'go'}" data-act="read" data-day="${d.id}">${store.read[d.id] ? 'Mark as not read' : 'Mark lesson as read'}</button>`}
+          <button type="button" class="btn dark" data-tab="problems">Start the problems →</button>
+        </div>
+      </div>
+    </section>`;
+  }
+
+  function currentProblem(d) {
+    const id = ui.pick[d.id];
+    return (PROB[id] && PROB[id].day === d.id) ? PROB[id] : (d.problems.find(p => !store.solved[p.id]) || d.problems[0]);
+  }
+  function samplesHtml(p) {
+    const names = paramsOf(p);
+    return p.tests.slice(0, 2).map((t, i) => {
+      if (p.kind === 'stdin') return `<div class="sample"><b>Example ${i + 1} input</b>\n${esc(t.stdin.replace(/\n$/, ''))}\n<b>Output</b>\n${esc(t.expected)}</div>`;
+      const args = t.args.map((a, j) => `${names[j] || 'arg' + (j + 1)} = ${pyRepr(a)}`).join(', ');
+      const out = p.mode === 'inplace' ? `${names[0]} becomes ${pyRepr(t.expected)}` : pyRepr(t.expected);
+      return `<div class="sample"><b>Example ${i + 1}</b>\n${esc(args)}\n<b>${p.mode === 'inplace' ? 'After the call' : 'Returns'}</b>  ${esc(out)}</div>`;
+    }).join('');
+  }
+  function problemHtml(d, p) {
+    const k = d.problems.indexOf(p), prev = d.problems[k - 1], next = d.problems[k + 1];
+    const pills = d.problems.map((x, i) => `<button type="button" class="pill${store.solved[x.id] ? ' done' : ''}" data-pid="${x.id}" aria-current="${x.id === p.id}" title="${esc(x.title)}" aria-label="Problem ${i + 1}: ${esc(x.title)}${store.solved[x.id] ? ', solved' : ''}">${i + 1}${store.solved[x.id] ? ' ✓' : ''}</button>`).join('');
+    const lc = p.lc ? `<a class="lclink" href="https://leetcode.com/problems/${p.slug}/" target="_blank" rel="noopener">LeetCode ${p.lc} ↗</a>` : '';
+    const sol = store.solved[p.id];
+    return `<div class="work">
+      <section class="brief" aria-labelledby="pt">
+        <div class="pills" aria-label="Problems of this day">${pills}</div>
+        <div class="meta"><span class="eyebrow">Problem ${k + 1} of ${d.problems.length}</span><span class="diff ${p.diff}">${DIFF[p.diff]}</span>${lc}${sol ? `<span class="solved">Solved${typeof sol === 'string' ? ' ' + shortDate(sol) : ''} ✓</span>` : ''}</div>
+        <h2 id="pt">${esc(p.title)}</h2>
+        <div class="statement"><p>${fmt(p.statement)}</p></div>
+        <div class="samples">${samplesHtml(p)}</div>
+        <details><summary>Hint</summary><p>${fmt(p.hint)}</p></details>
+        <details id="solBox"><summary>Solution</summary><pre class="snip"><code>${hl(p.solution.replace(/\n$/, ''))}</code></pre><button type="button" class="btn small" data-act="p-usesol">Put the solution in the editor</button></details>
+        <div class="prevnext">${prev ? `<button type="button" class="btn" data-pid="${prev.id}">← Previous</button>` : '<span></span>'}${next ? `<button type="button" class="btn dark" data-pid="${next.id}">Next problem →</button>` : ''}</div>
+      </section>
+      <section class="bench" aria-label="Your code">
+        <div class="editor" data-edhost="1">
+          <div class="edbar"><span class="fname">solution.py</span><button type="button" class="dbtn" data-act="p-reset">Reset</button><button type="button" class="dbtn" data-act="p-copy">Copy</button></div>
+          <div class="ed"><pre class="gutter" id="gutter" aria-hidden="true">1</pre><label class="sr" for="code">Your Python code</label><textarea class="pyed mained" id="code" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off"></textarea></div>
+          ${p.kind === 'stdin' ? `<div class="stdinbox"><label for="stdin">Input used by Run</label><textarea id="stdin" spellcheck="false">${esc(p.tests[0].stdin)}</textarea></div>` : ''}
+          <div class="actions">
+            <button type="button" class="btn run" data-act="p-run" data-run="1" data-needs-py="1">${p.kind === 'stdin' ? 'Run ▶' : 'Run examples ▶'}</button>
+            <button type="button" class="btn go" data-act="p-submit" data-needs-py="1">Submit</button>
+            <span class="pstatus" id="pstatus" aria-live="polite"></span>
+            <span class="spacer"></span>
+            <span class="kbd">Ctrl+Enter runs · Tab indents</span>
+          </div>
+        </div>
+        <div id="results" aria-live="polite"></div>
+      </section>
+    </div>`;
+  }
+
+  function playHtml() {
+    return `<section class="solo" aria-labelledby="vt">
+      <span class="eyebrow">Write and run any Python</span>
+      <h2 id="vt">Playground</h2>
+      <p class="hint">Try anything here: small tests, LeetCode solutions, input() practice. Your code here is saved.</p>
+      <div class="editor" data-edhost="1">
+        <div class="edbar"><span class="fname">playground.py</span><button type="button" class="dbtn" data-act="play-clear">Clear</button><button type="button" class="dbtn" data-act="p-copy">Copy</button></div>
+        <div class="ed"><pre class="gutter" id="gutter" aria-hidden="true">1</pre><label class="sr" for="code">Playground code</label><textarea class="pyed mained" id="code" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off"></textarea></div>
+        <div class="stdinbox"><label for="stdin">Input (stdin) for input()</label><textarea id="stdin" spellcheck="false">${esc(ui.playStdin || '')}</textarea></div>
+        <div class="actions"><button type="button" class="btn run" data-act="play-run" data-run="1" data-needs-py="1">Run ▶</button><span class="pstatus" id="pstatus" aria-live="polite"></span><span class="spacer"></span><span class="kbd">Ctrl+Enter runs · Tab indents</span></div>
+      </div>
+      <div id="results" aria-live="polite"></div>
+    </section>`;
+  }
+  const PLAY_START = `# Write any Python here and press Run.
+import heapq
+from collections import deque, Counter
+
+nums = [5, 1, 8, 3]
+heapq.heapify(nums)
+print("smallest:", nums[0])
+print(Counter("banana").most_common(2))
+`;
+
+  function sheetHtml() {
+    return `<section class="solo" aria-labelledby="vt">
+      <span class="eyebrow">Every C++ → Python table on one page</span>
+      <h2 id="vt">Cheat sheet</h2>
+      <p class="hint">Read it the night before the test. Search for anything, for example <code>heap</code>, <code>ord</code> or <code>sort</code>.</p>
+      <label class="sr" for="sheetQ">Search the cheat sheet</label><input class="search" id="sheetQ" type="search" placeholder="Search, for example heap" value="${esc(sheetQuery)}">
+      <div id="sheetBody" style="display:grid;gap:22px">${sheetBody()}</div>
+    </section>`;
+  }
+  function sheetBody() {
+    const q = sheetQuery.trim().toLowerCase();
+    const html = DAYS.map(d => {
+      const rows = d.map.filter(([c, p]) => !q || (c + ' ' + p + ' ' + d.title).toLowerCase().includes(q));
+      const traps = d.traps.filter(t => !q || t.toLowerCase().includes(q));
+      if (!rows.length && !traps.length) return '';
+      return `<div class="sheet-block"><h3>${d.id === 'mock' ? 'Test day' : 'Day ' + d.n} · ${esc(d.title)}</h3>
+        ${rows.length ? `<div class="tablewrap"><table class="map"><thead><tr><th scope="col">C++</th><th scope="col">Python</th></tr></thead><tbody>${rows.map(([c, p]) => `<tr><td>${esc(c)}</td><td>${pyCell(p)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+        ${traps.length ? `<ul class="watch">${traps.map(t => `<li>${fmt(t)}</li>`).join('')}</ul>` : ''}</div>`;
+    }).join('');
+    return html || '<p class="hint">Nothing matches. Try a shorter word.</p>';
+  }
+
+  function renderView(opts) {
+    renderNav(); renderOverall();
+    const v = ui.view;
+    if (v === 'play') { $('view').innerHTML = playHtml(); mountEditor(store.play || PLAY_START); }
+    else if (v === 'sheet') $('view').innerHTML = sheetHtml();
+    else {
+      const d = BYDAY[v];
+      $('view').innerHTML = dayHtml(d);
+      if (ui.tab === 'learn') d.examples.forEach((e, i) => { const ta = $(`exed-${d.id}-${i}`); ta.value = e.src.replace(/\n$/, ''); autoGrow(ta); });
+      else { const p = currentProblem(d); mountEditor(store.code[p.id] != null ? store.code[p.id] : p.starter); }
+    }
+    renderPy();
+    if (opts && opts.scroll) { const top = $('view').getBoundingClientRect().top; if (top < 0) $('view').scrollIntoView({ block: 'start' }); }
+  }
+  function go(view, tab, pid) {
+    ui.view = view;
+    if (tab) ui.tab = tab;
+    if (pid) ui.pick[PROB[pid].day] = pid;
+    saveUi();
+    renderView({ scroll: true });
+  }
+
+  /* ---------- Editors ---------- */
+  function mountEditor(code) {
+    const ta = $('code');
+    ta.value = code;
+    ta.readOnly = false;
+    updateGutter();
+  }
+  function updateGutter() {
+    const ta = $('code'), g = $('gutter'); if (!ta || !g) return;
+    const n = ta.value.split('\n').length;
+    g.textContent = Array.from({ length: n }, (_, i) => i + 1).join('\n');
+    g.scrollTop = ta.scrollTop;
+  }
+  function autoGrow(ta) { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
+  function insertText(ta, text) {
+    let ok = false;
+    try { ok = document.execCommand('insertText', false, text); } catch (e) { ok = false; }
+    if (!ok) { ta.setRangeText(text, ta.selectionStart, ta.selectionEnd, 'end'); ta.dispatchEvent(new Event('input', { bubbles: true })); }
+  }
+  function lineBounds(v, pos) { const s = v.lastIndexOf('\n', pos - 1) + 1; let e = v.indexOf('\n', pos); if (e < 0) e = v.length; return [s, e]; }
+  function shiftLines(ta, dedent) {
+    const v = ta.value, a = ta.selectionStart, b = ta.selectionEnd;
+    const start = v.lastIndexOf('\n', a - 1) + 1;
+    let end = v.indexOf('\n', Math.max(b - 1, a)); if (end < 0) end = v.length;
+    const lines = v.slice(start, end).split('\n');
+    const changed = lines.map(l => dedent ? l.replace(/^ {1,4}/, '') : '    ' + l).join('\n');
+    ta.setSelectionRange(start, end);
+    insertText(ta, changed);
+    ta.setSelectionRange(start, start + changed.length);
+  }
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); onSave(); return; }
+    const ta = e.target;
+    if (!ta.classList || !ta.classList.contains('pyed')) return;
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      const host = ta.closest('[data-edhost]'); const b = host && host.querySelector('[data-run]'); if (b && !b.disabled) b.click();
+      return;
+    }
+    if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      e.preventDefault();
+      if (e.shiftKey || ta.value.slice(ta.selectionStart, ta.selectionEnd).includes('\n')) shiftLines(ta, e.shiftKey);
+      else insertText(ta, '    ');
+      return;
+    }
+    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && !e.isComposing) {
+      e.preventDefault();
+      const v = ta.value, pos = ta.selectionStart;
+      const [s] = lineBounds(v, pos);
+      const before = v.slice(s, pos);
+      let indent = (/^ */.exec(before) || [''])[0];
+      if (/:\s*(#.*)?$/.test(before)) indent += '    ';
+      insertText(ta, '\n' + indent);
+    }
+  });
+  document.addEventListener('scroll', e => { if (e.target && e.target.id === 'code') { const g = $('gutter'); if (g) g.scrollTop = e.target.scrollTop; } }, true);
+
+  /* ---------- Output and results ---------- */
+  function outBlock(res) {
+    if (res.timeout) return `<pre class="err">${esc(TIMEOUT_TXT)}</pre>`;
+    if (res.failed) return `<pre class="err">${esc('Python is not available here: ' + (res.error || ''))}</pre>`;
+    if (res.ok === false) return `<pre class="err">${esc(res.error || 'Something went wrong.')}</pre>`;
+    const parts = [];
+    if (res.stdout) parts.push(`<pre>${esc(res.stdout.replace(/\n$/, ''))}</pre>`);
+    if (res.error) { parts.push(`<pre class="err">${esc(res.error)}</pre>`); const tip = tipFor(res.error); if (tip) parts.push(`<span class="tip">${esc(tip)}</span>`); }
+    if (!parts.length) parts.push('<pre>(nothing was printed)</pre>');
+    return parts.join('');
+  }
+  function resultsHtml(p, res, scope) {
+    if (res.timeout) return `<div class="res fail"><h3>Time limit</h3><p class="tip">${esc(TIMEOUT_TXT)}</p></div>`;
+    if (res.failed) return `<div class="res info"><h3>Python is not available</h3><p class="tip">${esc(res.error || '')}</p></div>`;
+    if (res.ok === false) return `<div class="res fail"><h3>Something went wrong</h3><pre class="out err">${esc(res.error || '')}</pre></div>`;
+    if (res.error) {
+      const tip = tipFor(res.error);
+      return `<div class="res fail"><h3>Your code has an error</h3><pre class="out err">${esc(res.error)}</pre>${tip ? `<p class="tip">${esc(tip)}</p>` : ''}${res.stdout ? `<p class="tip">Printed before the error:</p><pre class="out">${esc(res.stdout)}</pre>` : ''}</div>`;
+    }
+    const rs = res.results || [], passed = rs.filter(r => r.ok).length, all = passed === rs.length;
+    const firstBad = rs.findIndex(r => !r.ok);
+    const title = all ? (scope === 'all' ? `Accepted · all ${rs.length} tests passed` : `Both examples pass · now press Submit`) : `${passed} of ${rs.length} ${scope === 'all' ? 'tests' : 'examples'} passed`;
+    const tests = rs.map((r, i) => {
+      const kv = [['Input', r.input], ['Expected', r.expected]];
+      if (r.error) kv.push(['Error', r.error]);
+      else kv.push(['Your answer', r.got == null ? '' : r.got]);
+      if (r.stdout) kv.push(['Printed', r.stdout.replace(/\n$/, '')]);
+      const tip = r.error ? tipFor(r.error) : (r.got === 'None' && r.expected !== 'None' ? 'Your function returned None: add "return" with the answer.' : '');
+      return `<details class="test ${r.ok ? 'ok' : 'no'}"${i === firstBad ? ' open' : ''}><summary><span class="mark">${r.ok ? '✓' : '✗'}</span> ${scope === 'all' ? 'Test' : 'Example'} ${i + 1}</summary>
+        <div class="kv">${kv.map(([k, v]) => `<span>${k}</span><span${k === 'Error' || (k === 'Your answer' && !r.ok) ? ' class="bad"' : ''}>${esc(v)}</span>`).join('')}</div>${tip ? `<p class="tip">${esc(tip)}</p>` : ''}</details>`;
+    }).join('');
+    const pre = res.stdout ? `<p class="tip">Printed when your file ran:</p><pre class="out">${esc(res.stdout.replace(/\n$/, ''))}</pre>` : '';
+    const d = BYDAY[p.day], next = d.problems[p.k + 1];
+    const after = all && scope === 'all' ? `<div class="row">${next ? `<button type="button" class="btn dark" data-pid="${next.id}">Next problem →</button>` : nextDayBtn(d)}</div>` : '';
+    return `<div class="res ${all ? 'pass' : 'fail'}"><h3>${title}</h3><div class="tests">${tests}</div>${pre}${after}</div>`;
+  }
+  function nextDayBtn(d) {
+    const i = DAYS.indexOf(d), nd = DAYS[i + 1];
+    return nd ? `<button type="button" class="btn dark" data-view="${nd.id}" data-tab-go="learn">Go to ${nd.id === 'mock' ? 'the mock test' : 'Day ' + nd.n} →</button>` : '<span>That was the last one. Great work.</span>';
+  }
+
+  async function runProblem(scope) {
+    const p = currentProblem(BYDAY[ui.view]);
+    const code = $('code').value, st = $('pstatus'), box = $('results');
+    document.querySelectorAll('[data-act="p-run"], [data-act="p-submit"]').forEach(b => { b.disabled = true; });
+    st.textContent = PY.state === 'ready' ? (scope === 'all' ? 'Running all tests…' : 'Running…') : 'Waiting for Python to start…';
+    let html;
+    if (p.kind === 'stdin' && scope !== 'all') {
+      const res = await pyRun(code, $('stdin').value);
+      const exp = p.tests[0].expected, same = $('stdin').value === p.tests[0].stdin;
+      const got = (res.stdout || '').replace(/\s+$/, '').split('\n').map(l => l.replace(/\s+$/, '')).join('\n');
+      const note = same && !res.error && !res.timeout && !res.failed ? (got === exp ? '<p class="tip">This matches Example 1. Press Submit to run all tests.</p>' : `<p class="tip">Example 1 expects:</p><pre class="out">${esc(exp)}</pre>`) : '';
+      html = `<div class="res info"><h3>Output</h3><div class="io" style="border-radius:8px;overflow:hidden">${outBlock(res)}</div>${note}</div>`;
+    } else {
+      const res = await pyCheck(p, code, scope === 'all' ? p.tests : p.tests.slice(0, 2), scope === 'all' ? CHECK_MS : RUN_MS);
+      html = resultsHtml(p, res, scope);
+      if (scope === 'all' && !res.error && res.results && res.results.length && res.results.every(r => r.ok) && !store.solved[p.id]) {
+        edit(() => { store.solved[p.id] = isoDay(new Date()); });
+        renderNav(); renderOverall();
+        const pill = document.querySelector(`.pill[data-pid="${p.id}"]`); if (pill) { pill.classList.add('done'); pill.textContent = (p.k + 1) + ' ✓'; }
+        const tab = document.querySelector('.tabbtn[data-tab="problems"]'), d = BYDAY[p.day]; if (tab) tab.textContent = `2 · Problems (${solvedIn(d)}/${d.problems.length})`;
+      }
+    }
+    if (currentProblem(BYDAY[ui.view]) !== p || !$('results')) return;
+    box.innerHTML = html;
+    st.textContent = '';
+    renderPy();
+    document.querySelectorAll('[data-act="p-run"], [data-act="p-submit"]').forEach(b => { b.disabled = PY.state === 'failed'; });
+    box.scrollIntoView({ block: 'nearest' });
+  }
+
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* older way */ }
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand('copy'); ta.remove(); return ok;
+    } catch (e) { return false; }
+  }
+
+  /* ---------- Events ---------- */
+  let codeTimer = null;
+  document.addEventListener('input', e => {
+    const t = e.target;
+    if (t.id === 'code') {
+      updateGutter();
+      clearTimeout(codeTimer);
+      codeTimer = setTimeout(() => {
+        if (ui.view === 'play') edit(() => { store.play = t.value; }, 1500);
+        else if (BYDAY[ui.view] && ui.tab === 'problems') {
+          const p = currentProblem(BYDAY[ui.view]);
+          edit(() => { if (t.value === p.starter) delete store.code[p.id]; else store.code[p.id] = t.value; }, 1500);
+        }
+      }, 300);
+    } else if (t.classList && t.classList.contains('exed')) autoGrow(t);
+    else if (t.id === 'sheetQ') { sheetQuery = t.value; $('sheetBody').innerHTML = sheetBody(); }
+    else if (t.id === 'stdin' && ui.view === 'play') { ui.playStdin = t.value; saveUi(); }
+  });
+
+  document.addEventListener('click', async e => {
+    const nx = e.target.closest('[data-next]');
+    if (nx) { const s = nextStep(); if (s) go(s.d.id, s.tab, s.p && s.p.id); return; }
+    const vw = e.target.closest('[data-view]');
+    if (vw) { go(vw.dataset.view, vw.dataset.tabGo || (BYDAY[vw.dataset.view] && !store.read[vw.dataset.view] && vw.dataset.view !== 'mock' ? 'learn' : null)); return; }
+    const tb = e.target.closest('[data-tab]');
+    if (tb && BYDAY[ui.view]) { ui.tab = tb.dataset.tab; saveUi(); renderView({ scroll: !!tb.closest('.finish') }); return; }
+    const pp = e.target.closest('[data-pid]');
+    if (pp) { go(PROB[pp.dataset.pid].day, 'problems', pp.dataset.pid); return; }
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'read') {
+      const id = b.dataset.day;
+      edit(() => { if (store.read[id]) delete store.read[id]; else store.read[id] = isoDay(new Date()); });
+      renderView();
+    } else if (act === 'ex-run' || act === 'ex-reset') {
+      const [did, i] = b.dataset.ex.split(':'), ex = BYDAY[did].examples[Number(i)];
+      const ta = $(`exed-${did}-${i}`), out = $(`exout-${did}-${i}`);
+      if (act === 'ex-reset') { ta.value = ex.src.replace(/\n$/, ''); autoGrow(ta); out.innerHTML = `<span class="lab">Output</span><pre>${esc(ex.out)}</pre>`; return; }
+      b.disabled = true;
+      out.innerHTML = `<span class="lab">Output</span><pre>${PY.state === 'ready' ? 'Running…' : 'Waiting for Python to start…'}</pre>`;
+      const res = await pyRun(ta.value, ex.stdin || '');
+      out.innerHTML = `<span class="lab">Output</span>${outBlock(res)}`;
+      b.disabled = PY.state === 'failed';
+    } else if (act === 'p-run') runProblem('examples');
+    else if (act === 'p-submit') runProblem('all');
+    else if (act === 'p-reset') {
+      const p = currentProblem(BYDAY[ui.view]);
+      $('code').value = p.starter; updateGutter();
+      edit(() => { delete store.code[p.id]; });
+      $('results').innerHTML = '';
+    } else if (act === 'p-usesol') {
+      const p = currentProblem(BYDAY[ui.view]);
+      $('code').value = p.solution; updateGutter();
+      edit(() => { store.code[p.id] = p.solution; });
+      $('code').focus();
+    } else if (act === 'p-copy') {
+      const ok = await copyText($('code').value);
+      b.textContent = ok ? 'Copied' : 'Copy failed';
+      setTimeout(() => { b.textContent = 'Copy'; }, 1600);
+    } else if (act === 'play-clear') {
+      $('code').value = ''; updateGutter(); edit(() => { store.play = ''; }); $('results').innerHTML = '';
+    } else if (act === 'play-run') {
+      b.disabled = true; $('pstatus').textContent = PY.state === 'ready' ? 'Running…' : 'Waiting for Python to start…';
+      const res = await pyRun($('code').value, $('stdin').value);
+      if (ui.view !== 'play') return;
+      $('results').innerHTML = `<div class="res info"><h3>Output</h3><div class="io" style="border-radius:8px;overflow:hidden">${outBlock(res)}</div></div>`;
+      $('pstatus').textContent = ''; b.disabled = PY.state === 'failed';
+    }
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { cacheLocal(); flush(); } });
+  window.addEventListener('pagehide', () => { cacheLocal(); flush(); });
+  $('saveBtn').addEventListener('click', onSave);
+
+  /* ---------- Account ---------- */
+  function onProgress(s) {
+    const fromCache = !!(s.metadata && s.metadata.fromCache);
+    if (!ready && fromCache && !s.exists) return;
+    const srv = s.exists ? cleanStore(s.data()) : null;
+    let changed = false;
+    if (srv && (!pending || srv.updatedAt > store.updatedAt) && !inflight) {
+      changed = JSON.stringify([srv.solved, srv.read, srv.code, srv.play]) !== JSON.stringify([store.solved, store.read, store.code, store.play]);
+      store = srv; pending = false;
+    }
+    const first = !ready && !fromCache;
+    if (first) ready = true;
+    cacheLocal();
+    if (changed) {
+      const ta = $('code');
+      if (ta && document.activeElement === ta) { renderNav(); renderOverall(); }
+      else renderView();
+    }
+    if (first) { flush(); sendDiag(); }
+    updateSync();
+  }
+  let subTries = 0;
+  function subscribe() {
+    db.doc('progress/main').onSnapshot(onProgress, e => {
+      const code = (e && e.code) || 'unknown'; lastError = code;
+      if (BLOCKED.includes(code)) mode = 'blocked';
+      else { ready = true; if (subTries++ < 3) setTimeout(subscribe, 4000); flush(); }
+      updateSync();
+    });
+    setTimeout(() => { if (mode === 'db' && !ready) { ready = true; flush(); } }, 12000);
+  }
+  async function connect() {
+    if (!window.claude || typeof window.claude.use !== 'function') { mode = 'local'; updateSync(); return; }
+    let ns = null;
+    try { ns = await window.claude.use('db'); } catch (e) { ns = null; }
+    if (!ns) { mode = 'local'; updateSync(); return; }
+    db = ns; mode = 'db';
+    subscribe(); updateSync(); sendDiag();
+    try {
+      const user = await window.claude.use('user');
+      if (user && (await user.can('data.write')) === false) { readOnly = true; updateSync(); }
+    } catch (e) { /* a refused save will say so */ }
+  }
+
+  /* ---------- Start ---------- */
+  loadLocal();
+  if (!(ui.view === 'play' || ui.view === 'sheet' || BYDAY[ui.view])) { const s = nextStep(); ui.view = s ? s.d.id : 'd1'; ui.tab = s ? s.tab : 'learn'; }
+  if (!['learn', 'problems'].includes(ui.tab)) ui.tab = 'learn';
+  $('foot').textContent = `Every example output and every solution on this page was checked by running it. ${ALLP.length} problems, ${ALLP.reduce((n, p) => n + p.tests.length, 0)} tests. Python here is CPython 3.12 (Pyodide), close to the Python LeetCode uses.`;
+  renderView();
+  updateSync();
+  pyStart();
+  connect();
+})();
+</script>

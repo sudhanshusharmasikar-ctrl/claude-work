@@ -1,0 +1,1006 @@
+<title>Python DSA Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header with Python status and progress, a strip of days, then either a lesson (table, runnable examples)
+   or a two-column problem bench (statement left, editor and test results right) */
+:root {
+  --bg: #F3F5F8;
+  --surface: #FFFFFF;
+  --ink: #141820;
+  --muted: #5B6472;
+  --line: #D8DDE5;
+  --accent: #2B5F95;
+  --accent-soft: #E3ECF6;
+  --yellow: #E9B949;
+  --good: #1E7A4C;
+  --good-soft: #E3F3EA;
+  --bad: #B3362A;
+  --bad-soft: #F9E6E3;
+  --warn: #9A6200;
+  --code-bg: #141922;
+  --code-line: #283040;
+  --code-ink: #E4E8EE;
+  --out-bg: #1C222C;
+  --f-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --f-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1115; --surface: #161A20; --ink: #E7EAEE; --muted: #99A1AB; --line: #2A3039;
+    --accent: #7FB0E6; --accent-soft: #1B2A3B; --yellow: #F2CC60; --good: #5BD394; --good-soft: #13261C;
+    --bad: #FF8270; --bad-soft: #2D1714; --warn: #F2B042; --code-bg: #0A0D11; --code-line: #232A35; --code-ink: #E4E8EE; --out-bg: #12161C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1115; --surface: #161A20; --ink: #E7EAEE; --muted: #99A1AB; --line: #2A3039;
+  --accent: #7FB0E6; --accent-soft: #1B2A3B; --yellow: #F2CC60; --good: #5BD394; --good-soft: #13261C;
+  --bad: #FF8270; --bad-soft: #2D1714; --warn: #F2B042; --code-bg: #0A0D11; --code-line: #232A35; --code-ink: #E4E8EE; --out-bg: #12161C;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; font-variant-ligatures: none !important; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.55 var(--f-body); -webkit-font-smoothing: antialiased; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: inherit; }
+code { font-family: var(--f-mono); font-size: .88em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { margin: 0; }
+pre code { background: none; padding: 0; border-radius: 0; font-size: inherit; overflow-wrap: normal; }
+
+.page { max-width: 1240px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 32px); padding-block: 24px 72px; }
+.eyebrow { font: 500 11.5px/1.4 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+
+/* Header */
+.top { display: grid; gap: 14px; padding-bottom: 18px; }
+.title-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+h1 { margin: 6px 0 0; font: 800 clamp(34px, 5.4vw, 56px)/0.98 var(--f-display); letter-spacing: -.035em; }
+h1 em { font-style: normal; color: var(--accent); }
+.lede { margin: 0; max-width: 74ch; color: var(--muted); }
+.lede b { color: var(--ink); font-weight: 600; }
+.savebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.sync { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--f-mono); color: var(--muted); max-width: 100%; }
+.sync::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync[data-state="synced"]::before { background: var(--good); }
+.sync[data-state="saving"]::before, .sync[data-state="local"]::before { background: var(--warn); }
+.sync[data-state="error"]::before, .sync[data-state="readonly"]::before { background: var(--bad); }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 14.5px; line-height: 1.2; }
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn.dark { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 600; }
+.btn.go { background: var(--good); color: #fff; border-color: var(--good); font-weight: 600; }
+.btn.small { padding: 5px 10px; font-size: 13px; }
+.statusrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font: 500 13.5px var(--f-mono); color: var(--muted); }
+.statusrow b { color: var(--ink); font-size: 17px; }
+#overall { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
+.pypill { display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.pypill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
+.pypill[data-state="ready"]::before { background: var(--good); }
+.pypill[data-state="failed"]::before { background: var(--bad); }
+.pypill[data-state="loading"]::before, .pypill[data-state="restarting"]::before { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+.nextstep { color: var(--ink); }
+.bar { position: relative; display: inline-block; width: 140px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; vertical-align: middle; }
+.bar i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--good); }
+
+/* Day strip */
+.days { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.day { display: grid; gap: 2px; text-align: left; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); cursor: pointer; min-width: 0; }
+.day .dn { display: flex; justify-content: space-between; gap: 4px; font: 500 11px var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.day .dt { font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day.done { background: var(--good-soft); border-color: transparent; }
+.day.done .dn span:last-child { color: var(--good); }
+.day[aria-current="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.day.tool { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.day.tool .dn { color: inherit; opacity: .7; }
+.day.tool[aria-current="true"] { box-shadow: 0 0 0 2px var(--yellow); }
+
+.banner { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--bad-soft); font-size: 14.5px; }
+.banner a { color: var(--accent); }
+
+/* Day header and tabs */
+.dayhead { display: grid; gap: 8px; padding-top: 22px; }
+h2 { margin: 0; font: 800 clamp(26px, 3.6vw, 36px)/1.08 var(--f-display); letter-spacing: -.025em; text-wrap: balance; }
+.goal { margin: 0; max-width: 72ch; font-size: 17px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tabbtn { padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); cursor: pointer; font-weight: 500; }
+.tabbtn[aria-selected="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+/* Learn */
+.learn { display: grid; gap: 18px; padding-top: 18px; max-width: 980px; }
+.learn > * { min-width: 0; }
+h3 { margin: 10px 0 0; display: flex; align-items: center; gap: 10px; font: 800 21px/1.2 var(--f-display); }
+.step { display: inline-grid; place-items: center; flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--yellow); color: #141820; font: 500 13px var(--f-mono); }
+.hint { margin: 0; font-size: 14px; color: var(--muted); max-width: 74ch; }
+.plan { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.plan li { padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; font-size: 14px; }
+.plan b { font-weight: 600; }
+.plan .mins { font: 500 12px var(--f-mono); color: var(--muted); margin-right: 6px; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.map { width: 100%; border-collapse: collapse; font: 400 13.5px/1.5 var(--f-mono); }
+.map th { text-align: left; font: 500 11px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.map td { padding: 7px 12px; border-bottom: 1px solid var(--line); vertical-align: top; white-space: pre-wrap; overflow-wrap: anywhere; }
+.map tr:last-child td { border-bottom: 0; }
+.map td:first-child { color: var(--muted); width: 42%; }
+.map td:last-child { font-weight: 500; }
+.map .cm { color: var(--muted); font-weight: 400; }
+.excard { margin: 0; border-radius: 12px; overflow: hidden; background: var(--code-bg); color: var(--code-ink); }
+.excard figcaption, .edbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--code-line); font: 500 13.5px var(--f-body); color: #F3F5F8; }
+.excard figcaption .t { flex: 1; min-width: 0; }
+.dbtn { border: 1px solid #3A4250; background: transparent; color: #C9D1DB; border-radius: 6px; padding: 4px 10px; font: 500 12px var(--f-mono); cursor: pointer; }
+.dbtn:hover:not(:disabled) { border-color: #8A95A3; color: #fff; }
+.dbtn.run { background: #E4E8EE; color: #141820; border-color: #E4E8EE; font-weight: 600; }
+.dbtn:disabled { opacity: .5; cursor: default; }
+textarea.pyed { display: block; width: 100%; margin: 0; border: 0; outline: none; resize: vertical; background: var(--code-bg); color: var(--code-ink); font: 400 14px/1.6 var(--f-mono); tab-size: 4; white-space: pre; overflow: auto; caret-color: var(--yellow); }
+textarea.pyed:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+.exed { padding: 12px 14px; min-height: 60px; overflow-y: hidden; }
+.io { background: var(--out-bg); border-top: 1px solid var(--code-line); }
+.io .lab { display: block; padding: 8px 14px 0; font: 500 10.5px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: #F2CC60; }
+.io.in .lab { color: #8FB8E8; }
+.io pre { padding: 6px 14px 12px; color: #D6DCE4; font: 400 13.5px/1.55 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.io pre.err { color: #FF9D8F; }
+.io .tip { display: block; padding: 0 14px 12px; font: 400 13.5px var(--f-body); color: #E9EDF2; }
+.watch { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.watch li { position: relative; padding: 10px 12px 10px 36px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--yellow); border-radius: 8px; font-size: 15px; }
+.watch li::before { content: "!"; position: absolute; left: 13px; top: 10px; font: 600 14px var(--f-mono); color: var(--warn); }
+.finish { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 16px; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); }
+.finish p { margin: 0; color: var(--muted); }
+
+/* Problems */
+.work { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 22px; align-items: start; padding-top: 18px; }
+.work > * { min-width: 0; }
+.brief, .bench { display: grid; gap: 14px; }
+.brief > *, .bench > * { min-width: 0; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { min-width: 36px; height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: 500 13px var(--f-mono); cursor: pointer; }
+.pill.done { background: var(--good-soft); border-color: transparent; color: var(--good); }
+.pill[aria-current="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); color: var(--ink); }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.diff { font: 500 12px var(--f-mono); padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.diff.E { color: var(--good); } .diff.M { color: var(--warn); } .diff.H { color: var(--bad); }
+.lclink { font: 500 12.5px var(--f-mono); color: var(--accent); }
+.solved { font: 500 12.5px var(--f-mono); color: var(--good); }
+.statement { padding: 14px 16px; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); font-size: 16.5px; }
+.statement p { margin: 0; }
+.samples { display: grid; gap: 8px; }
+.sample { padding: 10px 12px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); font: 400 13.5px/1.55 var(--f-mono); overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.sample b { font-family: var(--f-body); font-weight: 600; font-size: 13px; color: var(--muted); }
+details { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 10px 14px; }
+details summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+details[open] summary { margin-bottom: 10px; }
+details p { margin: 0; }
+.snip { padding: 12px 14px; border-radius: 8px; background: var(--code-bg); color: var(--code-ink); font: 400 13.5px/1.6 var(--f-mono); overflow-x: auto; margin-bottom: 10px; }
+.prevnext { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.editor { border-radius: 12px; overflow: hidden; background: var(--code-bg); }
+.edbar .fname { flex: 1; font-family: var(--f-mono); font-size: 13px; }
+.ed { display: grid; grid-template-columns: auto minmax(0, 1fr); }
+.gutter { padding: 12px 8px 12px 12px; text-align: right; color: #5D6878; font: 400 14px/1.6 var(--f-mono); user-select: none; overflow: hidden; border-right: 1px solid var(--code-line); }
+.mained { height: 340px; padding: 12px 14px; }
+.stdinbox { border-top: 1px solid var(--code-line); }
+.stdinbox label { display: block; padding: 8px 14px 0; font: 500 10.5px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: #8FB8E8; }
+.stdinbox textarea { display: block; width: 100%; height: 76px; padding: 6px 14px 10px; border: 0; outline: none; resize: vertical; background: var(--out-bg); color: var(--code-ink); font: 400 13.5px/1.5 var(--f-mono); }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 12px; border-top: 1px solid var(--code-line); }
+.actions .btn { border-color: #3A4250; background: #222A35; color: #E4E8EE; }
+.actions .btn.run { background: #E4E8EE; border-color: #E4E8EE; color: #141820; font-weight: 600; }
+.actions .btn.go { background: var(--good); border-color: var(--good); color: #fff; }
+.actions .spacer { flex: 1; }
+.kbd { font: 500 11px var(--f-mono); color: #9AA4B2; }
+.pstatus { font: 500 12px var(--f-mono); color: #FDE68A; }
+
+.res { display: grid; gap: 10px; padding: 14px 16px; border-radius: 12px; border: 2px solid var(--bad); background: var(--bad-soft); }
+.res.pass { border-color: var(--good); background: var(--good-soft); }
+.res.info { border-color: var(--line); background: var(--surface); }
+.res h3 { margin: 0; font-size: 19px; }
+.res.pass h3 { color: var(--good); } .res.fail h3 { color: var(--bad); }
+.res .tip { margin: 0; font-size: 14.5px; }
+.res pre.out { padding: 10px 12px; border-radius: 8px; background: var(--code-bg); color: var(--code-ink); font: 400 13px/1.55 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.res pre.out.err { color: #FF9D8F; }
+.tests { display: grid; gap: 6px; }
+.test { padding: 8px 12px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); }
+.test summary { color: var(--ink); font-weight: 500; font-size: 14.5px; }
+.test summary::marker { color: var(--muted); }
+.test.ok summary .mark { color: var(--good); } .test.no summary .mark { color: var(--bad); }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin-top: 6px; font: 400 13px/1.5 var(--f-mono); }
+.kv span:nth-child(odd) { color: var(--muted); font-family: var(--f-body); font-size: 13px; }
+.kv span:nth-child(even) { white-space: pre-wrap; overflow-wrap: anywhere; }
+.kv .bad { color: var(--bad); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* Playground and cheat sheet */
+.solo { display: grid; gap: 14px; padding-top: 22px; max-width: 980px; }
+.solo > * { min-width: 0; }
+.search { width: 100%; max-width: 420px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.sheet-block { display: grid; gap: 8px; }
+.sheet-block h3 { font-size: 19px; }
+.foot { margin-top: 40px; font-size: 13px; color: var(--muted); max-width: 90ch; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Python colours (on dark code backgrounds) */
+.tk-kw { color: #C792EA; } .tk-c { color: #F78C6C; } .tk-s { color: #C3E88D; } .tk-n { color: #F78C6C; }
+.tk-cm { color: #7D8896; font-style: italic; } .tk-b { color: #82AAFF; } .tk-f { color: #FFCB6B; } .tk-d { color: #FFCB6B; }
+
+@media (min-width: 1100px) {
+  .days { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+}
+@media (max-width: 980px) {
+  .work { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .days { display: flex; overflow-x: auto; }
+  .day { flex: none; width: 128px; }
+  textarea.pyed, .gutter, .stdinbox textarea { font-size: 16px; }
+  .mained { height: 300px; }
+  .kbd { display: none; }
+  .map, .map tbody, .map tr, .map td { display: block; width: 100%; }
+  .map thead { display: none; }
+  .map tr { padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  .map td { padding: 0; border: 0; }
+  .map td:first-child { width: 100%; font-size: 12.5px; }
+  .map td:first-child::before { content: "C++  "; color: var(--accent); font-weight: 500; }
+  .map td:last-child::before { content: "Py   "; color: var(--accent); }
+}
+@media (prefers-reduced-motion: reduce) { .pypill::before { animation: none !important; } }
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="title-row">
+      <div>
+        <span class="eyebrow">Accenture prep · DSA in Python for C++ coders · 7 days</span>
+        <h1>Python <em>DSA</em> Lab</h1>
+      </div>
+      <div class="savebar">
+        <span class="sync" id="sync" data-state="saving" role="status">Connecting to your account…</span>
+        <button class="btn dark" id="saveBtn" type="button">Save</button>
+      </div>
+    </div>
+    <p class="lede">Real Python runs inside this page. Each day has two parts: <b>Learn</b> (the C++ → Python mapping and examples you can edit and run, about 40 minutes) and <b>Problems</b> (write the solution; <b>Submit</b> runs hidden tests, like LeetCode). Go one day at a time.</p>
+    <div class="statusrow">
+      <span class="pypill" id="pypill" data-state="loading" role="status">Starting Python…</span>
+      <span id="overall"></span>
+    </div>
+  </header>
+
+  <nav class="days" id="nav" aria-label="Days"></nav>
+  <div class="banner" id="banner" hidden></div>
+  <main id="view"></main>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const DATA = /*DATA*/;
+  const DAYS = DATA.days;
+  const SHORT = { d1: 'Basics', d2: 'Strings & chars', d3: 'Lists & sorting', d4: 'Hash maps & sets', d5: 'Stack, queue, heap', d6: 'Two pointers', d7: 'Recursion & DP', mock: 'Mock test' };
+  const DIFF = { E: 'Easy', M: 'Medium', H: 'Hard' };
+  const LS_UI = 'py-lab-ui-v1';
+  const LS_DATA = 'py-lab-data-v1';
+  const BLOCKED = ['not_granted', 'capability_disabled', 'capability_removed', 'revoked'];
+  const BYDAY = Object.fromEntries(DAYS.map(d => [d.id, d]));
+  const PROB = {};
+  DAYS.forEach(d => d.problems.forEach((p, i) => { p.day = d.id; p.k = i; PROB[p.id] = p; }));
+  const ALLP = DAYS.flatMap(d => d.problems);
+  const LESSON_DAYS = DAYS.filter(d => d.id !== 'mock');
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+  const clock = d => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const pad2 = n => String(n).padStart(2, '0');
+  const isoDay = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  const shortDate = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); };
+  const pyRepr = v => v === null ? 'None' : v === true ? 'True' : v === false ? 'False'
+    : typeof v === 'string' ? `'${v.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`
+    : Array.isArray(v) ? `[${v.map(pyRepr).join(', ')}]`
+    : typeof v === 'object' ? `{${Object.entries(v).map(([k, x]) => `${pyRepr(k)}: ${pyRepr(x)}`).join(', ')}}` : String(v);
+  const paramsOf = p => { const m = /^def \w+\((.*?)\)/.exec(p.starter); return m ? m[1].split(',').map(s => s.trim()).filter(Boolean) : []; };
+
+  /* ---------- Python highlighting ---------- */
+  const KW = new Set('def class return if elif else for while in not and or is import from as lambda nonlocal global pass break continue try except finally raise with yield del assert'.split(' '));
+  const CONST = new Set(['None', 'True', 'False', 'self']);
+  const BUILTIN = new Set('print len range int str list dict set tuple sorted sum max min abs enumerate zip map filter ord chr bin hex input float bool any all reversed iter next round divmod format isinstance'.split(' '));
+  const TOK = /(#[^\n]*)|([rbfRBF]{0,2}(?:'''[\s\S]*?'''|"""[\s\S]*?"""|'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"))|(@[A-Za-z_]\w*)|(\b\d[\d_]*(?:\.\d+)?(?:e[+-]?\d+)?\b)|([A-Za-z_]\w*)/g;
+  function hl(src) {
+    let out = '', last = 0, prev = '', m;
+    TOK.lastIndex = 0;
+    while ((m = TOK.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      const t = m[0];
+      let cls = '';
+      if (m[1]) cls = 'cm';
+      else if (m[2]) cls = 's';
+      else if (m[3]) cls = 'd';
+      else if (m[4]) cls = 'n';
+      else if (KW.has(t)) cls = 'kw';
+      else if (CONST.has(t)) cls = 'c';
+      else if (prev === 'def' || prev === 'class') cls = 'f';
+      else if (BUILTIN.has(t) && src[TOK.lastIndex] === '(') cls = 'b';
+      out += cls ? `<span class="tk-${cls}">${esc(t)}</span>` : esc(t);
+      if (m[5]) prev = t;
+      last = TOK.lastIndex;
+    }
+    return out + esc(src.slice(last));
+  }
+  const pyCell = s => s.split('\n').map(line => { const k = line.indexOf('  #'); return k < 0 ? esc(line) : `${esc(line.slice(0, k))}<span class="cm">${esc(line.slice(k))}</span>`; }).join('\n');
+
+  /* ---------- State ---------- */
+  let store = { solved: {}, read: {}, code: {}, play: '', updatedAt: 0 };
+  let ui = { view: null, tab: 'learn', pick: {}, playStdin: '' };
+  let sheetQuery = '';
+  let db = null, mode = 'connecting', ready = false, readOnly = false;
+  let pending = false, inflight = false, again = false, editSeq = 0;
+  let lastSaved = null, lastError = null, retryTimer = null, flushTimer = null, flash = null;
+
+  function cleanStore(s) {
+    const out = { solved: {}, read: {}, code: {}, play: '', updatedAt: 0 };
+    if (!s || typeof s !== 'object') return out;
+    out.updatedAt = typeof s.updatedAt === 'number' ? s.updatedAt : 0;
+    const obj = x => (x && typeof x === 'object') ? x : {};
+    const day = v => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) ? v : 1;
+    for (const [id, v] of Object.entries(obj(s.solved))) if (v && PROB[id]) out.solved[id] = day(v);
+    for (const [id, v] of Object.entries(obj(s.read))) if (v && BYDAY[id]) out.read[id] = day(v);
+    for (const [id, v] of Object.entries(obj(s.code))) if (PROB[id] && typeof v === 'string') out.code[id] = v.slice(0, 30000);
+    if (typeof s.play === 'string') out.play = s.play.slice(0, 30000);
+    return out;
+  }
+
+  /* ---------- Saving (same approach as your other trackers) ---------- */
+  function cacheLocal() { try { localStorage.setItem(LS_DATA, JSON.stringify({ store, pending })); } catch (e) { /* blocked */ } }
+  function loadLocal() {
+    try { const raw = JSON.parse(localStorage.getItem(LS_DATA) || 'null'); if (raw) { store = cleanStore(raw.store); pending = !!raw.pending; } } catch (e) { /* ignore */ }
+    try { const u = JSON.parse(localStorage.getItem(LS_UI) || 'null'); if (u && typeof u === 'object') ui = { ...ui, ...u, pick: { ...(u.pick || {}) } }; } catch (e) { /* ignore */ }
+  }
+  function saveUi() { try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch (e) { /* ignore */ } }
+  function withTimeout(p, ms) {
+    return new Promise((res, rej) => { const t = setTimeout(() => rej({ code: 'timeout' }), ms); p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); });
+  }
+  async function saveDoc(body) {
+    const once = () => withTimeout(db.doc('progress/main').set(body), 15000);
+    try { await once(); }
+    catch (e) {
+      if (e && ['unavailable', 'resource_exhausted', 'timeout'].includes(e.code)) { await new Promise(r => setTimeout(r, 700 + Math.random() * 900)); await once(); }
+      else throw e;
+    }
+  }
+  function noteError(e) {
+    lastError = (e && e.code) || 'unknown';
+    if (BLOCKED.includes(lastError)) mode = 'blocked';
+    else if (!['invalid_argument', 'quota_exceeded'].includes(lastError) && !retryTimer) retryTimer = setTimeout(() => { retryTimer = null; flush(); }, 15000);
+  }
+  async function flush() {
+    clearTimeout(flushTimer); flushTimer = null;
+    if (!(mode === 'db' && db && ready && !readOnly) || !pending) { updateSync(); return; }
+    if (inflight) { again = true; return; }
+    inflight = true; updateSync();
+    const seq = editSeq;
+    const body = JSON.parse(JSON.stringify(store));
+    let ok = false;
+    try { await saveDoc(body); ok = true; } catch (e) { noteError(e); }
+    inflight = false;
+    if (ok) { lastSaved = new Date(); lastError = null; if (editSeq === seq) pending = false; cacheLocal(); }
+    if (again || (ok && pending)) { again = false; flush(); return; }
+    updateSync();
+  }
+  function syncInfo() {
+    if (flash && Date.now() < flash.until) return [flash.state, flash.text];
+    if (readOnly) return ['readonly', 'View only. Your work here is not saved.'];
+    if (mode === 'connecting') return ['saving', pending ? 'Connecting to your account… your work is kept until then' : 'Connecting to your account…'];
+    if (mode === 'local') return ['local', 'Saved on this device only'];
+    if (mode === 'blocked') return ['error', 'Saving to your account is switched off for this page. Press Allow saving.'];
+    if (!ready) return ['saving', 'Loading your saved work…'];
+    if (pending && lastError === 'invalid_argument') return ['error', 'Not saved: this account cannot change this page.'];
+    if (pending && lastError) return ['error', `Not saved yet (${lastError}). Retrying soon, or press Save.`];
+    if (pending || inflight) return ['saving', 'Saving…'];
+    return ['synced', lastSaved ? `All work saved to your account · ${clock(lastSaved)}` : 'Your work is saved to your account'];
+  }
+  function updateSync() {
+    const [state, text] = syncInfo();
+    const el = $('sync'); el.dataset.state = state; el.textContent = text;
+    const b = $('saveBtn'); b.textContent = mode === 'blocked' ? 'Allow saving' : 'Save'; b.hidden = readOnly;
+  }
+  function showFlash(state, text) { flash = { state, text, until: Date.now() + 4000 }; updateSync(); setTimeout(updateSync, 4100); }
+  async function onSave() {
+    cacheLocal();
+    if (mode === 'blocked') {
+      let perms = null;
+      try { perms = await window.claude.use('permissions'); } catch (e) { perms = null; }
+      try { if (perms) await perms.manage(); } catch (e) { /* fall through */ }
+      let st = 'denied';
+      try { if (perms) st = await perms.state('db'); } catch (e) { st = 'denied'; }
+      if (st === 'granted') { mode = 'db'; lastError = null; subscribe(); } else showFlash('error', 'Turn saving on in the page’s Permissions menu, then reload.');
+      return;
+    }
+    if (mode === 'db') {
+      if (!ready) { showFlash('saving', 'Still loading your saved work. Your changes will upload in a moment.'); return; }
+      if (!pending) { showFlash('synced', `All work saved to your account · ${clock(lastSaved || new Date())}`); return; }
+      lastError = null; flush(); return;
+    }
+    if (mode === 'local') { showFlash('local', `Saved on this device · ${clock(new Date())}`); return; }
+    showFlash('saving', 'Still connecting. Your work is kept and will upload when it connects.');
+  }
+  function edit(fn, delay) {
+    if (readOnly) return;
+    fn();
+    store.updatedAt = Date.now(); editSeq++; pending = true;
+    cacheLocal();
+    clearTimeout(flushTimer); flushTimer = setTimeout(flush, delay || 900);
+    updateSync();
+  }
+
+  /* ======================= Python engine =======================
+     Python (Pyodide) runs in py-worker.js. A run that takes too long is stopped by
+     ending the worker and starting a fresh one. */
+  const PY = { state: 'idle', version: '', error: '', worker: null, seq: 0, pending: new Map(), waiters: [] };
+  const RUN_MS = 6000, CHECK_MS = 12000;
+  function pyStart() {
+    PY.state = PY.state === 'restarting' ? 'restarting' : 'loading';
+    renderPy();
+    let w;
+    try { w = new Worker('py-worker.js'); }
+    catch (e) { pyFail('This app view does not allow a Python worker (' + (e.message || e) + ').'); return; }
+    PY.worker = w;
+    w.onmessage = ev => {
+      const m = ev.data || {};
+      if (m.fatal) { if (PY.state !== 'ready') pyFail(m.error); return; }
+      const p = PY.pending.get(m.id);
+      if (!p) return;
+      PY.pending.delete(m.id); clearTimeout(p.timer); p.resolve(m);
+    };
+    w.onerror = ev => { if (ev.preventDefault) ev.preventDefault(); if (PY.state !== 'ready') pyFail(ev.message || 'The Python worker could not start.'); };
+    const limit = setTimeout(() => { if (PY.worker === w && PY.state !== 'ready') pyFail('Python did not start within 90 seconds.'); }, 90000);
+    pyCall({ type: 'init' }, 0).then(m => {
+      clearTimeout(limit);
+      if (PY.worker !== w) return;
+      if (m.ok) { PY.state = 'ready'; PY.version = m.version; renderPy(); PY.waiters.splice(0).forEach(f => f(true)); report('ready', m.version); }
+      else pyFail(m.error);
+    });
+  }
+  function pyFail(msg) {
+    PY.state = 'failed'; PY.error = String(msg || 'unknown error');
+    try { if (PY.worker) PY.worker.terminate(); } catch (e) { /* already gone */ }
+    PY.worker = null;
+    for (const p of PY.pending.values()) { clearTimeout(p.timer); p.resolve({ ok: false, failed: true, error: PY.error }); }
+    PY.pending.clear();
+    PY.waiters.splice(0).forEach(f => f(false));
+    renderPy(); report('failed', PY.error);
+  }
+  function pyRestart() {
+    try { if (PY.worker) PY.worker.terminate(); } catch (e) { /* ignore */ }
+    PY.worker = null;
+    for (const p of PY.pending.values()) { clearTimeout(p.timer); p.resolve({ ok: false, timeout: true }); }
+    PY.pending.clear();
+    PY.state = 'restarting';
+    pyStart();
+  }
+  function pyCall(msg, timeoutMs) {
+    return new Promise(resolve => {
+      if (!PY.worker) { resolve({ ok: false, failed: true, error: PY.error || 'Python is not running.' }); return; }
+      const id = ++PY.seq;
+      const entry = { resolve, timer: null };
+      if (timeoutMs) entry.timer = setTimeout(() => { if (!PY.pending.has(id)) return; PY.pending.delete(id); resolve({ ok: false, timeout: true }); pyRestart(); }, timeoutMs);
+      PY.pending.set(id, entry);
+      PY.worker.postMessage({ ...msg, id });
+    });
+  }
+  function whenReady() {
+    if (PY.state === 'ready') return Promise.resolve(true);
+    if (PY.state === 'failed') return Promise.resolve(false);
+    return new Promise(r => PY.waiters.push(r));
+  }
+  async function pyRun(code, stdin) {
+    if (!(await whenReady())) return { failed: true, error: PY.error };
+    const m = await pyCall({ type: 'run', req: { code, stdin: stdin || '' } }, RUN_MS);
+    return m.ok ? m.result : m;
+  }
+  async function pyCheck(p, code, tests, limitMs) {
+    if (!(await whenReady())) return { failed: true, error: PY.error };
+    const m = await pyCall({ type: 'check', req: { code, kind: p.kind, func: p.func, mode: p.mode || 'exact', tests } }, limitMs || CHECK_MS);
+    return m.ok ? m.result : m;
+  }
+  function renderPy() {
+    const el = $('pypill');
+    el.dataset.state = PY.state;
+    el.textContent = PY.state === 'ready' ? `Python ${PY.version} ready` : PY.state === 'restarting' ? 'Restarting Python…'
+      : PY.state === 'failed' ? 'Python cannot run here' : 'Starting Python… (about 14 MB the first time)';
+    const b = $('banner');
+    if (PY.state === 'failed') {
+      b.hidden = false;
+      b.innerHTML = `<b>Python could not start in this app view.</b> ${esc(PY.error)} You can still read every lesson and solution here. To run code, paste it into an online Python such as <a href="https://www.online-python.com/" target="_blank" rel="noopener">online-python.com</a>, or open this page in Chrome on a laptop.`;
+    } else b.hidden = true;
+    document.querySelectorAll('[data-needs-py]').forEach(x => { x.disabled = PY.state === 'failed'; });
+  }
+  // Remember whether Python started on this device, so problems can be diagnosed.
+  let diag = null;
+  function report(state, detail) {
+    diag = { state, detail: String(detail || '').slice(0, 300), ua: navigator.userAgent.slice(0, 200), at: Date.now() };
+    sendDiag();
+  }
+  function sendDiag() {
+    if (!diag || !db || mode !== 'db' || readOnly) return;
+    const d = diag; diag = null;
+    try { db.doc('diag/python').set(d).catch(() => {}); } catch (e) { /* not important */ }
+  }
+
+  /* ---------- Error tips ---------- */
+  function tipFor(err) {
+    const s = String(err || '');
+    if (/IndentationError|unindent|expected an indented block/.test(s)) return 'Indent every line of a block with the same number of spaces (4 is standard), and indent after every line that ends with ":".';
+    if (/SyntaxError/.test(s)) return 'Check for a missing ":" after if/for/while/def, a missing bracket or quote, or "=" where you meant "==".';
+    let m;
+    if ((m = /NameError: name '(\w+)' is not defined/.exec(s))) return `"${m[1]}" is unknown here: check the spelling and capitals, and make sure it is created (or imported) before this line.`;
+    if (/NoneType/.test(s)) return 'Something is None. A function without "return" gives None, and so does list.sort() — use sorted() if you need the result.';
+    if (/IndexError/.test(s)) return 'An index is outside the list. range(n) stops at n - 1, and an empty list has no [0] or [-1].';
+    if (/KeyError/.test(s)) return 'That key is not in the dict. Use d.get(key, 0), or check "key in d" first.';
+    if (/RecursionError|maximum recursion/.test(s)) return 'The recursion went too deep: check the base case, or write the DP bottom-up.';
+    if (/UnboundLocalError/.test(s)) return 'You assign to an outer variable inside a nested function: add "nonlocal name" at the top of that function.';
+    if (/TypeError: can only concatenate str/.test(s)) return 'You added text and a number. Convert with str(x) or int(s) first.';
+    if (/TypeError/.test(s)) return 'A value has the wrong type for this operation, or a function got the wrong number of arguments.';
+    if (/ZeroDivisionError/.test(s)) return 'Division by zero: check for an empty list or a zero count before dividing.';
+    if (/EOFError/.test(s)) return 'input() found no more input. Check how many lines you read.';
+    if (/ValueError: invalid literal for int/.test(s)) return 'int() got text that is not a whole number. For a line with several numbers use list(map(int, input().split())).';
+    return '';
+  }
+  const TIMEOUT_TXT = 'Stopped: your code ran too long (over 6 seconds for Run, 12 for Submit). Check every while loop: does its condition become False? Does the loop variable change?';
+
+  /* ======================= Rendering ======================= */
+  function solvedIn(d) { return d.problems.filter(p => store.solved[p.id]).length; }
+  function nextStep() {
+    for (const d of DAYS) {
+      if (d.id !== 'mock' && !store.read[d.id]) return { d, tab: 'learn', text: `Day ${d.n} · Learn` };
+      const p = d.problems.find(x => !store.solved[x.id]);
+      if (p) return { d, tab: 'problems', p, text: `${d.id === 'mock' ? 'Mock' : 'Day ' + d.n} · ${p.title}` };
+    }
+    return null;
+  }
+  function renderOverall() {
+    const n = Object.keys(store.solved).length, r = Object.keys(store.read).length;
+    const t = isoDay(new Date());
+    const today = Object.values(store.solved).filter(v => v === t).length;
+    const nx = nextStep();
+    $('overall').innerHTML = `<span>Solved <b>${n}</b> / ${ALLP.length} <span class="bar" aria-hidden="true"><i style="width:${n / ALLP.length * 100}%"></i></span></span>`
+      + `<span>Lessons <b>${r}</b> / ${LESSON_DAYS.length}</span><span>Today <b>${today}</b></span>`
+      + (nx ? `<span class="nextstep">Next: <button type="button" class="btn small" data-next="1">${esc(nx.text)} →</button></span>` : '<span class="nextstep">Everything done. Redo problems from Reset to keep it fresh.</span>');
+  }
+  function renderNav() {
+    const cur = ui.view;
+    $('nav').innerHTML = DAYS.map(d => {
+      const s = solvedIn(d), all = s === d.problems.length && (d.id === 'mock' || store.read[d.id]);
+      return `<button type="button" class="day${all ? ' done' : ''}" data-view="${d.id}" aria-current="${cur === d.id}"><span class="dn"><span>${d.id === 'mock' ? 'Final' : 'Day ' + d.n}</span><span>${s}/${d.problems.length}${all ? ' ✓' : ''}</span></span><span class="dt">${esc(SHORT[d.id] || d.title)}</span></button>`;
+    }).join('')
+      + `<button type="button" class="day tool" data-view="play" aria-current="${cur === 'play'}"><span class="dn"><span>Any code</span><span></span></span><span class="dt">Playground</span></button>`
+      + `<button type="button" class="day tool" data-view="sheet" aria-current="${cur === 'sheet'}"><span class="dn"><span>All days</span><span></span></span><span class="dt">Cheat sheet</span></button>`;
+  }
+
+  function dayHtml(d) {
+    const s = solvedIn(d);
+    return `<div class="dayhead">
+        <span class="eyebrow">${d.id === 'mock' ? 'After day 7' : `Day ${d.n} of ${LESSON_DAYS.length}`}${store.read[d.id] ? ' · lesson read' : ''}</span>
+        <h2 id="vt">${esc(d.title)}</h2>
+        <p class="goal">${fmt(d.goal)}</p>
+        <div class="tabs" role="tablist" aria-label="Parts of this day">
+          <button type="button" class="tabbtn" role="tab" data-tab="learn" aria-selected="${ui.tab === 'learn'}">1 · Learn</button>
+          <button type="button" class="tabbtn" role="tab" data-tab="problems" aria-selected="${ui.tab === 'problems'}">2 · Problems (${s}/${d.problems.length})</button>
+        </div>
+      </div>
+      <div id="dayBody">${ui.tab === 'learn' ? learnHtml(d) : problemHtml(d, currentProblem(d))}</div>`;
+  }
+
+  function learnHtml(d) {
+    const ex = d.examples.map((e, i) => `<figure class="excard" data-edhost="1">
+        <figcaption><span class="t">${esc(e.title)}</span><button type="button" class="dbtn" data-act="ex-reset" data-ex="${d.id}:${i}">Reset</button><button type="button" class="dbtn run" data-act="ex-run" data-ex="${d.id}:${i}" data-run="1" data-needs-py="1">Run ▶</button></figcaption>
+        <label class="sr" for="exed-${d.id}-${i}">Example code: ${esc(e.title)}</label>
+        <textarea class="pyed exed" id="exed-${d.id}-${i}" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off"></textarea>
+        ${e.stdin ? `<div class="io in"><span class="lab">Input (stdin)</span><pre>${esc(e.stdin.replace(/\n$/, ''))}</pre></div>` : ''}
+        <div class="io" id="exout-${d.id}-${i}"><span class="lab">Output</span><pre>${esc(e.out)}</pre></div>
+      </figure>`).join('');
+    const isMock = d.id === 'mock';
+    return `<section class="learn" aria-labelledby="vt">
+      ${isMock ? '' : `<ul class="plan">
+        <li><span class="mins">40m</span><b>Learn:</b> read the table, run and change each example</li>
+        <li><span class="mins">90m</span><b>Problems:</b> solve them in order; Submit until Accepted</li>
+        <li><span class="mins">15m</span><b>Redo:</b> press Reset on one problem and solve it again from memory</li>
+      </ul>`}
+      <h3><span class="step">1</span>${isMock ? 'Quick reminders' : 'C++ → Python'}</h3>
+      <div class="tablewrap"><table class="map"><thead><tr><th scope="col">C++</th><th scope="col">Python</th></tr></thead>
+        <tbody>${d.map.map(([c, p]) => `<tr><td>${esc(c)}</td><td>${pyCell(p)}</td></tr>`).join('')}</tbody></table></div>
+      <h3><span class="step">2</span>Run the examples</h3>
+      <p class="hint">Change anything and press Run (or Ctrl+Enter). The output shown first is what the original code prints. Reset brings the original back.</p>
+      ${ex}
+      <h3><span class="step">3</span>Watch out</h3>
+      <ul class="watch">${d.traps.map(t => `<li>${fmt(t)}</li>`).join('')}</ul>
+      <div class="finish">
+        <p>${store.read[d.id] ? `You marked this lesson as read${typeof store.read[d.id] === 'string' ? ' on ' + shortDate(store.read[d.id]) : ''}.` : 'Done with the lesson? Mark it, then start the problems.'}</p>
+        <div class="row">
+          ${readOnly ? '' : `<button type="button" class="btn ${store.read[d.id] ? '' : 'go'}" data-act="read" data-day="${d.id}">${store.read[d.id] ? 'Mark as not read' : 'Mark lesson as read'}</button>`}
+          <button type="button" class="btn dark" data-tab="problems">Start the problems →</button>
+        </div>
+      </div>
+    </section>`;
+  }
+
+  function currentProblem(d) {
+    const id = ui.pick[d.id];
+    return (PROB[id] && PROB[id].day === d.id) ? PROB[id] : (d.problems.find(p => !store.solved[p.id]) || d.problems[0]);
+  }
+  function samplesHtml(p) {
+    const names = paramsOf(p);
+    return p.tests.slice(0, 2).map((t, i) => {
+      if (p.kind === 'stdin') return `<div class="sample"><b>Example ${i + 1} input</b>\n${esc(t.stdin.replace(/\n$/, ''))}\n<b>Output</b>\n${esc(t.expected)}</div>`;
+      const args = t.args.map((a, j) => `${names[j] || 'arg' + (j + 1)} = ${pyRepr(a)}`).join(', ');
+      const out = p.mode === 'inplace' ? `${names[0]} becomes ${pyRepr(t.expected)}` : pyRepr(t.expected);
+      return `<div class="sample"><b>Example ${i + 1}</b>\n${esc(args)}\n<b>${p.mode === 'inplace' ? 'After the call' : 'Returns'}</b>  ${esc(out)}</div>`;
+    }).join('');
+  }
+  function problemHtml(d, p) {
+    const k = d.problems.indexOf(p), prev = d.problems[k - 1], next = d.problems[k + 1];
+    const pills = d.problems.map((x, i) => `<button type="button" class="pill${store.solved[x.id] ? ' done' : ''}" data-pid="${x.id}" aria-current="${x.id === p.id}" title="${esc(x.title)}" aria-label="Problem ${i + 1}: ${esc(x.title)}${store.solved[x.id] ? ', solved' : ''}">${i + 1}${store.solved[x.id] ? ' ✓' : ''}</button>`).join('');
+    const lc = p.lc ? `<a class="lclink" href="https://leetcode.com/problems/${p.slug}/" target="_blank" rel="noopener">LeetCode ${p.lc} ↗</a>` : '';
+    const sol = store.solved[p.id];
+    return `<div class="work">
+      <section class="brief" aria-labelledby="pt">
+        <div class="pills" aria-label="Problems of this day">${pills}</div>
+        <div class="meta"><span class="eyebrow">Problem ${k + 1} of ${d.problems.length}</span><span class="diff ${p.diff}">${DIFF[p.diff]}</span>${lc}${sol ? `<span class="solved">Solved${typeof sol === 'string' ? ' ' + shortDate(sol) : ''} ✓</span>` : ''}</div>
+        <h2 id="pt">${esc(p.title)}</h2>
+        <div class="statement"><p>${fmt(p.statement)}</p></div>
+        <div class="samples">${samplesHtml(p)}</div>
+        <details><summary>Hint</summary><p>${fmt(p.hint)}</p></details>
+        <details id="solBox"><summary>Solution</summary><pre class="snip"><code>${hl(p.solution.replace(/\n$/, ''))}</code></pre><button type="button" class="btn small" data-act="p-usesol">Put the solution in the editor</button></details>
+        <div class="prevnext">${prev ? `<button type="button" class="btn" data-pid="${prev.id}">← Previous</button>` : '<span></span>'}${next ? `<button type="button" class="btn dark" data-pid="${next.id}">Next problem →</button>` : ''}</div>
+      </section>
+      <section class="bench" aria-label="Your code">
+        <div class="editor" data-edhost="1">
+          <div class="edbar"><span class="fname">solution.py</span><button type="button" class="dbtn" data-act="p-reset">Reset</button><button type="button" class="dbtn" data-act="p-copy">Copy</button></div>
+          <div class="ed"><pre class="gutter" id="gutter" aria-hidden="true">1</pre><label class="sr" for="code">Your Python code</label><textarea class="pyed mained" id="code" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off"></textarea></div>
+          ${p.kind === 'stdin' ? `<div class="stdinbox"><label for="stdin">Input used by Run</label><textarea id="stdin" spellcheck="false">${esc(p.tests[0].stdin)}</textarea></div>` : ''}
+          <div class="actions">
+            <button type="button" class="btn run" data-act="p-run" data-run="1" data-needs-py="1">${p.kind === 'stdin' ? 'Run ▶' : 'Run examples ▶'}</button>
+            <button type="button" class="btn go" data-act="p-submit" data-needs-py="1">Submit</button>
+            <span class="pstatus" id="pstatus" aria-live="polite"></span>
+            <span class="spacer"></span>
+            <span class="kbd">Ctrl+Enter runs · Tab indents</span>
+          </div>
+        </div>
+        <div id="results" aria-live="polite"></div>
+      </section>
+    </div>`;
+  }
+
+  function playHtml() {
+    return `<section class="solo" aria-labelledby="vt">
+      <span class="eyebrow">Write and run any Python</span>
+      <h2 id="vt">Playground</h2>
+      <p class="hint">Try anything here: small tests, LeetCode solutions, input() practice. Your code here is saved.</p>
+      <div class="editor" data-edhost="1">
+        <div class="edbar"><span class="fname">playground.py</span><button type="button" class="dbtn" data-act="play-clear">Clear</button><button type="button" class="dbtn" data-act="p-copy">Copy</button></div>
+        <div class="ed"><pre class="gutter" id="gutter" aria-hidden="true">1</pre><label class="sr" for="code">Playground code</label><textarea class="pyed mained" id="code" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off"></textarea></div>
+        <div class="stdinbox"><label for="stdin">Input (stdin) for input()</label><textarea id="stdin" spellcheck="false">${esc(ui.playStdin || '')}</textarea></div>
+        <div class="actions"><button type="button" class="btn run" data-act="play-run" data-run="1" data-needs-py="1">Run ▶</button><span class="pstatus" id="pstatus" aria-live="polite"></span><span class="spacer"></span><span class="kbd">Ctrl+Enter runs · Tab indents</span></div>
+      </div>
+      <div id="results" aria-live="polite"></div>
+    </section>`;
+  }
+  const PLAY_START = `# Write any Python here and press Run.
+import heapq
+from collections import deque, Counter
+
+nums = [5, 1, 8, 3]
+heapq.heapify(nums)
+print("smallest:", nums[0])
+print(Counter("banana").most_common(2))
+`;
+
+  function sheetHtml() {
+    return `<section class="solo" aria-labelledby="vt">
+      <span class="eyebrow">Every C++ → Python table on one page</span>
+      <h2 id="vt">Cheat sheet</h2>
+      <p class="hint">Read it the night before the test. Search for anything, for example <code>heap</code>, <code>ord</code> or <code>sort</code>.</p>
+      <label class="sr" for="sheetQ">Search the cheat sheet</label><input class="search" id="sheetQ" type="search" placeholder="Search, for example heap" value="${esc(sheetQuery)}">
+      <div id="sheetBody" style="display:grid;gap:22px">${sheetBody()}</div>
+    </section>`;
+  }
+  function sheetBody() {
+    const q = sheetQuery.trim().toLowerCase();
+    const html = DAYS.map(d => {
+      const rows = d.map.filter(([c, p]) => !q || (c + ' ' + p + ' ' + d.title).toLowerCase().includes(q));
+      const traps = d.traps.filter(t => !q || t.toLowerCase().includes(q));
+      if (!rows.length && !traps.length) return '';
+      return `<div class="sheet-block"><h3>${d.id === 'mock' ? 'Test day' : 'Day ' + d.n} · ${esc(d.title)}</h3>
+        ${rows.length ? `<div class="tablewrap"><table class="map"><thead><tr><th scope="col">C++</th><th scope="col">Python</th></tr></thead><tbody>${rows.map(([c, p]) => `<tr><td>${esc(c)}</td><td>${pyCell(p)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+        ${traps.length ? `<ul class="watch">${traps.map(t => `<li>${fmt(t)}</li>`).join('')}</ul>` : ''}</div>`;
+    }).join('');
+    return html || '<p class="hint">Nothing matches. Try a shorter word.</p>';
+  }
+
+  function renderView(opts) {
+    renderNav(); renderOverall();
+    const v = ui.view;
+    if (v === 'play') { $('view').innerHTML = playHtml(); mountEditor(store.play || PLAY_START); }
+    else if (v === 'sheet') $('view').innerHTML = sheetHtml();
+    else {
+      const d = BYDAY[v];
+      $('view').innerHTML = dayHtml(d);
+      if (ui.tab === 'learn') d.examples.forEach((e, i) => { const ta = $(`exed-${d.id}-${i}`); ta.value = e.src.replace(/\n$/, ''); autoGrow(ta); });
+      else { const p = currentProblem(d); mountEditor(store.code[p.id] != null ? store.code[p.id] : p.starter); }
+    }
+    renderPy();
+    if (opts && opts.scroll) { const top = $('view').getBoundingClientRect().top; if (top < 0) $('view').scrollIntoView({ block: 'start' }); }
+  }
+  function go(view, tab, pid) {
+    ui.view = view;
+    if (tab) ui.tab = tab;
+    if (pid) ui.pick[PROB[pid].day] = pid;
+    saveUi();
+    renderView({ scroll: true });
+  }
+
+  /* ---------- Editors ---------- */
+  function mountEditor(code) {
+    const ta = $('code');
+    ta.value = code;
+    ta.readOnly = false;
+    updateGutter();
+  }
+  function updateGutter() {
+    const ta = $('code'), g = $('gutter'); if (!ta || !g) return;
+    const n = ta.value.split('\n').length;
+    g.textContent = Array.from({ length: n }, (_, i) => i + 1).join('\n');
+    g.scrollTop = ta.scrollTop;
+  }
+  function autoGrow(ta) { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
+  function insertText(ta, text) {
+    let ok = false;
+    try { ok = document.execCommand('insertText', false, text); } catch (e) { ok = false; }
+    if (!ok) { ta.setRangeText(text, ta.selectionStart, ta.selectionEnd, 'end'); ta.dispatchEvent(new Event('input', { bubbles: true })); }
+  }
+  function lineBounds(v, pos) { const s = v.lastIndexOf('\n', pos - 1) + 1; let e = v.indexOf('\n', pos); if (e < 0) e = v.length; return [s, e]; }
+  function shiftLines(ta, dedent) {
+    const v = ta.value, a = ta.selectionStart, b = ta.selectionEnd;
+    const start = v.lastIndexOf('\n', a - 1) + 1;
+    let end = v.indexOf('\n', Math.max(b - 1, a)); if (end < 0) end = v.length;
+    const lines = v.slice(start, end).split('\n');
+    const changed = lines.map(l => dedent ? l.replace(/^ {1,4}/, '') : '    ' + l).join('\n');
+    ta.setSelectionRange(start, end);
+    insertText(ta, changed);
+    ta.setSelectionRange(start, start + changed.length);
+  }
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); onSave(); return; }
+    const ta = e.target;
+    if (!ta.classList || !ta.classList.contains('pyed')) return;
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      const host = ta.closest('[data-edhost]'); const b = host && host.querySelector('[data-run]'); if (b && !b.disabled) b.click();
+      return;
+    }
+    if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      e.preventDefault();
+      if (e.shiftKey || ta.value.slice(ta.selectionStart, ta.selectionEnd).includes('\n')) shiftLines(ta, e.shiftKey);
+      else insertText(ta, '    ');
+      return;
+    }
+    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && !e.isComposing) {
+      e.preventDefault();
+      const v = ta.value, pos = ta.selectionStart;
+      const [s] = lineBounds(v, pos);
+      const before = v.slice(s, pos);
+      let indent = (/^ */.exec(before) || [''])[0];
+      if (/:\s*(#.*)?$/.test(before)) indent += '    ';
+      insertText(ta, '\n' + indent);
+    }
+  });
+  document.addEventListener('scroll', e => { if (e.target && e.target.id === 'code') { const g = $('gutter'); if (g) g.scrollTop = e.target.scrollTop; } }, true);
+
+  /* ---------- Output and results ---------- */
+  function outBlock(res) {
+    if (res.timeout) return `<pre class="err">${esc(TIMEOUT_TXT)}</pre>`;
+    if (res.failed) return `<pre class="err">${esc('Python is not available here: ' + (res.error || ''))}</pre>`;
+    if (res.ok === false) return `<pre class="err">${esc(res.error || 'Something went wrong.')}</pre>`;
+    const parts = [];
+    if (res.stdout) parts.push(`<pre>${esc(res.stdout.replace(/\n$/, ''))}</pre>`);
+    if (res.error) { parts.push(`<pre class="err">${esc(res.error)}</pre>`); const tip = tipFor(res.error); if (tip) parts.push(`<span class="tip">${esc(tip)}</span>`); }
+    if (!parts.length) parts.push('<pre>(nothing was printed)</pre>');
+    return parts.join('');
+  }
+  function resultsHtml(p, res, scope) {
+    if (res.timeout) return `<div class="res fail"><h3>Time limit</h3><p class="tip">${esc(TIMEOUT_TXT)}</p></div>`;
+    if (res.failed) return `<div class="res info"><h3>Python is not available</h3><p class="tip">${esc(res.error || '')}</p></div>`;
+    if (res.ok === false) return `<div class="res fail"><h3>Something went wrong</h3><pre class="out err">${esc(res.error || '')}</pre></div>`;
+    if (res.error) {
+      const tip = tipFor(res.error);
+      return `<div class="res fail"><h3>Your code has an error</h3><pre class="out err">${esc(res.error)}</pre>${tip ? `<p class="tip">${esc(tip)}</p>` : ''}${res.stdout ? `<p class="tip">Printed before the error:</p><pre class="out">${esc(res.stdout)}</pre>` : ''}</div>`;
+    }
+    const rs = res.results || [], passed = rs.filter(r => r.ok).length, all = passed === rs.length;
+    const firstBad = rs.findIndex(r => !r.ok);
+    const title = all ? (scope === 'all' ? `Accepted · all ${rs.length} tests passed` : `Both examples pass · now press Submit`) : `${passed} of ${rs.length} ${scope === 'all' ? 'tests' : 'examples'} passed`;
+    const tests = rs.map((r, i) => {
+      const kv = [['Input', r.input], ['Expected', r.expected]];
+      if (r.error) kv.push(['Error', r.error]);
+      else kv.push(['Your answer', r.got == null ? '' : r.got]);
+      if (r.stdout) kv.push(['Printed', r.stdout.replace(/\n$/, '')]);
+      const tip = r.error ? tipFor(r.error) : (r.got === 'None' && r.expected !== 'None' ? 'Your function returned None: add "return" with the answer.' : '');
+      return `<details class="test ${r.ok ? 'ok' : 'no'}"${i === firstBad ? ' open' : ''}><summary><span class="mark">${r.ok ? '✓' : '✗'}</span> ${scope === 'all' ? 'Test' : 'Example'} ${i + 1}</summary>
+        <div class="kv">${kv.map(([k, v]) => `<span>${k}</span><span${k === 'Error' || (k === 'Your answer' && !r.ok) ? ' class="bad"' : ''}>${esc(v)}</span>`).join('')}</div>${tip ? `<p class="tip">${esc(tip)}</p>` : ''}</details>`;
+    }).join('');
+    const pre = res.stdout ? `<p class="tip">Printed when your file ran:</p><pre class="out">${esc(res.stdout.replace(/\n$/, ''))}</pre>` : '';
+    const d = BYDAY[p.day], next = d.problems[p.k + 1];
+    const after = all && scope === 'all' ? `<div class="row">${next ? `<button type="button" class="btn dark" data-pid="${next.id}">Next problem →</button>` : nextDayBtn(d)}</div>` : '';
+    return `<div class="res ${all ? 'pass' : 'fail'}"><h3>${title}</h3><div class="tests">${tests}</div>${pre}${after}</div>`;
+  }
+  function nextDayBtn(d) {
+    const i = DAYS.indexOf(d), nd = DAYS[i + 1];
+    return nd ? `<button type="button" class="btn dark" data-view="${nd.id}" data-tab-go="learn">Go to ${nd.id === 'mock' ? 'the mock test' : 'Day ' + nd.n} →</button>` : '<span>That was the last one. Great work.</span>';
+  }
+
+  async function runProblem(scope) {
+    const p = currentProblem(BYDAY[ui.view]);
+    const code = $('code').value, st = $('pstatus'), box = $('results');
+    document.querySelectorAll('[data-act="p-run"], [data-act="p-submit"]').forEach(b => { b.disabled = true; });
+    st.textContent = PY.state === 'ready' ? (scope === 'all' ? 'Running all tests…' : 'Running…') : 'Waiting for Python to start…';
+    let html;
+    if (p.kind === 'stdin' && scope !== 'all') {
+      const res = await pyRun(code, $('stdin').value);
+      const exp = p.tests[0].expected, same = $('stdin').value === p.tests[0].stdin;
+      const got = (res.stdout || '').replace(/\s+$/, '').split('\n').map(l => l.replace(/\s+$/, '')).join('\n');
+      const note = same && !res.error && !res.timeout && !res.failed ? (got === exp ? '<p class="tip">This matches Example 1. Press Submit to run all tests.</p>' : `<p class="tip">Example 1 expects:</p><pre class="out">${esc(exp)}</pre>`) : '';
+      html = `<div class="res info"><h3>Output</h3><div class="io" style="border-radius:8px;overflow:hidden">${outBlock(res)}</div>${note}</div>`;
+    } else {
+      const res = await pyCheck(p, code, scope === 'all' ? p.tests : p.tests.slice(0, 2), scope === 'all' ? CHECK_MS : RUN_MS);
+      html = resultsHtml(p, res, scope);
+      if (scope === 'all' && !res.error && res.results && res.results.length && res.results.every(r => r.ok) && !store.solved[p.id]) {
+        edit(() => { store.solved[p.id] = isoDay(new Date()); });
+        renderNav(); renderOverall();
+        const pill = document.querySelector(`.pill[data-pid="${p.id}"]`); if (pill) { pill.classList.add('done'); pill.textContent = (p.k + 1) + ' ✓'; }
+        const tab = document.querySelector('.tabbtn[data-tab="problems"]'), d = BYDAY[p.day]; if (tab) tab.textContent = `2 · Problems (${solvedIn(d)}/${d.problems.length})`;
+      }
+    }
+    if (currentProblem(BYDAY[ui.view]) !== p || !$('results')) return;
+    box.innerHTML = html;
+    st.textContent = '';
+    renderPy();
+    document.querySelectorAll('[data-act="p-run"], [data-act="p-submit"]').forEach(b => { b.disabled = PY.state === 'failed'; });
+    box.scrollIntoView({ block: 'nearest' });
+  }
+
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* older way */ }
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand('copy'); ta.remove(); return ok;
+    } catch (e) { return false; }
+  }
+
+  /* ---------- Events ---------- */
+  let codeTimer = null;
+  document.addEventListener('input', e => {
+    const t = e.target;
+    if (t.id === 'code') {
+      updateGutter();
+      clearTimeout(codeTimer);
+      codeTimer = setTimeout(() => {
+        if (ui.view === 'play') edit(() => { store.play = t.value; }, 1500);
+        else if (BYDAY[ui.view] && ui.tab === 'problems') {
+          const p = currentProblem(BYDAY[ui.view]);
+          edit(() => { if (t.value === p.starter) delete store.code[p.id]; else store.code[p.id] = t.value; }, 1500);
+        }
+      }, 300);
+    } else if (t.classList && t.classList.contains('exed')) autoGrow(t);
+    else if (t.id === 'sheetQ') { sheetQuery = t.value; $('sheetBody').innerHTML = sheetBody(); }
+    else if (t.id === 'stdin' && ui.view === 'play') { ui.playStdin = t.value; saveUi(); }
+  });
+
+  document.addEventListener('click', async e => {
+    const nx = e.target.closest('[data-next]');
+    if (nx) { const s = nextStep(); if (s) go(s.d.id, s.tab, s.p && s.p.id); return; }
+    const vw = e.target.closest('[data-view]');
+    if (vw) { go(vw.dataset.view, vw.dataset.tabGo || (BYDAY[vw.dataset.view] && !store.read[vw.dataset.view] && vw.dataset.view !== 'mock' ? 'learn' : null)); return; }
+    const tb = e.target.closest('[data-tab]');
+    if (tb && BYDAY[ui.view]) { ui.tab = tb.dataset.tab; saveUi(); renderView({ scroll: !!tb.closest('.finish') }); return; }
+    const pp = e.target.closest('[data-pid]');
+    if (pp) { go(PROB[pp.dataset.pid].day, 'problems', pp.dataset.pid); return; }
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'read') {
+      const id = b.dataset.day;
+      edit(() => { if (store.read[id]) delete store.read[id]; else store.read[id] = isoDay(new Date()); });
+      renderView();
+    } else if (act === 'ex-run' || act === 'ex-reset') {
+      const [did, i] = b.dataset.ex.split(':'), ex = BYDAY[did].examples[Number(i)];
+      const ta = $(`exed-${did}-${i}`), out = $(`exout-${did}-${i}`);
+      if (act === 'ex-reset') { ta.value = ex.src.replace(/\n$/, ''); autoGrow(ta); out.innerHTML = `<span class="lab">Output</span><pre>${esc(ex.out)}</pre>`; return; }
+      b.disabled = true;
+      out.innerHTML = `<span class="lab">Output</span><pre>${PY.state === 'ready' ? 'Running…' : 'Waiting for Python to start…'}</pre>`;
+      const res = await pyRun(ta.value, ex.stdin || '');
+      out.innerHTML = `<span class="lab">Output</span>${outBlock(res)}`;
+      b.disabled = PY.state === 'failed';
+    } else if (act === 'p-run') runProblem('examples');
+    else if (act === 'p-submit') runProblem('all');
+    else if (act === 'p-reset') {
+      const p = currentProblem(BYDAY[ui.view]);
+      $('code').value = p.starter; updateGutter();
+      edit(() => { delete store.code[p.id]; });
+      $('results').innerHTML = '';
+    } else if (act === 'p-usesol') {
+      const p = currentProblem(BYDAY[ui.view]);
+      $('code').value = p.solution; updateGutter();
+      edit(() => { store.code[p.id] = p.solution; });
+      $('code').focus();
+    } else if (act === 'p-copy') {
+      const ok = await copyText($('code').value);
+      b.textContent = ok ? 'Copied' : 'Copy failed';
+      setTimeout(() => { b.textContent = 'Copy'; }, 1600);
+    } else if (act === 'play-clear') {
+      $('code').value = ''; updateGutter(); edit(() => { store.play = ''; }); $('results').innerHTML = '';
+    } else if (act === 'play-run') {
+      b.disabled = true; $('pstatus').textContent = PY.state === 'ready' ? 'Running…' : 'Waiting for Python to start…';
+      const res = await pyRun($('code').value, $('stdin').value);
+      if (ui.view !== 'play') return;
+      $('results').innerHTML = `<div class="res info"><h3>Output</h3><div class="io" style="border-radius:8px;overflow:hidden">${outBlock(res)}</div></div>`;
+      $('pstatus').textContent = ''; b.disabled = PY.state === 'failed';
+    }
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { cacheLocal(); flush(); } });
+  window.addEventListener('pagehide', () => { cacheLocal(); flush(); });
+  $('saveBtn').addEventListener('click', onSave);
+
+  /* ---------- Account ---------- */
+  function onProgress(s) {
+    const fromCache = !!(s.metadata && s.metadata.fromCache);
+    if (!ready && fromCache && !s.exists) return;
+    const srv = s.exists ? cleanStore(s.data()) : null;
+    let changed = false;
+    if (srv && (!pending || srv.updatedAt > store.updatedAt) && !inflight) {
+      changed = JSON.stringify([srv.solved, srv.read, srv.code, srv.play]) !== JSON.stringify([store.solved, store.read, store.code, store.play]);
+      store = srv; pending = false;
+    }
+    const first = !ready && !fromCache;
+    if (first) ready = true;
+    cacheLocal();
+    if (changed) {
+      const ta = $('code');
+      if (ta && document.activeElement === ta) { renderNav(); renderOverall(); }
+      else renderView();
+    }
+    if (first) { flush(); sendDiag(); }
+    updateSync();
+  }
+  let subTries = 0;
+  function subscribe() {
+    db.doc('progress/main').onSnapshot(onProgress, e => {
+      const code = (e && e.code) || 'unknown'; lastError = code;
+      if (BLOCKED.includes(code)) mode = 'blocked';
+      else { ready = true; if (subTries++ < 3) setTimeout(subscribe, 4000); flush(); }
+      updateSync();
+    });
+    setTimeout(() => { if (mode === 'db' && !ready) { ready = true; flush(); } }, 12000);
+  }
+  async function connect() {
+    if (!window.claude || typeof window.claude.use !== 'function') { mode = 'local'; updateSync(); return; }
+    let ns = null;
+    try { ns = await window.claude.use('db'); } catch (e) { ns = null; }
+    if (!ns) { mode = 'local'; updateSync(); return; }
+    db = ns; mode = 'db';
+    subscribe(); updateSync(); sendDiag();
+    try {
+      const user = await window.claude.use('user');
+      if (user && (await user.can('data.write')) === false) { readOnly = true; updateSync(); }
+    } catch (e) { /* a refused save will say so */ }
+  }
+
+  /* ---------- Start ---------- */
+  loadLocal();
+  if (!(ui.view === 'play' || ui.view === 'sheet' || BYDAY[ui.view])) { const s = nextStep(); ui.view = s ? s.d.id : 'd1'; ui.tab = s ? s.tab : 'learn'; }
+  if (!['learn', 'problems'].includes(ui.tab)) ui.tab = 'learn';
+  $('foot').textContent = `Every example output and every solution on this page was checked by running it. ${ALLP.length} problems, ${ALLP.reduce((n, p) => n + p.tests.length, 0)} tests. Python here is CPython 3.12 (Pyodide), close to the Python LeetCode uses.`;
+  renderView();
+  updateSync();
+  pyStart();
+  connect();
+})();
+</script>
